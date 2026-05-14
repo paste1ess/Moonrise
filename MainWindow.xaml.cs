@@ -1,7 +1,9 @@
+using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Moonrise.Pages;
+using WinRT.Interop;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -25,11 +27,6 @@ namespace Moonrise
             NavView.IsPaneOpen = !NavView.IsPaneOpen;
         }
 
-        private void TitleBar_BackRequested(TitleBar sender, object args)
-        {
-            NavFrame.GoBack();
-        }
-
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
@@ -43,8 +40,11 @@ namespace Moonrise
                     case "home":
                         NavFrame.Navigate(typeof(HomePage));
                         break;
-                    case "about":
-                        NavFrame.Navigate(typeof(AboutPage));
+                    case "player":
+                        NavFrame.Navigate(typeof(PlayerPage));
+                        break;
+                    case "tracks":
+                        NavFrame.Navigate(typeof(TracksPage));
                         break;
                     default:
                         throw new InvalidOperationException($"Unknown navigation item tag: {item.Tag}");

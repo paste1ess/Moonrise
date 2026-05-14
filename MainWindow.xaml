@@ -21,8 +21,7 @@
         <TitleBar
             x:Name="AppTitleBar"
             Title="Moonrise"
-            BackRequested="TitleBar_BackRequested"
-            IsBackButtonVisible="{x:Bind NavFrame.CanGoBack, Mode=OneWay}"
+            IsBackButtonVisible="False"
             IsPaneToggleButtonVisible="True"
             PaneToggleRequested="TitleBar_PaneToggleRequested">
             <TitleBar.IconSource>
@@ -45,9 +44,16 @@
                         <FontIcon Glyph="&#xE80F;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="About" Tag="about">
+                
+                <NavigationViewItem Content="Now Playing" Tag="player">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xEA3A;" />
+                        <FontIcon Glyph="&#xE768;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Tracks" Tag="tracks">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE90B;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
