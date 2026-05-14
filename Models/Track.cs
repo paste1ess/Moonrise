@@ -24,6 +24,5 @@ namespace Moonrise.Models
         public int Bitrate { get; init; }
         public TimeSpan Duration { get; init; }
         public DateTime DateAdded { get; init; }
-        
     }
 }

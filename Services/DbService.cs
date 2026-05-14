@@ -66,11 +66,11 @@ namespace Moonrise.Services
             artistTableCommand.ExecuteNonQuery();
         }
 
-        public void InsertTrack(Track track)
+        public void UpsertTrack(Track track, string scanSessionTimestamp)
         {
-            using var command = new SqliteCommand(@"INSERT INTO tracks 
-                (id, album_id, artist_id, title, album, artist, year, genre, is_favorite, file_path, bitrate, duration, date_added) VALUES
-                (@id, @album_id, @artist_id, @title, @album, @artist, @year, @genre, @is_favorite, @file_path, @bitrate, @duration, @date_added);", 
+            using var command = new SqliteCommand(@"INSERT OR REPLACE INTO tracks 
+                (id, album_id, artist_id, title, album, artist, year, genre, is_favorite, file_path, bitrate, duration, date_added) VALUES 
+                (@id, @album_id, @artist_id, @title, @album, @artist, @year, @genre, @is_favorite, @file_path, @bitrate, @duration, @date_added);",
             _connection);
 
             command.Parameters.AddWithValue("@id", track.Id);

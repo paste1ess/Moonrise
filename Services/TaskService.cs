@@ -77,4 +77,26 @@ namespace Moonrise.Services
         Task ExecuteAsync();
         Task FailedAsync(Exception ex) => Task.CompletedTask;
     }
+    public class RelayAppCommand : IAppCommand
+    {
+        private readonly Func<Task> _execute;
+        private readonly Func<Exception, Task> _onFailed;
+
+        public RelayAppCommand(Func<Task> execute, Func<Exception, Task> onFailed = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _onFailed = onFailed;
+        }
+
+        public Task ExecuteAsync() => _execute();
+
+        public Task FailedAsync(Exception ex)
+        {
+            if (_onFailed != null)
+            {
+                return _onFailed(ex);
+            }
+            return Task.CompletedTask;
+        }
+    }
 }
