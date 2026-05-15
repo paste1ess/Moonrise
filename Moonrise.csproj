@@ -18,6 +18,7 @@
 	<ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Controls\CircleIconButton.xaml" />
     <None Remove="Pages\PlayerPage.xaml" />
     <None Remove="Pages\TracksPage.xaml" />
   </ItemGroup>
@@ -47,6 +48,7 @@
     <PropertyGroup> above to opt out.
   -->
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="ComputeSharp.D2D1.WinUI" Version="3.2.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.0" />
@@ -54,7 +56,9 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Controls\" />
+    <Page Update="Controls\CircleIconButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\TracksPage.xaml">

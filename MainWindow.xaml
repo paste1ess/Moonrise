@@ -27,7 +27,7 @@
                 IsPaneToggleButtonVisible="True"
                 PaneToggleRequested="TitleBar_PaneToggleRequested">
                 <TitleBar.IconSource>
-                    <ImageIconSource ImageSource="Assets/AppIcon.ico" />
+                    <FontIconSource Glyph="&#xEC4F;" Foreground="{StaticResource AccentTextFillColorPrimaryBrush}"/>
                 </TitleBar.IconSource>
                 <TitleBar.RightHeader>
                     <Grid Height="44" VerticalAlignment="Stretch" Margin="0,2">
