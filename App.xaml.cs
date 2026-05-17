@@ -31,11 +31,13 @@ namespace Moonrise
         /// Invoked when the application is launched.
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
             _window = new MainWindow();
 
             TaskService.Initialize(_window.DispatcherQueue);
+
+            await LibraryService.Instance.HardScanLibrary("C:\\Users\\jamied\\Documents\\devmusic");
 
             _window.Activate();
         }

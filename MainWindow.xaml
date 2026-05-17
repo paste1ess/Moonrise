@@ -15,6 +15,12 @@
 
     <Grid>
         <Grid>
+            <canvas:CanvasControl 
+                x:Name="ShaderCanvas"
+                CreateResources="ShaderCanvas_CreateResources"
+                Draw="ShaderCanvas_Draw"/>
+        </Grid>
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="48" />
                 <RowDefinition Height="*" />
@@ -63,16 +69,40 @@
                 <NavigationView.MenuItems>
                     <NavigationViewItem
                         Content="Home"
-                        IsSelected="True"
                         Tag="home">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE80F;" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
 
+                    <NavigationViewItemSeparator/>
+                    
                     <NavigationViewItem Content="Tracks" Tag="tracks">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE90B;" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="Albums" Tag="albums">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE93C;" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="Artists" Tag="artists">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE716;" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+
+                    <NavigationViewItemSeparator/>
+
+                    <NavigationViewItem Content="Favorites" Tag="favorites">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xE728;" />
+                        </NavigationViewItem.Icon>
+                    </NavigationViewItem>
+                    <NavigationViewItem Content="Playlists" Tag="artists">
+                        <NavigationViewItem.Icon>
+                            <FontIcon Glyph="&#xF168;" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>

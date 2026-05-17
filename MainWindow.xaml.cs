@@ -1,9 +1,9 @@
 using ComputeSharp.D2D1.WinUI;
+using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
-using Microsoft.UI.Composition;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -12,7 +12,9 @@ using Microsoft.UI.Xaml.Media;
 using Moonrise.Pages;
 using Moonrise.Shaders;
 using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
+using Windows.Foundation;
 using Windows.Storage;
 using WinRT.Interop;
 
@@ -24,6 +26,11 @@ namespace Moonrise
     public sealed partial class MainWindow : Window
     {
         private PixelShaderEffect<BackgroundShader> _shaderEffect;
+        private bool _isLightTheme;
+        private readonly DateTime _startTime = DateTime.UtcNow;
+        private readonly DispatcherTimer _shaderTimer = new();
+        private CanvasRenderTarget? _offscreen;
+        private float _lastWidth, _lastHeight;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern nint LoadImage(
@@ -50,6 +57,28 @@ namespace Moonrise
             AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
             AppWindow.SetIcon("Assets/AppIcon.ico");
             SetTaskManagerIcon();
+
+            Activated += MainWindow_Activated;
+
+            _isLightTheme = Application.Current.RequestedTheme == ApplicationTheme.Light;
+            ((FrameworkElement)Content).ActualThemeChanged += (s, _) => _isLightTheme = s.ActualTheme == ElementTheme.Light;
+
+            _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 12.0);
+            _shaderTimer.Tick += (_, _) => ShaderCanvas.Invalidate();
+            _shaderTimer.Start();
+
+            NavFrame.Navigate(typeof(HomePage));
+        }
+        private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            if (args.WindowActivationState == WindowActivationState.Deactivated) // lost focus
+            {
+                _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 3.0); // 3 fps
+            }
+            else
+            {
+                _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 12.0);
+            }
         }
         private void SetTaskManagerIcon()
         {
@@ -74,20 +103,47 @@ namespace Moonrise
                 SetClassLongPtr(hwnd, GCL_HICONSM, hIconSmall);
         }
 
-        //private void ShaderCanvas_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args)
-        //{
-        //    _shaderEffect = new PixelShaderEffect<BackgroundShader>();
-        //}
+        private void ShaderCanvas_CreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
+        {
+            _shaderEffect = new PixelShaderEffect<BackgroundShader>();
+        }
 
-        //private void ShaderCanvas_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
-        //{
-        //    _shaderEffect.ConstantBuffer = new BackgroundShader((float)args.Timing.TotalTime.TotalSeconds);
-        //}
+        private void ShaderCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            _shaderEffect.ConstantBuffer = new BackgroundShader(
+                (float)(DateTime.UtcNow - _startTime).TotalSeconds,
+                _isLightTheme
+            );
 
-        //private void ShaderCanvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
-        //{
-        //    args.DrawingSession.DrawImage(_shaderEffect);
-        //}
+            float renderScale = 0.1f;
+            float width = (float)sender.ActualWidth * renderScale;
+            float height = (float)sender.ActualHeight * renderScale;
+
+            if (width < 1 || height < 1)
+                return;
+
+            if (_offscreen == null || _lastWidth != width || _lastHeight != height)
+            {
+                _offscreen?.Dispose();
+                _offscreen = new CanvasRenderTarget(sender, width, height);
+                _lastWidth = width;
+                _lastHeight = height;
+            }
+
+            using (var ds = _offscreen.CreateDrawingSession())
+            {
+                ds.Clear(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+                ds.DrawImage(_shaderEffect);
+            }
+
+            args.DrawingSession.DrawImage(
+                _offscreen,
+                new Rect(0, 0, sender.ActualWidth, sender.ActualHeight),
+                _offscreen.Bounds,
+                1.0f,
+                CanvasImageInterpolation.Cubic
+            );
+        }
 
         private void TitleBar_PaneToggleRequested(TitleBar sender, object args)
         {
@@ -109,9 +165,24 @@ namespace Moonrise
                     case "home":
                         NavFrame.Navigate(typeof(HomePage));
                         break;
+
                     case "tracks":
                         NavFrame.Navigate(typeof(TracksPage));
                         break;
+                    case "albums":
+                        NavFrame.Navigate(typeof(TracksPage));
+                        break;
+                    case "artists":
+                        NavFrame.Navigate(typeof(TracksPage));
+                        break;
+
+                    case "favorites":
+                        NavFrame.Navigate(typeof(TracksPage));
+                        break;
+                    case "playlists":
+                        NavFrame.Navigate(typeof(TracksPage));
+                        break;
+
                     default:
                         throw new InvalidOperationException($"Unknown navigation item tag: {item.Tag}");
                 }

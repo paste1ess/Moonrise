@@ -7,8 +7,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
-    <Button CornerRadius="64" Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}">
-        <FontIcon Glyph="{x:Bind Glyph, Mode=OneWay}"/>
+    <UserControl.Resources>
+        <Style x:Key="FilledIconButton" TargetType="Button">
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style x:Key="TransparentIconButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </UserControl.Resources>
+    <Button x:Name="CircleIconButtonObject" CornerRadius="64" Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}" BorderThickness="1" BorderBrush="{ThemeResource ControlStrokeColorSecondary}">
+        <FontIcon Glyph="{x:Bind Glyph, Mode=OneWay}" FontSize="{x:Bind IconSize, Mode=OneWay}"/>
     </Button>
 </UserControl>

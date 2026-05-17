@@ -11,8 +11,9 @@ namespace Moonrise.Services
     {
         public static TaskService Instance { get; private set; } = null!;
 
-        private readonly Channel<IAppCommand> _channel;
+        private Channel<IAppCommand> _channel;
         private readonly CancellationTokenSource _cts;
+        private CancellationTokenSource _operationCts;
 
         public DispatcherQueue Dispatcher { get; }
 
@@ -25,9 +26,10 @@ namespace Moonrise.Services
         {
             Dispatcher = dispatcher;
             _cts = new CancellationTokenSource();
+            _operationCts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<IAppCommand>();
 
-            Task.Run(() => ProcessQueueAsync(_cts.Token));
+            Task.Run(() => ProcessQueueAsync(_channel, _operationCts.Token, _cts.Token));
         }
 
         public void Enqueue(IAppCommand command)
@@ -35,15 +37,41 @@ namespace Moonrise.Services
             if (command != null) _channel.Writer.TryWrite(command);
         }
 
-        private async Task ProcessQueueAsync(CancellationToken token)
+        // cancels whatever is currently running and resets the queue
+        public CancellationToken ClearAndReset()
+        {
+            _operationCts.Cancel();
+            _operationCts.Dispose();
+
+            _channel.Writer.TryComplete();
+
+            _operationCts = new CancellationTokenSource();
+            _channel = Channel.CreateUnbounded<IAppCommand>();
+
+            Task.Run(() => ProcessQueueAsync(_channel, _operationCts.Token, _cts.Token));
+
+            return _operationCts.Token;
+        }
+
+        private async Task ProcessQueueAsync(
+            Channel<IAppCommand> channel,
+            CancellationToken operationToken,
+            CancellationToken serviceToken)
         {
             try
             {
-                await foreach (var command in _channel.Reader.ReadAllAsync(token))
+                await foreach (var command in channel.Reader.ReadAllAsync(serviceToken))
                 {
+                    if (operationToken.IsCancellationRequested)
+                        continue;
+
                     try
                     {
-                        await command.ExecuteAsync();
+                        await command.ExecuteAsync(operationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Debug.WriteLine("task cancelled mid-flight");
                     }
                     catch (Exception ex)
                     {
@@ -57,6 +85,7 @@ namespace Moonrise.Services
                             Debug.WriteLine($"task fail logic ironically failed: {exFallback.Message}");
                         }
                     }
+
                 }
             }
             catch (OperationCanceledException)
@@ -70,32 +99,32 @@ namespace Moonrise.Services
             _channel.Writer.TryComplete();
             _cts.Cancel();
             _cts.Dispose();
+            _operationCts.Dispose();
         }
     }
+
     public interface IAppCommand
     {
-        Task ExecuteAsync();
+        Task ExecuteAsync(CancellationToken token = default);
         Task FailedAsync(Exception ex) => Task.CompletedTask;
     }
+
     public class RelayAppCommand : IAppCommand
     {
-        private readonly Func<Task> _execute;
-        private readonly Func<Exception, Task> _onFailed;
+        private readonly Func<CancellationToken, Task> _execute;
+        private readonly Func<Exception, Task>? _onFailed;
 
-        public RelayAppCommand(Func<Task> execute, Func<Exception, Task> onFailed = null)
+        public RelayAppCommand(Func<CancellationToken, Task> execute, Func<Exception, Task>? onFailed = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _onFailed = onFailed;
         }
 
-        public Task ExecuteAsync() => _execute();
+        public Task ExecuteAsync(CancellationToken token = default) => _execute(token);
 
         public Task FailedAsync(Exception ex)
         {
-            if (_onFailed != null)
-            {
-                return _onFailed(ex);
-            }
+            if (_onFailed != null) return _onFailed(ex);
             return Task.CompletedTask;
         }
     }

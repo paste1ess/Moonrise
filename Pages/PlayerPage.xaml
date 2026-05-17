@@ -19,8 +19,8 @@
                 <Image Source="/Assets/Placeholder.png" MaxWidth="320"/>
             </Frame>
             <StackPanel HorizontalAlignment="Center" Spacing="4">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Track name" HorizontalAlignment="Center"></TextBlock>
-                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="Artist name" HorizontalAlignment="Center"></TextBlock>
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Track name" HorizontalAlignment="Center"/>
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="Artist name" HorizontalAlignment="Center"/>
             </StackPanel>
             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
@@ -28,14 +28,20 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="0:00" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"></TextBlock>
-                <Slider Grid.Column="1" VerticalAlignment="Center" Margin="16,0"></Slider>
-                <TextBlock Grid.Column="2" Text="12:34" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"></TextBlock>
+                <TextBlock Grid.Column="0" Text="0:00" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"/>
+                <Slider Grid.Column="1" VerticalAlignment="Center" Margin="16,0"/>
+                <TextBlock Grid.Column="2" Text="12:34" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
             </Grid>
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <controls:CircleIconButton Glyph="&#xE768;" Size="48"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False"/>
+                <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True"/>
+                <controls:CircleIconButton Glyph="&#xE768;" Size="58" FontSize="18" Filled="True"/>
+                <controls:CircleIconButton Glyph="&#xE893;" Size="46" FontSize="16" Filled="True"/>
+                <controls:CircleIconButton Glyph="&#xE8EE;" Size="46" FontSize="16" Filled="False"/>
             </StackPanel>
         </StackPanel>
-        <Grid Grid.Column="1"></Grid>
+        <Grid Grid.Column="1">
+            <TextBlock Text="Hello I am the queue"/>
+        </Grid>
     </Grid>
 </Page>

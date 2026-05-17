@@ -22,6 +22,7 @@ namespace Moonrise.Controls
 {
     public sealed partial class CircleIconButton : UserControl
     {
+        public event RoutedEventHandler Click;
         public string Glyph
         {
             get => (string)GetValue(GlyphProperty);
@@ -40,9 +41,34 @@ namespace Moonrise.Controls
         public static readonly DependencyProperty SizeProperty =
             DependencyProperty.Register(nameof(Size), typeof(double), typeof(CircleIconButton), new PropertyMetadata(32.0));
 
+        public double IconSize
+        {
+            get => (double)GetValue(IconSizeProperty);
+            set => SetValue(IconSizeProperty, value);
+        }
+
+        public static readonly DependencyProperty IconSizeProperty =
+            DependencyProperty.Register(nameof(IconSize), typeof(double), typeof(CircleIconButton), new PropertyMetadata(18.0));
+
+        public bool Filled
+        {
+            get => (bool)GetValue(FilledProperty);
+            set => SetValue(FilledProperty, value);
+        }
+
+        public static readonly DependencyProperty FilledProperty =
+            DependencyProperty.Register(nameof(Filled), typeof(bool), typeof(CircleIconButton), new PropertyMetadata(true, OnFilledChanged));
+        private static void OnFilledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var control = (CircleIconButton)d;
+            control.CircleIconButtonObject.Style = (bool)e.NewValue
+                ? (Style)control.Resources["FilledIconButton"]
+                : (Style)control.Resources["TransparentIconButton"];
+        }
         public CircleIconButton()
         {
             this.InitializeComponent();
+            CircleIconButtonObject.Click += (s, e) => Click?.Invoke(this, e);
         }
     }
 }

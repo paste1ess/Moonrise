@@ -11,16 +11,25 @@ namespace Moonrise.Services
     public class DbService : IDisposable
     {
         private readonly SqliteConnection _connection;
-        
-        public DbService(string connectionString)
+        public readonly string DbPath;
+
+        public DbService(string path)
         {
+            var connectionString = "Data Source=" + path;
             _connection = new SqliteConnection(connectionString);
             _connection.Open();
 
             using var walCommand = new SqliteCommand("PRAGMA journal_mode=WAL;", _connection);
             walCommand.ExecuteNonQuery();
 
-            using var songTableCommand = new SqliteCommand(@"CREATE TABLE tracks (
+            DbPath = path;
+
+            InitSchema();
+        }
+
+        private void InitSchema()
+        {
+            using var songTableCommand = new SqliteCommand(@"CREATE TABLE IF NOT EXISTS tracks (
                 id          TEXT PRIMARY KEY,
                 album_id    TEXT NOT NULL,
                 artist_id   TEXT NOT NULL,
@@ -39,7 +48,7 @@ namespace Moonrise.Services
             );", _connection);
             songTableCommand.ExecuteNonQuery();
 
-            using var albumTableCommand = new SqliteCommand(@"CREATE TABLE albums (
+            using var albumTableCommand = new SqliteCommand(@"CREATE TABLE IF NOT EXISTS albums (
                 id          TEXT PRIMARY KEY,
                 track_ids   TEXT NOT NULL,     -- JSON array
                 artist_id   TEXT NOT NULL,
@@ -54,7 +63,7 @@ namespace Moonrise.Services
             );", _connection);
             albumTableCommand.ExecuteNonQuery();
 
-            using var artistTableCommand = new SqliteCommand(@"CREATE TABLE artists (
+            using var artistTableCommand = new SqliteCommand(@"CREATE TABLE IF NOT EXISTS artists (
                 id          TEXT PRIMARY KEY,
                 album_ids   TEXT NOT NULL,     -- JSON array
 
@@ -64,6 +73,18 @@ namespace Moonrise.Services
                 date_added  TEXT NOT NULL      -- stored as ISO8601 strings
             );", _connection);
             artistTableCommand.ExecuteNonQuery();
+        }
+
+        public void ResetDb()
+        {
+            using var cmd = new SqliteCommand(@"
+                DROP TABLE IF EXISTS tracks;
+                DROP TABLE IF EXISTS albums;
+                DROP TABLE IF EXISTS artists;
+            ", _connection);
+            cmd.ExecuteNonQuery();
+
+            InitSchema();
         }
 
         public void UpsertTrack(Track track, string scanSessionTimestamp)
