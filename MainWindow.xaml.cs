@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Moonrise.Pages;
+using Moonrise.Services;
 using Moonrise.Shaders;
 using System.IO;
 using System.Numerics;
@@ -18,16 +19,17 @@ using Windows.Foundation;
 using Windows.Storage;
 using WinRT.Interop;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace Moonrise
 {
     public sealed partial class MainWindow : Window
     {
-        private PixelShaderEffect<BackgroundShader> _shaderEffect;
+        private SettingsService _settings = SettingsService.Instance;
+        private PixelShaderEffect<BackgroundShader>? _shaderEffect;
         private bool _isLightTheme;
+        private bool _isWindowFocused;
         private readonly DateTime _startTime = DateTime.UtcNow;
+        private float _shaderTime = 0f;
+        private DateTime _lastTick = DateTime.UtcNow;
         private readonly DispatcherTimer _shaderTimer = new();
         private CanvasRenderTarget? _offscreen;
         private float _lastWidth, _lastHeight;
@@ -48,6 +50,7 @@ namespace Moonrise
         private const uint IMAGE_ICON = 1;
         private const uint LR_DEFAULTSIZE = 0x00000040;
         private const uint LR_SHARED = 0x00008000;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -64,31 +67,71 @@ namespace Moonrise
             ((FrameworkElement)Content).ActualThemeChanged += (s, _) => _isLightTheme = s.ActualTheme == ElementTheme.Light;
 
             _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 12.0);
-            _shaderTimer.Tick += (_, _) => ShaderCanvas.Invalidate();
-            _shaderTimer.Start();
+            _shaderTimer.Tick += (_, _) =>
+            {
+                var now = DateTime.UtcNow;
+                float delta = (float)(now - _lastTick).TotalSeconds;
+                _lastTick = now;
+                _shaderTime += delta * (_isWindowFocused ? 1f : 1f / 12f);
+                ShaderCanvas.Invalidate();
+            };
+
+            if (SettingsService.Instance.BackgroundShadersEnabled)
+            {
+                _shaderEffect = new PixelShaderEffect<BackgroundShader>();
+                ShaderCanvas.Draw += ShaderCanvas_Draw;
+                _shaderTimer.Start();
+            }
+
+            SettingsService.Instance.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName != nameof(SettingsService.BackgroundShadersEnabled)) return;
+
+                ShaderCanvas.Visibility = SettingsService.Instance.BackgroundShadersEnabled
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+
+                if (SettingsService.Instance.BackgroundShadersEnabled)
+                {
+                    _shaderEffect = new PixelShaderEffect<BackgroundShader>();
+                    ShaderCanvas.Draw += ShaderCanvas_Draw;
+                    _lastTick = DateTime.UtcNow;
+                    _shaderTimer.Start();
+                }
+                else
+                {
+                    _shaderTimer.Stop();
+                    ShaderCanvas.Draw -= ShaderCanvas_Draw;
+                    _offscreen?.Dispose();
+                    _offscreen = null;
+                    _shaderEffect = null;
+                }
+            };
 
             NavFrame.Navigate(typeof(HomePage));
         }
+
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
         {
-            if (args.WindowActivationState == WindowActivationState.Deactivated) // lost focus
+            if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
-                _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 3.0); // 3 fps
+                _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 0.5);
+                _isWindowFocused = false;
             }
             else
             {
                 _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 12.0);
+                _isWindowFocused = true;
             }
         }
+
         private void SetTaskManagerIcon()
         {
             var hwnd = WindowNative.GetWindowHandle(this);
             var hInstance = GetModuleHandle(null);
 
-            // large icon
             var hIconLarge = LoadImage(hInstance, "#32512", IMAGE_ICON, 32, 32, LR_SHARED);
 
-            // small icon
             var hIconSmall = LoadImage(
                 hInstance,
                 "AppIcon",
@@ -103,15 +146,13 @@ namespace Moonrise
                 SetClassLongPtr(hwnd, GCL_HICONSM, hIconSmall);
         }
 
-        private void ShaderCanvas_CreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
-        {
-            _shaderEffect = new PixelShaderEffect<BackgroundShader>();
-        }
-
         private void ShaderCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
+            if (_shaderEffect is null) return;
+
+
             _shaderEffect.ConstantBuffer = new BackgroundShader(
-                (float)(DateTime.UtcNow - _startTime).TotalSeconds,
+                _shaderTime,
                 _isLightTheme
             );
 
@@ -141,7 +182,8 @@ namespace Moonrise
                 new Rect(0, 0, sender.ActualWidth, sender.ActualHeight),
                 _offscreen.Bounds,
                 1.0f,
-                CanvasImageInterpolation.Cubic
+                CanvasImageInterpolation.Linear,
+                CanvasComposite.Copy
             );
         }
 
@@ -149,8 +191,6 @@ namespace Moonrise
         {
             NavView.IsPaneOpen = !NavView.IsPaneOpen;
         }
-
-        
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
@@ -165,7 +205,6 @@ namespace Moonrise
                     case "home":
                         NavFrame.Navigate(typeof(HomePage));
                         break;
-
                     case "tracks":
                         NavFrame.Navigate(typeof(TracksPage));
                         break;
@@ -175,18 +214,17 @@ namespace Moonrise
                     case "artists":
                         NavFrame.Navigate(typeof(TracksPage));
                         break;
-
                     case "favorites":
                         NavFrame.Navigate(typeof(TracksPage));
                         break;
                     case "playlists":
                         NavFrame.Navigate(typeof(TracksPage));
                         break;
-
                     default:
                         throw new InvalidOperationException($"Unknown navigation item tag: {item.Tag}");
                 }
             }
+
             if (args.SelectedItemContainer != null)
             {
                 PlayerNavIndicator.Visibility = Visibility.Collapsed;

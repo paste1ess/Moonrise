@@ -19,8 +19,8 @@
                 <Image Source="/Assets/Placeholder.png" MaxWidth="320"/>
             </Frame>
             <StackPanel HorizontalAlignment="Center" Spacing="4">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Track name" HorizontalAlignment="Center"/>
-                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="Artist name" HorizontalAlignment="Center"/>
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" HorizontalAlignment="Center"/>
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" HorizontalAlignment="Center"/>
             </StackPanel>
             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
@@ -28,14 +28,14 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="0:00" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"/>
-                <Slider Grid.Column="1" VerticalAlignment="Center" Margin="16,0"/>
-                <TextBlock Grid.Column="2" Text="12:34" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
+                <TextBlock Grid.Column="0" Text="{x:Bind FormatDuration(playbackService.CurrentTrackTime), Mode=OneWay}" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"/>
+                <Slider Grid.Column="1" Minimum="0" Maximum="{x:Bind playbackService.CurrentTrack.Duration.TotalSeconds, Mode=OneWay}" Value="{x:Bind playbackService.CurrentTrackTime.TotalSeconds, Mode=OneWay}" VerticalAlignment="Center" Margin="16,0"/>
+                <TextBlock Grid.Column="2" Text="{x:Bind FormatDuration(playbackService.CurrentTrack.Duration), Mode=OneWay}" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
             </Grid>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                 <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False"/>
                 <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True"/>
-                <controls:CircleIconButton Glyph="&#xE768;" Size="58" FontSize="18" Filled="True"/>
+                <controls:CircleIconButton Glyph="{x:Bind PlaybackStateToGlyph(playbackService.CurrentPlaybackState), Mode=OneWay}" Size="58" FontSize="18" Filled="True" Click="PlayPause_Click"/>
                 <controls:CircleIconButton Glyph="&#xE893;" Size="46" FontSize="16" Filled="True"/>
                 <controls:CircleIconButton Glyph="&#xE8EE;" Size="46" FontSize="16" Filled="False"/>
             </StackPanel>

@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Moonrise.Pages"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
@@ -14,6 +15,18 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
-        <TextBlock Grid.Row="1" Text="This is the Settings page" />
+        <StackPanel Grid.Row="1">
+            <controls:SettingsCard 
+                Header="Mica+" 
+                Description="Enable a custom shader that efficiently takes advantage of Mica to create a more dynamic background">
+
+                <controls:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xEF1F;" />
+                </controls:SettingsCard.HeaderIcon>
+
+                <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersEnabled, Mode=TwoWay}"/>
+            </controls:SettingsCard>
+        </StackPanel>
+
     </Grid>
 </Page>

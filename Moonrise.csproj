@@ -16,6 +16,7 @@
 	<WindowsPackageType>None</WindowsPackageType>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+	<SelfContained>true</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\CircleIconButton.xaml" />
@@ -49,6 +50,7 @@
   -->
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
     <PackageReference Include="ComputeSharp.D2D1.WinUI" Version="3.2.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.0" />

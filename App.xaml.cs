@@ -17,6 +17,7 @@ namespace Moonrise
     public partial class App : Application
     {
         private Window? _window;
+        private PlaybackService playbackService;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -36,8 +37,11 @@ namespace Moonrise
             _window = new MainWindow();
 
             TaskService.Initialize(_window.DispatcherQueue);
+            SettingsService.Instance.Load();
 
-            await LibraryService.Instance.HardScanLibrary("C:\\Users\\jamied\\Documents\\devmusic");
+            playbackService = PlaybackService.Instance;
+
+            //await LibraryService.Instance.HardScanLibrary("C:\\Users\\jamied\\Documents\\devmusic");
 
             _window.Activate();
         }

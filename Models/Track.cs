@@ -23,7 +23,7 @@ namespace Moonrise.Models
         // file info
         required public string FilePath { get; init; }
         public int Bitrate { get; init; }
-        public TimeSpan Duration { get; init; }
+        required public TimeSpan Duration { get; init; }
         public DateTime DateAdded { get; init; }
     }
 }

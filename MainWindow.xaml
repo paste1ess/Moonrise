@@ -15,9 +15,8 @@
 
     <Grid>
         <Grid>
-            <canvas:CanvasControl 
+            <canvas:CanvasControl
                 x:Name="ShaderCanvas"
-                CreateResources="ShaderCanvas_CreateResources"
                 Draw="ShaderCanvas_Draw"/>
         </Grid>
         <Grid>

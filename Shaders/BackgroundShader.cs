@@ -59,14 +59,18 @@ namespace Moonrise.Shaders
             float2 uv = D2D.GetScenePosition().XY / 30f;
             float slowTime = Time * 0.1f;
 
-            float2 q = new float2(
+            float2 q = new(
                 Fbm(uv + slowTime),
                 Fbm(uv + new float2(1.7f, 9.2f) + slowTime)
             );
-            float cloud = Hlsl.SmoothStep(0.35f, 0.65f, Fbm(uv + q * 1.0f));
 
-            Float3 baseColor = new Float3(0.074f, 0.074f, 0.074f);
-            return new Float4(baseColor, cloud * 0.8f);
+            float cloud = Hlsl.SmoothStep(0.35f, 0.65f, Fbm(uv + q));
+            float cloudRemapped = Hlsl.SmoothStep(0.1f, 1f, cloud);
+
+            float alpha = LightMode ? Hlsl.Max((1f - cloud) * 0.25f, 0.05f) : cloudRemapped * 0.8f;
+
+            Float3 baseColor = LightMode ? new(0.08f, 0.08f, 0.08f) : new(0.034f, 0.034f, 0.034f);
+            return new(baseColor, alpha);
         }
 
         //public float4 Execute()
