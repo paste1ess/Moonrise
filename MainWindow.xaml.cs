@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Media;
 using Moonrise.Pages;
 using Moonrise.Services;
 using Moonrise.Shaders;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -66,13 +67,15 @@ namespace Moonrise
             _isLightTheme = Application.Current.RequestedTheme == ApplicationTheme.Light;
             ((FrameworkElement)Content).ActualThemeChanged += (s, _) => _isLightTheme = s.ActualTheme == ElementTheme.Light;
 
-            _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 12.0);
+            _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
+                    ? TimeSpan.FromSeconds(1.0 / 60.0)
+                    : TimeSpan.FromSeconds(1.0 / 12.0);
             _shaderTimer.Tick += (_, _) =>
             {
                 var now = DateTime.UtcNow;
                 float delta = (float)(now - _lastTick).TotalSeconds;
                 _lastTick = now;
-                _shaderTime += delta * (_isWindowFocused ? 1f : 1f / 12f);
+                _shaderTime += delta * (_isWindowFocused ? 1f : 1f / 18f);
                 ShaderCanvas.Invalidate();
             };
 
@@ -85,26 +88,34 @@ namespace Moonrise
 
             SettingsService.Instance.PropertyChanged += (s, e) =>
             {
-                if (e.PropertyName != nameof(SettingsService.BackgroundShadersEnabled)) return;
-
-                ShaderCanvas.Visibility = SettingsService.Instance.BackgroundShadersEnabled
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
-
-                if (SettingsService.Instance.BackgroundShadersEnabled)
+                if (e.PropertyName == nameof(SettingsService.BackgroundShadersEnabled))
                 {
-                    _shaderEffect = new PixelShaderEffect<BackgroundShader>();
-                    ShaderCanvas.Draw += ShaderCanvas_Draw;
-                    _lastTick = DateTime.UtcNow;
-                    _shaderTimer.Start();
+                    ShaderCanvas.Visibility = SettingsService.Instance.BackgroundShadersEnabled
+                        ? Visibility.Visible
+                        : Visibility.Collapsed;
+
+                    if (SettingsService.Instance.BackgroundShadersEnabled)
+                    {
+                        _shaderEffect = new PixelShaderEffect<BackgroundShader>();
+                        ShaderCanvas.Draw += ShaderCanvas_Draw;
+                        _lastTick = DateTime.UtcNow;
+                        _shaderTimer.Start();
+                    }
+                    else
+                    {
+                        _shaderTimer.Stop();
+                        ShaderCanvas.Draw -= ShaderCanvas_Draw;
+                        _offscreen?.Dispose();
+                        _offscreen = null;
+                        _shaderEffect = null;
+                    }
                 }
-                else
+                else if (e.PropertyName == nameof(SettingsService.BackgroundShadersBoostFps))
                 {
-                    _shaderTimer.Stop();
-                    ShaderCanvas.Draw -= ShaderCanvas_Draw;
-                    _offscreen?.Dispose();
-                    _offscreen = null;
-                    _shaderEffect = null;
+                    if (_isWindowFocused)
+                        _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
+                            ? TimeSpan.FromSeconds(1.0 / 60.0)
+                            : TimeSpan.FromSeconds(1.0 / 12.0);
                 }
             };
 
@@ -120,7 +131,9 @@ namespace Moonrise
             }
             else
             {
-                _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 12.0);
+                _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
+                    ? TimeSpan.FromSeconds(1.0 / 60.0)
+                    : TimeSpan.FromSeconds(1.0 / 12.0);
                 _isWindowFocused = true;
             }
         }

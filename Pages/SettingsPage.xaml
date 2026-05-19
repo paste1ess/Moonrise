@@ -15,17 +15,52 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
-        <StackPanel Grid.Row="1">
-            <controls:SettingsCard 
-                Header="Mica+" 
-                Description="Enable a custom shader that efficiently takes advantage of Mica to create a more dynamic background">
+        <StackPanel Grid.Row="1" Spacing="16">
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual"/>
+            <controls:SettingsExpander
+                Header="Mica+"
+                Description="Enable a custom shader that efficiently takes advantage of Mica to create a more dynamic background"
+                IsExpanded="{x:Bind _settings.BackgroundShadersEnabled, Mode=OneWay}">
 
-                <controls:SettingsCard.HeaderIcon>
+                <controls:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xEF1F;" />
-                </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsExpander.HeaderIcon>
 
-                <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersEnabled, Mode=TwoWay}"/>
-            </controls:SettingsCard>
+                <controls:SettingsExpander.Content>
+                    <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersEnabled, Mode=TwoWay}"/>
+                </controls:SettingsExpander.Content>
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Battery Killer Mode"
+                               Description="Increases animation smoothness to 60 FPS. Not recommended on battery.">
+                        <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersBoostFps, Mode=TwoWay}"/>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+
+            </controls:SettingsExpander>
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="About"/>
+            <controls:SettingsExpander Header="Moonrise 🌙" Description="v1.0.0">
+                <controls:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xEC4F;" />
+                </controls:SettingsExpander.HeaderIcon>
+
+                <controls:SettingsExpander.Content>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Center">
+                        <TextBlock Text="Made with ❤️" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </controls:SettingsExpander.Content>
+
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Header="Credits">
+                        <controls:SettingsCard.Description>
+                            <TextBlock Text="jamied - most of the dev work" />
+                        </controls:SettingsCard.Description>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="Source">
+                        <HyperlinkButton Content="GitHub Repository" NavigateUri="https://github.com/paste1ess/Moonrise"/>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
         </StackPanel>
 
     </Grid>

@@ -18,9 +18,13 @@ namespace Moonrise.Services
 
         [ObservableProperty]
         public partial bool BackgroundShadersEnabled { get; set; } = false;
+        [ObservableProperty]
+        public partial bool BackgroundShadersBoostFps { get; set; } = false;
 
         partial void OnMusicLibraryPathChanged(string value) => Save();
         partial void OnBackgroundShadersEnabledChanged(bool value) => Save();
+
+        partial void OnBackgroundShadersBoostFpsChanged(bool value) => Save();
 
         public void Save()
         {
@@ -28,7 +32,8 @@ namespace Moonrise.Services
             var settings = new AppSettings
             {
                 MusicLibraryPath = MusicLibraryPath,
-                BackgroundShadersEnabled = BackgroundShadersEnabled
+                BackgroundShadersEnabled = BackgroundShadersEnabled,
+                BackgroundShadersBoostFps = BackgroundShadersBoostFps
             };
             File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, AppSettingsContext.Default.AppSettings));
         }
@@ -39,6 +44,7 @@ namespace Moonrise.Services
             var s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_settingsPath), AppSettingsContext.Default.AppSettings) ?? new();
             MusicLibraryPath = s.MusicLibraryPath;
             BackgroundShadersEnabled = s.BackgroundShadersEnabled;
+            BackgroundShadersBoostFps = s.BackgroundShadersBoostFps;
         }
     }
 
@@ -46,5 +52,6 @@ namespace Moonrise.Services
     {
         public string MusicLibraryPath { get; set; } = string.Empty;
         public bool BackgroundShadersEnabled { get; set; } = false;
+        public bool BackgroundShadersBoostFps { get; set; } = false;
     }
 }

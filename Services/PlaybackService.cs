@@ -38,7 +38,6 @@ namespace Moonrise.Services
         private readonly DispatcherTimer _positionTimer = new();
 
         private MediaPlayer mediaPlayer;
-        private static readonly string _testSong = "C:/Users/jamied/Documents/devmusic/K.Shiraki - Monday/Monday.ogg";
 
         PlaybackService()
         {

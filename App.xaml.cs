@@ -39,7 +39,7 @@ namespace Moonrise
             TaskService.Initialize(_window.DispatcherQueue);
             SettingsService.Instance.Load();
 
-            playbackService = PlaybackService.Instance;
+            //playbackService = PlaybackService.Instance;
 
             //await LibraryService.Instance.HardScanLibrary("C:\\Users\\jamied\\Documents\\devmusic");
 
