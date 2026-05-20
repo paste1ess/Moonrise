@@ -20,7 +20,7 @@ namespace Moonrise.Services
         /// Replaces the previous library and rescans a directory for library data. Should be a last resort or if a new library is being scanned
         /// </summary>
         /// <param name="path"></param>
-        async public Task HardScanLibrary(string path)
+        public async Task HardScanLibrary(string path)
         {
             var oldPath = dbService.DbPath;
             dbService.Dispose();
@@ -40,14 +40,22 @@ namespace Moonrise.Services
             
         }
 
-        async public Task ScanFolder(string folderPath)
+        public async Task ScanFolder(string folderPath)
         {
+            foreach (var file in Directory.GetFiles(folderPath))
+            {
+                // do something with file
+            }
 
+            foreach (var subDir in Directory.GetDirectories(folderPath))
+            {
+                await ScanFolder(subDir);
+            }
         }
 
-        async public Task GetTrack(string id)
+        public async Task<Track?> GetTrack(string id)
         {
-            
+            return dbService.GetTrack(id);
         }
     }
 }

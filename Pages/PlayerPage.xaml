@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="8" MaxWidth="320">
             <Frame CornerRadius="8"  HorizontalAlignment="Center">
-                <Image Source="/Assets/Placeholder.png" MaxWidth="320"/>
+                <Image Source="{x:Bind playbackService.CurrentTrackArtwork, Mode=OneWay}" MaxWidth="320"/>
             </Frame>
             <StackPanel HorizontalAlignment="Center" Spacing="4">
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" HorizontalAlignment="Center"/>
@@ -28,9 +28,20 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{x:Bind FormatDuration(playbackService.CurrentTrackTime), Mode=OneWay}" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"/>
-                <Slider Grid.Column="1" Minimum="0" Maximum="{x:Bind playbackService.CurrentTrack.Duration.TotalSeconds, Mode=OneWay}" Value="{x:Bind playbackService.CurrentTrackTime.TotalSeconds, Mode=OneWay}" VerticalAlignment="Center" Margin="16,0"/>
-                <TextBlock Grid.Column="2" Text="{x:Bind FormatDuration(playbackService.CurrentTrack.Duration), Mode=OneWay}" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
+                <TextBlock Grid.Column="0" Text="{x:Bind FormatDuration(playbackService.CurrentTrackTime), Mode=OneWay, FallbackValue='0:00'}" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"/>
+                <Slider x:Name="ProgressSlider" Grid.Column="1" 
+                    Minimum="0" 
+                    Maximum="{x:Bind playbackService.CurrentTrack.Duration.TotalSeconds, Mode=OneWay}" 
+                    Value="{x:Bind playbackService.CurrentTrackTime.TotalSeconds, Mode=OneWay}" 
+                    VerticalAlignment="Center" 
+                    Margin="16,0"
+                    TickFrequency="1"
+                    TickPlacement="None"
+                    IsThumbToolTipEnabled="False"
+                    Loaded="ProgressSlider_Loaded"
+                    ValueChanged="ProgressSlider_ValueChanged"
+                />
+                <TextBlock Grid.Column="2" Text="{x:Bind FormatDuration(playbackService.CurrentTrack.Duration), Mode=OneWay, FallbackValue='0:00'}" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
             </Grid>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                 <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False"/>

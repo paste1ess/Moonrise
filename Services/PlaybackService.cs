@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,17 @@ namespace Moonrise.Services
         public partial PlaybackState CurrentPlaybackState { get; set; }
         [ObservableProperty]
         public partial Track CurrentTrack { get; set; }
+        [ObservableProperty]
+        public partial BitmapImage? CurrentTrackArtwork { get; set; }
+        partial void OnCurrentTrackChanged(Track value)
+        {
+            if (value == null)
+            {
+                CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+                return;
+            }
+            _ = loadArtworkAsync(value);
+        }
 
         private TimeSpan _currentTrackTime;
         public TimeSpan CurrentTrackTime
@@ -35,6 +47,9 @@ namespace Moonrise.Services
             get => mediaPlayer.PlaybackSession.Position;
             set => SetProperty(ref _currentTrackTime, value);
         }
+
+
+
         private readonly DispatcherTimer _positionTimer = new();
 
         private MediaPlayer mediaPlayer;
@@ -46,6 +61,8 @@ namespace Moonrise.Services
 
             _positionTimer.Interval = TimeSpan.FromMilliseconds(500);
             _positionTimer.Tick += (_, _) => OnPropertyChanged(nameof(CurrentTrackTime));
+
+            CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
         }
 
         public void Play()
@@ -105,6 +122,16 @@ namespace Moonrise.Services
             mediaPlayer.Source = mediaSource;
 
             Play();
+        }
+
+        private async Task loadArtworkAsync(Track track)
+        {
+            CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+            var art = await ArtService.Instance.GetArtwork(track, 320);
+            if (CurrentTrack == track)
+            {
+                CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+            }
         }
     }
 }
