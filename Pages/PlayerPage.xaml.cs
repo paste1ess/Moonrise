@@ -4,11 +4,13 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using Moonrise.Models;
 using Moonrise.Services;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,6 +33,32 @@ namespace Moonrise.Pages
         public PlayerPage()
         {
             InitializeComponent();
+        }
+        private int previousSelectedIndex;
+
+        private void SecondPanelSelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+        {
+            SelectorBarItem selectedItem = sender.SelectedItem;
+            int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
+            System.Type pageType;
+
+            switch (currentSelectedIndex)
+            {
+                case 0:
+                    pageType = typeof(QueuePanel);
+                    break;
+                default:
+                    pageType = typeof(LyricsPanel);
+                    break;
+            }
+
+            var slideNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0
+                ? SlideNavigationTransitionEffect.FromRight
+                : SlideNavigationTransitionEffect.FromLeft;
+
+            ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = slideNavigationTransitionEffect });
+
+            previousSelectedIndex = currentSelectedIndex;
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)

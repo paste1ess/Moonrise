@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -117,6 +117,12 @@ namespace Moonrise.Services
             CurrentTrack = track;
 
             mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
+
+            if (mediaPlayer.Source is IDisposable oldSource)
+            {
+                mediaPlayer.Source = null;
+                oldSource.Dispose();
+            }
 
             IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(track.FilePath));
             mediaPlayer.Source = mediaSource;

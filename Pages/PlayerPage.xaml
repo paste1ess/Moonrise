@@ -9,20 +9,70 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="24,16,24,16" RowSpacing="24">
+    <Grid Padding="24,16" ColumnSpacing="24" RowSpacing="24">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="660" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="Col1.Width" Value="*" />
+                        <Setter Target="Row1.Height" Value="0" />
+                        <Setter Target="QueueContainer.(Grid.Row)" Value="0" />
+                        <Setter Target="QueueContainer.(Grid.Column)" Value="1" />
+                        <Setter Target="QueueContainer.(Grid.ColumnSpan)" Value="1" />
+                        <Setter Target="PlayerContainer.(Grid.ColumnSpan)" Value="1" />
+                        <Setter Target="PlayerContainer.HorizontalAlignment" Value="Stretch" />
+                        <Setter Target="PlayerContainer.VerticalAlignment" Value="Center" />
+                        <Setter Target="PlayerRow0.Height" Value="Auto" />
+                        <Setter Target="ArtworkFrame.VerticalAlignment" Value="Center" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="Col1.Width" Value="0" />
+                        <Setter Target="Row1.Height" Value="*" />
+                        <Setter Target="QueueContainer.(Grid.Row)" Value="1" />
+                        <Setter Target="QueueContainer.(Grid.Column)" Value="0" />
+                        <Setter Target="QueueContainer.(Grid.ColumnSpan)" Value="2" />
+                        <Setter Target="PlayerContainer.(Grid.ColumnSpan)" Value="2" />
+                        <Setter Target="PlayerContainer.HorizontalAlignment" Value="Center" />
+                        <Setter Target="PlayerContainer.VerticalAlignment" Value="Stretch" />
+                        <Setter Target="PlayerRow0.Height" Value="*" />
+                        <Setter Target="ArtworkFrame.VerticalAlignment" Value="Bottom" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="Row0" Height="*" />
+            <RowDefinition x:Name="Row1" Height="0" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition x:Name="Col0" Width="*" />
+            <ColumnDefinition x:Name="Col1" Width="*" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="8" MaxWidth="320">
-            <Frame CornerRadius="8"  HorizontalAlignment="Center">
-                <Image Source="{x:Bind playbackService.CurrentTrackArtwork, Mode=OneWay}" MaxWidth="320"/>
+
+        <Grid x:Name="PlayerContainer" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" MaxWidth="320" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="PlayerRow0" Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Frame x:Name="ArtworkFrame" Grid.Row="0" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Image Source="{x:Bind playbackService.CurrentTrackArtwork, Mode=OneWay}" Stretch="Uniform" MaxWidth="320" MaxHeight="320"/>
             </Frame>
-            <StackPanel HorizontalAlignment="Center" Spacing="4">
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="4">
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" HorizontalAlignment="Center" TextAlignment="Center"/>
                 <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" HorizontalAlignment="Center" TextAlignment="Center"/>
             </StackPanel>
-            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center">
+            <Grid Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -43,16 +93,41 @@
                 />
                 <TextBlock Grid.Column="2" Text="{x:Bind FormatDuration(playbackService.CurrentTrack.Duration), Mode=OneWay, FallbackValue='0:00'}" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
             </Grid>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                 <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False"/>
                 <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True"/>
                 <controls:CircleIconButton Glyph="{x:Bind PlaybackStateToGlyph(playbackService.CurrentPlaybackState), Mode=OneWay}" Size="58" FontSize="18" Filled="True" Click="PlayPause_Click"/>
                 <controls:CircleIconButton Glyph="&#xE893;" Size="46" FontSize="16" Filled="True"/>
                 <controls:CircleIconButton Glyph="&#xE8EE;" Size="46" FontSize="16" Filled="False"/>
             </StackPanel>
-        </StackPanel>
-        <Grid Grid.Column="1">
-            <TextBlock Text="Hello I am the queue"/>
+        </Grid>
+        <Grid x:Name="QueueContainer" Grid.Column="1" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <SelectorBar x:Name="SecondPanelSelectorBar"
+                SelectionChanged="SecondPanelSelectorBar_SelectionChanged"
+                Grid.Row="0">
+                <SelectorBarItem x:Name="SelectorBarItemQueue" Text="Queue" IsSelected="True">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xEA42;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+                <SelectorBarItem x:Name="SelectorBarItemLyrics" Text="Lyrics">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xED1E;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+            </SelectorBar>
+
+            <Frame x:Name="ContentFrame" 
+                IsNavigationStackEnabled="False" 
+                Grid.Row="1"
+                CornerRadius="4" 
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"/>
         </Grid>
     </Grid>
 </Page>

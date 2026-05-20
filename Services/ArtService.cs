@@ -33,6 +33,8 @@ namespace Moonrise.Services
             // if present in cache
             if (cache.TryGetValue(key, out var cachedItem))
             {
+                lruList.Remove(key);
+                lruList.AddLast(key);
                 return cachedItem.Data;
             }
 
@@ -132,7 +134,18 @@ namespace Moonrise.Services
         }
         private void addToCache(ArtKey key, ArtItem item)
         {
-            cache.Add(key, item);
+            if (cache.TryGetValue(key, out var existingItem))
+            {
+                currentCacheBytes -= existingItem.ByteSize;
+                cache[key] = item;
+                
+                lruList.Remove(key);
+            }
+            else
+            {
+                cache.Add(key, item);
+            }
+            
             lruList.AddLast(key);
             currentCacheBytes += item.ByteSize;
 
