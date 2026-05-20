@@ -27,21 +27,24 @@ namespace Moonrise.Pages
     public sealed partial class PlayerPage : Page
     {
         private PlaybackService playbackService = PlaybackService.Instance;
-        private Track exampleTrack = new Track
-        {
-            Id = "1",
-            Title = "Monday",
-            FilePath = "C:/Users/jamied/Documents/devmusic/K.Shiraki - Monday/Monday.ogg",
-            AlbumId = "2",
-            ArtistId = "3",
-            Album = "Monday - Single",
-            Artist = "K.Shiraki",
-            Duration = TimeSpan.FromSeconds(155)
-        };
+        private Track exampleTrack;
         public PlayerPage()
         {
             InitializeComponent();
         }
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            var track = await LibraryService.Instance.ScanTrackFromFile("C:/Users/jamied/Documents/devmusic/Takeaki Watanabe - Irisu Syndrome/10hours.mp3");
+
+            if (track != null)
+            {
+                exampleTrack = track;
+            }
+        }
+
         public string PlaybackStateToGlyph(PlaybackState state)
     => state == PlaybackState.Playing ? "\uE769" : "\uE768";
         public string FormatDuration(TimeSpan duration)
@@ -64,15 +67,21 @@ namespace Moonrise.Pages
 
         private void ProgressSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            if (_isUserDragging)
+            if (!_isUserDragging) return;
+            if (playbackService.CurrentTrack == null)
             {
-                playbackService.Scrub(TimeSpan.FromSeconds(e.NewValue));
+                _isUserDragging = false;
+                return;
             }
+            playbackService.Scrub(TimeSpan.FromSeconds(e.NewValue));
         }
 
         private void ProgressSlider_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
+            if (!_isUserDragging) return;
             _isUserDragging = false;
+
+            if (playbackService.CurrentTrack == null) return;
             playbackService.Scrub(TimeSpan.FromSeconds(ProgressSlider.Value));
             playbackService.Play();
         }

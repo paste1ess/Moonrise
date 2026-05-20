@@ -19,8 +19,8 @@
                 <Image Source="{x:Bind playbackService.CurrentTrackArtwork, Mode=OneWay}" MaxWidth="320"/>
             </Frame>
             <StackPanel HorizontalAlignment="Center" Spacing="4">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" HorizontalAlignment="Center"/>
-                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" HorizontalAlignment="Center"/>
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" HorizontalAlignment="Center" TextAlignment="Center"/>
             </StackPanel>
             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
