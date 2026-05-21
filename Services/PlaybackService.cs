@@ -142,7 +142,7 @@ namespace Moonrise.Services
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
             CurrentTrackBackgroundArtwork = null;
             var art = await ArtService.Instance.GetArtwork(track, 320);
-            var bgArt = await ArtService.Instance.GetArtwork(track, 8);
+            var bgArt = await ArtService.Instance.GetArtwork(track, 6);
             if (CurrentTrack == track)
             {
                 CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));

@@ -65,7 +65,7 @@ namespace Moonrise.Pages
         {
             base.OnNavigatedTo(e);
 
-            var track = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\glass beach\plastic death\glass beach - plastic death - 02 motions.flac");
+            var track = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\Jaga Jazzist\One-Armed Bandit\05 Toccata.flac");
 
             if (track != null)
             {

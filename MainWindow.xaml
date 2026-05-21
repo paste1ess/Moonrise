@@ -17,7 +17,7 @@
         <Grid>
             <Image x:Name="BackgroundArtworkImage"
                 Source="{x:Bind PlaybackService.CurrentTrackBackgroundArtwork, Mode=OneWay}"
-                Stretch="UniformToFill"
+                Stretch="Fill"
                 IsHitTestVisible="False"
                 Opacity="{x:Bind CheckBackgroundOpacity(PlaybackService.CurrentPlaybackState, PlaybackService.CurrentTrackBackgroundArtwork, _isWindowFocused, _isLightTheme), Mode=OneWay}">
                 <Image.OpacityTransition>

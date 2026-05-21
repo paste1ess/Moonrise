@@ -45,7 +45,7 @@ namespace Moonrise
                 return 0.0;
             }
 
-            return isLightTheme ? 0.25 : 0.6;
+            return isLightTheme ? 0.25 : 0.45;
         }
 
 
