@@ -18,8 +18,12 @@
             <Image x:Name="BackgroundArtworkImage"
                 Source="{x:Bind PlaybackService.CurrentTrackBackgroundArtwork, Mode=OneWay}"
                 Stretch="UniformToFill"
-                Opacity="0.6" 
-                Visibility="{x:Bind CheckBackgroundVisibility(PlaybackService.CurrentPlaybackState, PlaybackService.CurrentTrackBackgroundArtwork, _isWindowFocused), Mode=OneWay}"/>
+                IsHitTestVisible="False"
+                Opacity="{x:Bind CheckBackgroundOpacity(PlaybackService.CurrentPlaybackState, PlaybackService.CurrentTrackBackgroundArtwork, _isWindowFocused, _isLightTheme), Mode=OneWay}">
+                <Image.OpacityTransition>
+                    <ScalarTransition Duration="0:0:0.35"/>
+                </Image.OpacityTransition>
+            </Image>
             <canvas:CanvasControl
                 x:Name="ShaderCanvas"
                 Draw="ShaderCanvas_Draw"/>

@@ -38,11 +38,14 @@ namespace Moonrise
         private float _shaderSpeedMultiplier = 80f / 120f;
 
         public PlaybackService PlaybackService => PlaybackService.Instance;
-        public Visibility CheckBackgroundVisibility(PlaybackState state, BitmapImage artwork, bool isWindowFocused)
+        public double CheckBackgroundOpacity(PlaybackState state, BitmapImage artwork, bool isWindowFocused, bool isLightTheme)
         {
-            return (isWindowFocused && state == PlaybackState.Playing && artwork != null)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            if (!isWindowFocused || state != PlaybackState.Playing || artwork == null)
+            {
+                return 0.0;
+            }
+
+            return isLightTheme ? 0.25 : 0.6;
         }
 
 
