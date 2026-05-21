@@ -39,6 +39,7 @@ namespace Moonrise.Services
                 artist      TEXT NOT NULL,
                 year        INTEGER,
                 genre       TEXT,
+                bpm         INTEGER,
                 is_favorite INTEGER NOT NULL DEFAULT 0,
 
                 file_path   TEXT NOT NULL,
@@ -90,8 +91,8 @@ namespace Moonrise.Services
         public void UpsertTrack(Track track, string scanSessionTimestamp)
         {
             using var command = new SqliteCommand(@"INSERT OR REPLACE INTO tracks 
-                (id, album_id, artist_id, title, album, artist, year, genre, is_favorite, file_path, bitrate, duration, date_added) VALUES 
-                (@id, @album_id, @artist_id, @title, @album, @artist, @year, @genre, @is_favorite, @file_path, @bitrate, @duration, @date_added);",
+                (id, album_id, artist_id, title, album, artist, year, genre, bpm, is_favorite, file_path, bitrate, duration, date_added) VALUES 
+                (@id, @album_id, @artist_id, @title, @album, @artist, @year, @genre, @bpm, @is_favorite, @file_path, @bitrate, @duration, @date_added);",
             _connection);
 
             command.Parameters.AddWithValue("@id", track.Id);
@@ -102,6 +103,7 @@ namespace Moonrise.Services
             command.Parameters.AddWithValue("@artist", track.Artist);
             command.Parameters.AddWithValue("@year", (object?)track.Year ?? DBNull.Value);
             command.Parameters.AddWithValue("@genre", (object?)track.Genre ?? DBNull.Value);
+            command.Parameters.AddWithValue("@bpm", (object?)track.Bpm ?? DBNull.Value);
             command.Parameters.AddWithValue("@is_favorite", track.IsFavorite ? 1 : 0);
             command.Parameters.AddWithValue("@file_path", track.FilePath);
             command.Parameters.AddWithValue("@bitrate", track.Bitrate);

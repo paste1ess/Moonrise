@@ -72,6 +72,7 @@ namespace Moonrise.Services
                     Title = file.Tag.Title,
                     Album = file.Tag.Album,
                     Artist = file.Tag.Performers.First(),
+                    Bpm = (int)file.Tag.BeatsPerMinute,
 
                     FilePath = path,
                     Duration = file.Properties.Duration

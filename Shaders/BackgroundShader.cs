@@ -41,11 +41,20 @@ namespace Moonrise.Shaders
                 u.Y);
         }
 
-        private float Fbm(float2 uv)
+        private float Fbm(float2 uv, int octaves)
         {
             float value = 0.0f;
             float amplitude = 0.5f;
-            for (int i = 0; i < 3; i++)
+            if (octaves > 1)
+            {
+                for (int i = 0; i < octaves; i++)
+                {
+                    value += amplitude * Noise(uv);
+                    uv *= 2.0f;
+                    amplitude *= 0.5f;
+                }
+            }
+            else
             {
                 value += amplitude * Noise(uv);
                 uv *= 2.0f;
@@ -60,11 +69,11 @@ namespace Moonrise.Shaders
             float slowTime = Time * 0.1f;
 
             float2 q = new(
-                Fbm(uv + slowTime),
-                Fbm(uv + new float2(1.7f, 9.2f) + slowTime)
+                Fbm(uv + slowTime, 3),
+                Fbm(uv + new float2(1.7f, 9.2f) + slowTime, 3)
             );
 
-            float cloud = Hlsl.SmoothStep(0.35f, 0.65f, Fbm(uv + q));
+            float cloud = Hlsl.SmoothStep(0.35f, 0.65f, Fbm(uv + q, 3));
             float cloudRemapped = Hlsl.SmoothStep(0.1f, 1f, cloud);
 
             float alpha = LightMode ? Hlsl.Max((1f - cloud) * 0.25f, 0.05f) : cloudRemapped * 0.8f;

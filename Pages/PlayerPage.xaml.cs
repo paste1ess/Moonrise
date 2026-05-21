@@ -65,7 +65,7 @@ namespace Moonrise.Pages
         {
             base.OnNavigatedTo(e);
 
-            var track = await LibraryService.Instance.ScanTrackFromFile("C:/Users/jamied/Documents/devmusic/Takeaki Watanabe - Irisu Syndrome/10hours.mp3");
+            var track = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\glass beach\plastic death\glass beach - plastic death - 02 motions.flac");
 
             if (track != null)
             {

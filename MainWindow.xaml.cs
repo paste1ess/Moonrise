@@ -9,6 +9,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Pages;
 using Moonrise.Services;
 using Moonrise.Shaders;
@@ -34,6 +35,16 @@ namespace Moonrise
         private readonly DispatcherTimer _shaderTimer = new();
         private CanvasRenderTarget? _offscreen;
         private float _lastWidth, _lastHeight;
+        private float _shaderSpeedMultiplier = 80f / 120f;
+
+        public PlaybackService PlaybackService => PlaybackService.Instance;
+        public Visibility CheckBackgroundVisibility(PlaybackState state, BitmapImage artwork, bool isWindowFocused)
+        {
+            return (isWindowFocused && state == PlaybackState.Playing && artwork != null)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern nint LoadImage(
@@ -75,7 +86,7 @@ namespace Moonrise
                 var now = DateTime.UtcNow;
                 float delta = (float)(now - _lastTick).TotalSeconds;
                 _lastTick = now;
-                _shaderTime += delta * (_isWindowFocused ? 1f : 1f / 18f);
+                _shaderTime += delta * (_isWindowFocused ? 1f : 1f / 18f) * _shaderSpeedMultiplier;
                 ShaderCanvas.Invalidate();
             };
 
@@ -85,6 +96,17 @@ namespace Moonrise
                 ShaderCanvas.Draw += ShaderCanvas_Draw;
                 _shaderTimer.Start();
             }
+
+            PlaybackService.Instance.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(PlaybackService.CurrentTrack) ||
+                    e.PropertyName == nameof(PlaybackService.CurrentPlaybackState))
+                {
+                    DispatcherQueue.TryEnqueue(UpdateShaderSpeedMultiplier);
+                }
+            };
+
+            UpdateShaderSpeedMultiplier();
 
             SettingsService.Instance.PropertyChanged += (s, e) =>
             {
@@ -122,6 +144,25 @@ namespace Moonrise
             NavFrame.Navigate(typeof(HomePage));
         }
 
+        private void UpdateShaderSpeedMultiplier()
+        {
+            var state = PlaybackService.Instance.CurrentPlaybackState;
+            var track = PlaybackService.Instance.CurrentTrack;
+
+            if (state != PlaybackState.Playing || track == null)
+            {
+                _shaderSpeedMultiplier = 80f / 100f;
+            }
+            else if (track.Bpm.HasValue && track.Bpm.Value > 0)
+            {
+                _shaderSpeedMultiplier = track.Bpm.Value / 100f;
+            }
+            else
+            {
+                _shaderSpeedMultiplier = 1f;
+            }
+        }
+
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
         {
             if (args.WindowActivationState == WindowActivationState.Deactivated)
@@ -136,6 +177,7 @@ namespace Moonrise
                     : TimeSpan.FromSeconds(1.0 / 12.0);
                 _isWindowFocused = true;
             }
+            Bindings.Update();
         }
 
         private void SetTaskManagerIcon()

@@ -23,7 +23,7 @@ namespace Moonrise.Services
     public partial class PlaybackService : ObservableObject
     {
         public static readonly PlaybackService Instance = new();
-        private TaskService task = TaskService.Instance;
+        private TaskService task => TaskService.Instance;
 
         [ObservableProperty]
         public partial PlaybackState CurrentPlaybackState { get; set; }
@@ -31,11 +31,17 @@ namespace Moonrise.Services
         public partial Track CurrentTrack { get; set; }
         [ObservableProperty]
         public partial BitmapImage? CurrentTrackArtwork { get; set; }
+        [ObservableProperty]
+        public partial BitmapImage? CurrentTrackBackgroundArtwork { get; set; }
+        
+
+
         partial void OnCurrentTrackChanged(Track value)
         {
             if (value == null)
             {
                 CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+                CurrentTrackBackgroundArtwork = null;
                 return;
             }
             _ = loadArtworkAsync(value);
@@ -63,6 +69,7 @@ namespace Moonrise.Services
             _positionTimer.Tick += (_, _) => OnPropertyChanged(nameof(CurrentTrackTime));
 
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+            CurrentTrackBackgroundArtwork = null;
         }
 
         public void Play()
@@ -133,10 +140,13 @@ namespace Moonrise.Services
         private async Task loadArtworkAsync(Track track)
         {
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+            CurrentTrackBackgroundArtwork = null;
             var art = await ArtService.Instance.GetArtwork(track, 320);
+            var bgArt = await ArtService.Instance.GetArtwork(track, 8);
             if (CurrentTrack == track)
             {
                 CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+                CurrentTrackBackgroundArtwork = bgArt;
             }
         }
     }

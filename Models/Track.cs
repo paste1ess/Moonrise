@@ -18,6 +18,7 @@ namespace Moonrise.Models
         required public string Artist { get; init; } // artist name
         public int? Year { get; init; }
         public string? Genre { get; init; }
+        public int? Bpm { get; init; }
         public bool IsFavorite { get; init; }
 
         // file info

@@ -15,6 +15,11 @@
 
     <Grid>
         <Grid>
+            <Image x:Name="BackgroundArtworkImage"
+                Source="{x:Bind PlaybackService.CurrentTrackBackgroundArtwork, Mode=OneWay}"
+                Stretch="UniformToFill"
+                Opacity="0.6" 
+                Visibility="{x:Bind CheckBackgroundVisibility(PlaybackService.CurrentPlaybackState, PlaybackService.CurrentTrackBackgroundArtwork, _isWindowFocused), Mode=OneWay}"/>
             <canvas:CanvasControl
                 x:Name="ShaderCanvas"
                 Draw="ShaderCanvas_Draw"/>
