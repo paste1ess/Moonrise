@@ -17,7 +17,6 @@
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
 	<SelfContained>true</SelfContained>
-    <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\CircleIconButton.xaml" />
