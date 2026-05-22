@@ -135,6 +135,65 @@ namespace Moonrise.Services
             task.Enqueue(command);
         }
 
+        public void Back()
+        {
+            var command = new RelayAppCommand(async (token) =>
+            {
+                await stopBase();
+
+                QueueTrack? queueTrack = null;
+                var dequeueTcs = new TaskCompletionSource();
+                task.Dispatcher.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        queueTrack = Queue.TakeFromHistory();
+
+                        if (queueTrack != null && CurrentTrack != null)
+                        {
+                            Queue.ActiveQueue.Insert(0, QueueTrack.FromTrack(CurrentTrack));
+                        }
+                    }
+                    finally
+                    {
+                        dequeueTcs.SetResult();
+                    }
+                });
+                await dequeueTcs.Task;
+                if (queueTrack == null) return;
+
+                var prevTrack = await LibraryService.Instance.GetTrack(queueTrack.Id);
+                if (prevTrack == null) return;
+
+                var sourceTcs = new TaskCompletionSource();
+                task.Dispatcher.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        CurrentTrack = prevTrack;
+                        if (mediaPlayer.Source is IDisposable oldSource)
+                        {
+                            mediaPlayer.Source = null;
+                            oldSource.Dispose();
+                        }
+                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(prevTrack.FilePath));
+                        mediaPlayer.Source = mediaSource;
+                    }
+                    finally
+                    {
+                        sourceTcs.SetResult();
+                    }
+                });
+                await sourceTcs.Task;
+
+                await playBase();
+
+            }, async (ex) => await errorActionBase());
+
+            task.Enqueue(command);
+        }
+
+
         private async Task playBase()
         {
             mediaPlayer.Play();

@@ -10,7 +10,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Padding="16, 12, 16, 0" Spacing="8">
+    <ListView ItemsSource="{x:Bind Queue.ActiveQueue, Mode=OneWay}" CanReorderItems="True" AllowDrop="True" Padding="16, 12">
+        <ListView.ItemTemplate>
+            <DataTemplate x:DataType="services:QueueTrack">
+                <controls:QueueListItem Item="{x:Bind}"/>
+            </DataTemplate>
+        </ListView.ItemTemplate>
+    </ListView>
+    <!--
         <TextBlock Text="History" Style="{StaticResource BodyStrongTextBlockStyle}"/>
         <ListView ItemsSource="{x:Bind Queue.History, Mode=OneWay}" CanReorderItems="False" AllowDrop="False" AllowFocusOnInteraction="False">
             <ListView.ItemTemplate>
@@ -21,12 +28,5 @@
         </ListView>
 
         <TextBlock Text="Playing Next" Style="{StaticResource BodyStrongTextBlockStyle}"/>
-        <ListView ItemsSource="{x:Bind Queue.ActiveQueue, Mode=OneWay}" CanReorderItems="True" AllowDrop="True">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="services:QueueTrack">
-                    <controls:QueueListItem Item="{x:Bind}"/>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </StackPanel>
+        -->
 </Page>

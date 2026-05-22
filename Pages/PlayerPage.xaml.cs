@@ -32,6 +32,7 @@ namespace Moonrise.Pages
         private Track exampleTrack;
         private Track exampleTrack2;
         private Track exampleTrack3;
+        private Track exampleTrack4;
         public PlayerPage()
         {
             InitializeComponent();
@@ -48,6 +49,9 @@ namespace Moonrise.Pages
             {
                 case 0:
                     pageType = typeof(QueuePanel);
+                    break;
+                case 1:
+                    pageType = typeof(HistoryPanel);
                     break;
                 default:
                     pageType = typeof(LyricsPanel);
@@ -71,6 +75,7 @@ namespace Moonrise.Pages
             var track = await LibraryService.Instance.ScanTrackFromFile(@"C:\Users\jamied\Documents\devmusic\Takeaki Watanabe - Irisu Syndrome\10hours.mp3");
             var track2 = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\the scary jokes\Retinal Bloom\the scary jokes - Our Murderous Descent.flac");
             var track3 = await LibraryService.Instance.ScanTrackFromFile(@"C:\Users\jamied\Documents\devmusic\K.Shiraki - Monday\Monday.ogg");
+            var track4 = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\metaroom\Dinki The Starguide\metaroom - Dinki The Starguide.flac");
 
             if (track != null)
             {
@@ -84,7 +89,10 @@ namespace Moonrise.Pages
             if (track3 != null)
             {
                 exampleTrack3 = track3;
-                playbackService.Queue.AddToStart(track3);
+            }
+            if (track4 != null)
+            {
+                exampleTrack4 = track4;
             }
         }
 
@@ -140,12 +148,30 @@ namespace Moonrise.Pages
                 playbackService.PlayTrack(exampleTrack);
                 playbackService.Queue.AddToStart(exampleTrack2);
                 playbackService.Queue.AddToStart(exampleTrack3);
+                playbackService.Queue.AddToStart(exampleTrack4);
+                playbackService.Queue.AddToStart(exampleTrack2);
+                playbackService.Queue.AddToStart(exampleTrack3);
+                playbackService.Queue.AddToStart(exampleTrack4);
+                playbackService.Queue.AddToStart(exampleTrack2);
+                playbackService.Queue.AddToStart(exampleTrack3);
+                playbackService.Queue.AddToStart(exampleTrack4);
+                playbackService.Queue.AddToStart(exampleTrack2);
+                playbackService.Queue.AddToStart(exampleTrack3);
+                playbackService.Queue.AddToStart(exampleTrack4);
+                playbackService.Queue.AddToStart(exampleTrack2);
+                playbackService.Queue.AddToStart(exampleTrack3);
+                playbackService.Queue.AddToStart(exampleTrack4);
             }
         }
 
         private void Skip_Click(object sender, RoutedEventArgs e)
         {
             playbackService.Next();
+        }
+
+        private void Previous_Click(object sender, RoutedEventArgs e)
+        {
+            playbackService.Back();
         }
     }
 }

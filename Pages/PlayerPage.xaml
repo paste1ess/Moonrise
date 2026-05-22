@@ -95,7 +95,7 @@
             </Grid>
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                 <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False"/>
-                <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True"/>
+                <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True" Click="Previous_Click"/>
                 <controls:CircleIconButton Glyph="{x:Bind PlaybackStateToGlyph(playbackService.CurrentPlaybackState), Mode=OneWay}" Size="58" FontSize="18" Filled="True" Click="PlayPause_Click"/>
                 <controls:CircleIconButton Glyph="&#xE893;" Size="46" FontSize="16" Filled="True" Click="Skip_Click"/>
                 <controls:CircleIconButton Glyph="&#xE8EE;" Size="46" FontSize="16" Filled="False"/>
@@ -112,6 +112,11 @@
                 <SelectorBarItem x:Name="SelectorBarItemQueue" Text="Queue" IsSelected="True">
                     <SelectorBarItem.Icon>
                         <FontIcon Glyph="&#xEA42;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+                <SelectorBarItem x:Name="SelectorBarItemHistory" Text="History">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xE81C;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
                 <SelectorBarItem x:Name="SelectorBarItemLyrics" Text="Lyrics">
