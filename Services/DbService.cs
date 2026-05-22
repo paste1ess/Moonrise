@@ -88,7 +88,7 @@ namespace Moonrise.Services
             InitSchema();
         }
 
-        public void UpsertTrack(Track track, string scanSessionTimestamp)
+        public void UpsertTrack(Track track)
         {
             using var command = new SqliteCommand(@"INSERT OR REPLACE INTO tracks 
                 (id, album_id, artist_id, title, album, artist, year, genre, bpm, is_favorite, file_path, bitrate, duration, date_added) VALUES 

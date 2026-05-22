@@ -24,11 +24,12 @@ namespace Moonrise.Services
     {
         public static readonly PlaybackService Instance = new();
         private TaskService task => TaskService.Instance;
+        public readonly QueueService Queue = new();
 
         [ObservableProperty]
         public partial PlaybackState CurrentPlaybackState { get; set; }
         [ObservableProperty]
-        public partial Track CurrentTrack { get; set; }
+        public partial Track? CurrentTrack { get; set; }
         [ObservableProperty]
         public partial BitmapImage? CurrentTrackArtwork { get; set; }
         [ObservableProperty]
@@ -36,7 +37,7 @@ namespace Moonrise.Services
         
 
 
-        partial void OnCurrentTrackChanged(Track value)
+        partial void OnCurrentTrackChanged(Track? value)
         {
             if (value == null)
             {
@@ -54,8 +55,6 @@ namespace Moonrise.Services
             set => SetProperty(ref _currentTrackTime, value);
         }
 
-
-
         private readonly DispatcherTimer _positionTimer = new();
 
         private MediaPlayer mediaPlayer;
@@ -70,44 +69,120 @@ namespace Moonrise.Services
 
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
             CurrentTrackBackgroundArtwork = null;
+
+            mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+        }
+
+        private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
+        {
+            Next();
+        }
+
+        public void Next() 
+        {
+            var command = new RelayAppCommand(async (token) =>
+            {
+                await stopBase();
+
+                QueueTrack? queueTrack = null;
+                var dequeueTcs = new TaskCompletionSource(); // fyi this is so it can await for it to finish instead of instantly returning and continuing on broken
+                task.Dispatcher.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        queueTrack = Queue.TakeFromStart();
+                        if (queueTrack != null && CurrentTrack != null)
+                        {
+                            Queue.AddToHistory(QueueTrack.FromTrack(CurrentTrack));
+                        }
+                    }
+                    finally
+                    {
+                        dequeueTcs.SetResult();
+                    }
+                });
+                await dequeueTcs.Task;
+                if (queueTrack == null) return;
+
+                var nextTrack = await LibraryService.Instance.GetTrack(queueTrack.Id);
+                if (nextTrack == null) return;
+
+                var sourceTcs = new TaskCompletionSource();
+                task.Dispatcher.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        CurrentTrack = nextTrack;
+                        if (mediaPlayer.Source is IDisposable oldSource)
+                        {
+                            mediaPlayer.Source = null;
+                            oldSource.Dispose();
+                        }
+                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(nextTrack.FilePath));
+                        mediaPlayer.Source = mediaSource;
+                    }
+                    finally
+                    {
+                        sourceTcs.SetResult();
+                    }
+                });
+                await sourceTcs.Task;
+
+                await playBase();
+
+            }, async (ex) => await errorActionBase());
+
+            task.Enqueue(command);
+        }
+
+        private async Task playBase()
+        {
+            mediaPlayer.Play();
+            task.Dispatcher.TryEnqueue(() => {
+                CurrentPlaybackState = PlaybackState.Playing;
+                _positionTimer.Start();
+            });
+        }
+
+        private async Task pauseBase()
+        {
+            mediaPlayer.Pause();
+            task.Dispatcher.TryEnqueue(() => {
+                CurrentPlaybackState = PlaybackState.Paused;
+                _positionTimer.Stop();
+            });
+        }
+
+        private async Task stopBase()
+        {
+            mediaPlayer.Pause();
+            task.Dispatcher.TryEnqueue(() => {
+                if (mediaPlayer.PlaybackSession != null)
+                {
+                    mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
+                }
+                CurrentPlaybackState = PlaybackState.Stopped;
+                _positionTimer.Stop();
+            });
+        }
+
+        private async Task errorActionBase()
+        {
+            task.Dispatcher.TryEnqueue(() => {
+                CurrentPlaybackState = PlaybackState.Error;
+                _positionTimer.Stop();
+            });
         }
 
         public void Play()
         {
-            var command = new RelayAppCommand(async (token) =>
-            {
-                mediaPlayer.Play();
-                task.Dispatcher.TryEnqueue(() => { 
-                    CurrentPlaybackState = PlaybackState.Playing;
-                    _positionTimer.Start();
-                });
-                
-            }, async (ex) =>
-            {
-                task.Dispatcher.TryEnqueue(() => {
-                    CurrentPlaybackState = PlaybackState.Error;
-                    _positionTimer.Stop();
-                });
-            });
+            var command = new RelayAppCommand(async (token) => await playBase(), async (ex) => await errorActionBase());
 
             task.Enqueue(command);
         }
         public void Pause()
         {
-            var command = new RelayAppCommand(async (token) =>
-            {
-                mediaPlayer.Pause();
-                task.Dispatcher.TryEnqueue(() => {
-                    CurrentPlaybackState = PlaybackState.Paused;
-                    _positionTimer.Stop();
-                });
-            }, async (ex) =>
-            {
-                task.Dispatcher.TryEnqueue(() => {
-                    CurrentPlaybackState = PlaybackState.Error;
-                    _positionTimer.Stop();
-                });
-            });
+            var command = new RelayAppCommand(async (token) => await pauseBase(), async (ex) => await errorActionBase());
 
             task.Enqueue(command);
         }

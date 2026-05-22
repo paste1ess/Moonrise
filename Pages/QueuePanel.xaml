@@ -4,11 +4,29 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Moonrise.Pages"
+    xmlns:controls="using:Moonrise.Controls"
+    xmlns:services="using:Moonrise.Services"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
-        <TextBlock Text="Hello i am inner queue"/>
-    </Grid>
+    <StackPanel Padding="16, 12, 16, 0" Spacing="8">
+        <TextBlock Text="History" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+        <ListView ItemsSource="{x:Bind Queue.History, Mode=OneWay}" CanReorderItems="False" AllowDrop="False" AllowFocusOnInteraction="False">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="services:QueueTrack">
+                    <controls:QueueListItem Item="{x:Bind}" DisplayGrip="False"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <TextBlock Text="Playing Next" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+        <ListView ItemsSource="{x:Bind Queue.ActiveQueue, Mode=OneWay}" CanReorderItems="True" AllowDrop="True">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="services:QueueTrack">
+                    <controls:QueueListItem Item="{x:Bind}"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackPanel>
 </Page>

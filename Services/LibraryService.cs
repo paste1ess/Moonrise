@@ -13,7 +13,17 @@ namespace Moonrise.Services
 
         private LibraryService()
         {
-            dbService = new DbService("./library.db");
+            var savedPath = SettingsService.Instance.MusicLibraryPath;
+
+            if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
+            {
+                libraryPath = savedPath;
+                dbService = new DbService(Path.Combine(savedPath, "library.db"));
+            }
+            else
+            {
+                dbService = new DbService(":memory:"); // fallback to in memory db if it doesn't have a library for now, will prob remove in the future as it's pointless besides testing
+            }
         }
 
         /// <summary>
@@ -77,6 +87,7 @@ namespace Moonrise.Services
                     FilePath = path,
                     Duration = file.Properties.Duration
                 };
+                dbService.UpsertTrack(track);
 
                 return track;
             }

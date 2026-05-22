@@ -170,15 +170,22 @@ namespace Moonrise
         {
             if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
-                _shaderTimer.Interval = TimeSpan.FromSeconds(1.0 / 0.5);
+                _shaderTimer.Stop();
                 _isWindowFocused = false;
             }
             else
             {
-                _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
-                    ? TimeSpan.FromSeconds(1.0 / 60.0)
-                    : TimeSpan.FromSeconds(1.0 / 12.0);
                 _isWindowFocused = true;
+
+                if (SettingsService.Instance.BackgroundShadersEnabled)
+                {
+                    _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
+                        ? TimeSpan.FromSeconds(1.0 / 60.0)
+                        : TimeSpan.FromSeconds(1.0 / 12.0);
+
+                    _lastTick = DateTime.UtcNow;
+                    _shaderTimer.Start();
+                }
             }
             Bindings.Update();
         }

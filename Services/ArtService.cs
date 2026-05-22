@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
@@ -24,10 +24,13 @@ namespace Moonrise.Services
         HashSet<ArtKey> placeholderItems = new();
         int currentCacheBytes = 0;
 
-        public async Task<BitmapImage?> GetArtwork(Track track, int size)
+        public Task<BitmapImage?> GetArtwork(Track track, int size) => GetArtworkInternal(track.Id, track.FilePath, size);
+        public Task<BitmapImage?> GetArtwork(QueueTrack track, int size) => GetArtworkInternal(track.Id, track.FilePath, size);
+
+        private async Task<BitmapImage?> GetArtworkInternal(string id, string filePath, int size)
         {
             // placeholder check
-            ArtKey key = new(track.Id, size);
+            ArtKey key = new(id, size);
             if (placeholderItems.Contains(key)) return null;
 
             // if present in cache
@@ -39,45 +42,45 @@ namespace Moonrise.Services
             }
 
             // if it has embedded art, also adds to cache
-            var embeddedImage = await getEmbeddedArtwork(track.FilePath, size);
+            var embeddedImage = await getEmbeddedArtwork(filePath, size);
             if (embeddedImage != null)
             {
-                addToCache(key, new(track.Id, size, embeddedImage));
+                addToCache(key, new(id, size, embeddedImage));
                 return embeddedImage;
             }
 
             // if folder has cover.avif, adds to cache
-            string? avifPath = checkCompanionFileExists(track.FilePath, "cover.avif");
+            string? avifPath = checkCompanionFileExists(filePath, "cover.avif");
             if (avifPath != null)
             {
                 var avifImage = await getImage(avifPath, size);
                 if (avifImage != null)
                 {
-                    addToCache(key, new(track.Id, size, avifImage));
+                    addToCache(key, new(id, size, avifImage));
                     return avifImage;
                 }
             }
 
             // if folder has cover.png, adds to cache
-            string? pngPath = checkCompanionFileExists(track.FilePath, "cover.png");
+            string? pngPath = checkCompanionFileExists(filePath, "cover.png");
             if (pngPath != null)
             {
                 var pngImage = await getImage(pngPath, size);
                 if (pngImage != null)
                 {
-                    addToCache(key, new(track.Id, size, pngImage));
+                    addToCache(key, new(id, size, pngImage));
                     return pngImage;
                 }
             }
 
             // if folder has cover.jpg, adds to cache
-            string? jpgPath = checkCompanionFileExists(track.FilePath, "cover.jpg");
+            string? jpgPath = checkCompanionFileExists(filePath, "cover.jpg");
             if (jpgPath != null)
             {
                 var jpgImage = await getImage(jpgPath, size);
                 if (jpgImage != null)
                 {
-                    addToCache(key, new(track.Id, size, jpgImage));
+                    addToCache(key, new(id, size, jpgImage));
                     return jpgImage;
                 }
             }
@@ -88,25 +91,24 @@ namespace Moonrise.Services
         }
         private async Task<BitmapImage?> getEmbeddedArtwork(string path, int size)
         {
-            using (var file = TagLib.File.Create(path))
+            var pictureData = await Task.Run(() =>
             {
+                using var file = TagLib.File.Create(path);
                 var pic = file.Tag.Pictures?.FirstOrDefault();
-                if (pic == null) return null;
+                return pic?.Data.Data;
+            });
 
-                var bitmap = new BitmapImage();
+            if (pictureData == null) return null;
 
-                
-                bitmap.DecodePixelType = DecodePixelType.Logical;
-                bitmap.DecodePixelWidth = size;
-                bitmap.DecodePixelHeight = size;
+            var bitmap = new BitmapImage();
+            bitmap.DecodePixelType = DecodePixelType.Logical;
+            bitmap.DecodePixelWidth = size;
+            bitmap.DecodePixelHeight = size;
 
-                using (var memoryStream = new MemoryStream(pic.Data.Data))
-                {
-                    await bitmap.SetSourceAsync(memoryStream.AsRandomAccessStream());
-                }
+            using var memoryStream = new MemoryStream(pictureData);
+            await bitmap.SetSourceAsync(memoryStream.AsRandomAccessStream());
 
-                return bitmap;
-            }
+            return bitmap;
         }
         public async Task<BitmapImage?> getImage(string path, int size)
         {

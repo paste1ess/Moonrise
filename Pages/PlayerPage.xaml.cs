@@ -30,6 +30,8 @@ namespace Moonrise.Pages
     {
         private PlaybackService playbackService = PlaybackService.Instance;
         private Track exampleTrack;
+        private Track exampleTrack2;
+        private Track exampleTrack3;
         public PlayerPage()
         {
             InitializeComponent();
@@ -65,11 +67,24 @@ namespace Moonrise.Pages
         {
             base.OnNavigatedTo(e);
 
-            var track = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\Jaga Jazzist\One-Armed Bandit\05 Toccata.flac");
+            if (exampleTrack != null) return;
+            var track = await LibraryService.Instance.ScanTrackFromFile(@"C:\Users\jamied\Documents\devmusic\Takeaki Watanabe - Irisu Syndrome\10hours.mp3");
+            var track2 = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\the scary jokes\Retinal Bloom\the scary jokes - Our Murderous Descent.flac");
+            var track3 = await LibraryService.Instance.ScanTrackFromFile(@"C:\Users\jamied\Documents\devmusic\K.Shiraki - Monday\Monday.ogg");
 
             if (track != null)
             {
                 exampleTrack = track;
+            }
+            if (track2 != null)
+            {
+                exampleTrack2 = track2;
+                
+            }
+            if (track3 != null)
+            {
+                exampleTrack3 = track3;
+                playbackService.Queue.AddToStart(track3);
             }
         }
 
@@ -121,7 +136,16 @@ namespace Moonrise.Pages
             else if (playbackService.CurrentPlaybackState == PlaybackState.Playing)
                 playbackService.Pause();
             else
+            { 
                 playbackService.PlayTrack(exampleTrack);
+                playbackService.Queue.AddToStart(exampleTrack2);
+                playbackService.Queue.AddToStart(exampleTrack3);
+            }
+        }
+
+        private void Skip_Click(object sender, RoutedEventArgs e)
+        {
+            playbackService.Next();
         }
     }
 }

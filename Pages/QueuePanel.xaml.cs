@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Moonrise.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +24,7 @@ namespace Moonrise.Pages
     /// </summary>
     public sealed partial class QueuePanel : Page
     {
+        public QueueService Queue => PlaybackService.Instance.Queue;
         public QueuePanel()
         {
             InitializeComponent();

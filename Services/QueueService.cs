@@ -11,10 +11,21 @@ namespace Moonrise.Services
 {
     public class QueueTrack
     {
-        required public string Id { get; init; }
-        required public string Title { get; init; }
-        required public string Artist { get; init; }
-        public static QueueTrack FromTrack(Track track) { return new QueueTrack { Id = track.Id, Artist = track.Artist, Title = track.Title }; }
+        public string Id { get; init; } = string.Empty;
+        public string Title { get; init; } = string.Empty;
+        public string Artist { get; init; } = string.Empty;
+        public string FilePath { get; init; } = string.Empty;
+
+        public static QueueTrack FromTrack(Track track)
+        {
+            return new QueueTrack
+            {
+                Id = track.Id,
+                Artist = track.Artist,
+                Title = track.Title,
+                FilePath = track.FilePath
+            };
+        }
     }
     public class BulkObservableCollection<T> : ObservableCollection<T>
     {
@@ -60,7 +71,8 @@ namespace Moonrise.Services
         [ObservableProperty]
         public partial BulkObservableCollection<QueueTrack> ActiveQueue { set; get; } = new();
         public List<QueueTrack> OriginalQueue { private set; get; } = new();
-        public List<QueueTrack> History { private set; get; } = new();
+        [ObservableProperty]
+        public partial BulkObservableCollection<QueueTrack> History { get; set; } = new();
 
         public void AddToStart(Track track)
         {
@@ -130,7 +142,7 @@ namespace Moonrise.Services
 
         public QueueTrack SkipAndTake(int index)
         {
-            History = OriginalQueue.GetRange(0, index);
+            History.ReplaceRange(OriginalQueue.GetRange(0, index));
             QueueTrack selectedTrack = OriginalQueue[index];
             var remainingTracks = OriginalQueue.GetRange(index + 1, OriginalQueue.Count - index - 1);
 
