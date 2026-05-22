@@ -22,7 +22,6 @@ using Windows.Foundation.Collections;
 
 namespace Moonrise.Controls
 {
-    [INotifyPropertyChanged]
     public sealed partial class QueueListItem : UserControl
     {
         public QueueTrack Item
@@ -50,8 +49,14 @@ namespace Moonrise.Controls
         public static readonly DependencyProperty DisplayGripProperty =
             DependencyProperty.Register(nameof(DisplayGrip), typeof(bool), typeof(QueueListItem), new PropertyMetadata(true));
 
-        [ObservableProperty]
-        public partial BitmapImage? DisplayedCoverArt { get; set; }
+        public BitmapImage? DisplayedCoverArt
+        {
+            get { return (BitmapImage?)GetValue(DisplayedCoverArtProperty); }
+            set { SetValue(DisplayedCoverArtProperty, value); }
+        }
+
+        public static readonly DependencyProperty DisplayedCoverArtProperty =
+            DependencyProperty.Register(nameof(DisplayedCoverArt), typeof(BitmapImage), typeof(QueueListItem), new PropertyMetadata(null));
 
         private async void UpdateArtworkAsync()
         {

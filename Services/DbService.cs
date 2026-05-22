@@ -1,10 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Moonrise.Services
 {
@@ -152,7 +153,7 @@ namespace Moonrise.Services
                 (@id, @track_ids, @artist_id, @title, @artist, @year, @genre, @is_favorite, @date_added);",
             _connection);
 
-            string jsonTracks = JsonSerializer.Serialize(album.TrackIds);
+            string jsonTracks = JsonSerializer.Serialize(album.TrackIds, DbJsonContext.Default.ListString);
 
             command.Parameters.AddWithValue("@id", album.Id);
             command.Parameters.AddWithValue("@track_ids", jsonTracks);
@@ -174,7 +175,7 @@ namespace Moonrise.Services
                 (@id, @album_ids, @name, @is_favorite, @date_added);",
             _connection);
 
-            string jsonAlbums = JsonSerializer.Serialize(artist.AlbumIds);
+            string jsonAlbums = JsonSerializer.Serialize(artist.AlbumIds, DbJsonContext.Default.ListString);
 
             command.Parameters.AddWithValue("@id", artist.Id);
             command.Parameters.AddWithValue("@album_ids", jsonAlbums);
@@ -193,4 +194,7 @@ namespace Moonrise.Services
         public static string NewAlbumId() => $"alb_{Guid.NewGuid():N}";
         public static string NewArtistId() => $"art_{Guid.NewGuid():N}";
     }
+
+    [JsonSerializable(typeof(List<string>))]
+    internal partial class DbJsonContext : JsonSerializerContext { }
 }

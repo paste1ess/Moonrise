@@ -139,6 +139,13 @@ namespace Moonrise.Services
         {
             var command = new RelayAppCommand(async (token) =>
             {
+
+                if (mediaPlayer.PlaybackSession != null && mediaPlayer.Position.TotalSeconds > 3)
+                {
+                    mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
+                    return;
+                }
+
                 await stopBase();
 
                 QueueTrack? queueTrack = null;
