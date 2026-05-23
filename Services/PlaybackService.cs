@@ -1,10 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Text;
 using Windows.Media.Core;
 using Windows.Media.Playback;
@@ -31,21 +33,28 @@ namespace Moonrise.Services
         [ObservableProperty]
         public partial Track? CurrentTrack { get; set; }
         [ObservableProperty]
-        public partial BitmapImage? CurrentTrackArtwork { get; set; }
+        public partial ImageSource? CurrentTrackArtwork { get; set; }
         [ObservableProperty]
-        public partial BitmapImage? CurrentTrackBackgroundArtwork { get; set; }
+        public partial ImageSource? CurrentTrackBackgroundArtwork { get; set; }
         
 
 
+        private CancellationTokenSource? _artworkCts;
+
         partial void OnCurrentTrackChanged(Track? value)
         {
+            if (_artworkCts != null)
+            {
+                _artworkCts.Cancel();
+            }
             if (value == null)
             {
                 CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
                 CurrentTrackBackgroundArtwork = null;
                 return;
             }
-            _ = loadArtworkAsync(value);
+            _artworkCts = new CancellationTokenSource();
+            _ = loadArtworkAsync(value, _artworkCts.Token);
         }
 
         private TimeSpan _currentTrackTime;
@@ -118,7 +127,10 @@ namespace Moonrise.Services
                             mediaPlayer.Source = null;
                             oldSource.Dispose();
                         }
-                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(nextTrack.FilePath));
+
+                        var path = LibraryService.Instance.PathToAbsolute(nextTrack.FilePath);
+
+                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(path));
                         mediaPlayer.Source = mediaSource;
                     }
                     finally
@@ -183,7 +195,10 @@ namespace Moonrise.Services
                             mediaPlayer.Source = null;
                             oldSource.Dispose();
                         }
-                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(prevTrack.FilePath));
+
+                        var path = LibraryService.Instance.PathToAbsolute(prevTrack.FilePath);
+
+                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(path));
                         mediaPlayer.Source = mediaSource;
                     }
                     finally
@@ -272,22 +287,43 @@ namespace Moonrise.Services
                 oldSource.Dispose();
             }
 
-            IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(track.FilePath));
+            var path = LibraryService.Instance.PathToAbsolute(track.FilePath);
+            IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(path));
             mediaPlayer.Source = mediaSource;
 
             Play();
         }
 
-        private async Task loadArtworkAsync(Track track)
+        private async Task loadArtworkAsync(Track track, CancellationToken token)
         {
-            CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
-            CurrentTrackBackgroundArtwork = null;
-            var art = await ArtService.Instance.GetArtwork(track, 320);
-            var bgArt = await ArtService.Instance.GetArtwork(track, 6);
-            if (CurrentTrack == track)
+            task.Dispatcher.TryEnqueue(() =>
             {
-                CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
-                CurrentTrackBackgroundArtwork = bgArt;
+                CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+                CurrentTrackBackgroundArtwork = null;
+            });
+            try
+            {
+                var art = await ArtService.Instance.GetArtwork(track, 320, token);
+                if (token.IsCancellationRequested) return;
+
+                var bgArt = await ArtService.Instance.GetArtwork(track, 6, token);
+                if (token.IsCancellationRequested) return;
+
+                task.Dispatcher.TryEnqueue(() =>
+                {
+                    if (CurrentTrack == track)
+                    {
+                        CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+                        CurrentTrackBackgroundArtwork = bgArt;
+                    }
+                });
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load playback artwork: {ex.Message}");
             }
         }
     }

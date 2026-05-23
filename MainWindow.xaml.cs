@@ -25,6 +25,7 @@ namespace Moonrise
 {
     public sealed partial class MainWindow : Window
     {
+        public static MainWindow? Instance { get; private set; }
         private SettingsService _settings = SettingsService.Instance;
         private PixelShaderEffect<BackgroundShader>? _shaderEffect;
         private bool _isLightTheme;
@@ -38,7 +39,7 @@ namespace Moonrise
         private float _shaderSpeedMultiplier = 80f / 120f;
 
         public PlaybackService PlaybackService => PlaybackService.Instance;
-        public double CheckBackgroundOpacity(PlaybackState state, BitmapImage artwork, bool isWindowFocused, bool isLightTheme)
+        public double CheckBackgroundOpacity(PlaybackState state, ImageSource artwork, bool isWindowFocused, bool isLightTheme)
         {
             if (!isWindowFocused || state != PlaybackState.Playing || artwork == null)
             {
@@ -68,6 +69,7 @@ namespace Moonrise
 
         public MainWindow()
         {
+            Instance = this;
             InitializeComponent();
 
             ExtendsContentIntoTitleBar = true;
@@ -297,7 +299,7 @@ namespace Moonrise
             }
         }
 
-        private void PlayerNavButton_Click(object sender, RoutedEventArgs e)
+        public void NavigateToPlayer()
         {
             if (NavView.SelectedItem != null)
             {
@@ -306,6 +308,11 @@ namespace Moonrise
                 PlayerNavButton.Background = (Brush)Application.Current.Resources["NavigationViewItemBackgroundSelected"];
                 NavFrame.Navigate(typeof(PlayerPage));
             }
+        }
+
+        private void PlayerNavButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigateToPlayer();
         }
     }
 }

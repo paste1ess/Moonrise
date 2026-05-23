@@ -1,31 +1,57 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using System;
-using System.Collections.Generic;
-using System.IO;
+using Moonrise.Models;
+using Moonrise.Services;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using System.Threading.Tasks;
 
 namespace Moonrise.Pages
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class TracksPage : Page
     {
+        // Property for data binding
+        public ObservableCollection<Track> Tracks { get; } = new();
+
         public TracksPage()
         {
             InitializeComponent();
+        }
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            var trackList = await Task.Run(() => LibraryService.Instance.GetAllTracks());
+
+            if (Frame == null) return;
+
+            TrackListView.ItemsSource = null;
+            Tracks.Clear();
+            foreach (var track in trackList)
+            {
+                Tracks.Add(track);
+            }
+            TrackListView.ItemsSource = Tracks;
+        }
+
+        private void TrackListItem_Clicked(object sender, RoutedEventArgs e)
+        {
+            if (sender is Controls.TrackListItem item && item.Song is Track selectedTrack)
+            {
+                PlaybackService.Instance.PlayTrack(selectedTrack);
+
+                var list = Tracks.ToList();
+                int index = list.IndexOf(selectedTrack);
+                if (index >= 0 && index < list.Count - 1)
+                {
+                    var remaining = list.Skip(index + 1).ToList();
+                    PlaybackService.Instance.Queue.SetQueue(remaining);
+                    PlaybackService.Instance.Queue.PassQueue();
+                }
+                MainWindow.Instance?.NavigateToPlayer();
+            }
         }
     }
 }

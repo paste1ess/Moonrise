@@ -36,6 +36,7 @@ namespace Moonrise.Pages
         public PlayerPage()
         {
             InitializeComponent();
+            Unloaded += (s, e) => this.Bindings.StopTracking();
         }
         private int previousSelectedIndex;
 
@@ -72,28 +73,12 @@ namespace Moonrise.Pages
             base.OnNavigatedTo(e);
 
             if (exampleTrack != null) return;
-            var track = await LibraryService.Instance.ScanTrackFromFile(@"C:\Users\jamied\Documents\devmusic\Takeaki Watanabe - Irisu Syndrome\10hours.mp3");
-            var track2 = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\the scary jokes\Retinal Bloom\the scary jokes - Our Murderous Descent.flac");
-            var track3 = await LibraryService.Instance.ScanTrackFromFile(@"C:\Users\jamied\Documents\devmusic\K.Shiraki - Monday\Monday.ogg");
-            var track4 = await LibraryService.Instance.ScanTrackFromFile(@"M:\music\The FLACS\metaroom\Dinki The Starguide\metaroom - Dinki The Starguide.flac");
 
-            if (track != null)
-            {
-                exampleTrack = track;
-            }
-            if (track2 != null)
-            {
-                exampleTrack2 = track2;
-                
-            }
-            if (track3 != null)
-            {
-                exampleTrack3 = track3;
-            }
-            if (track4 != null)
-            {
-                exampleTrack4 = track4;
-            }
+            var allTracks = await Task.Run(() => LibraryService.Instance.GetAllTracks());
+            if (allTracks.Count > 0) exampleTrack = allTracks[0];
+            if (allTracks.Count > 1) exampleTrack2 = allTracks[1];
+            if (allTracks.Count > 2) exampleTrack3 = allTracks[2];
+            if (allTracks.Count > 3) exampleTrack4 = allTracks[3];
         }
 
         public string PlaybackStateToGlyph(PlaybackState state)

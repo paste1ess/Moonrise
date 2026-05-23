@@ -15,7 +15,7 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Spacing="12" Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center">
             <Grid Height="40" CornerRadius="4">
-                <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay}" HorizontalAlignment="Left"/>
+                <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" HorizontalAlignment="Left"/>
             </Grid>
             <StackPanel>
                 <TextBlock Text="{x:Bind Item.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}"/>

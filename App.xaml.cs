@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
@@ -26,6 +26,13 @@ namespace Moonrise
         public App()
         {
             InitializeComponent();
+            System.AppDomain.CurrentDomain.FirstChanceException += (sender, eventArgs) =>
+            {
+                if (eventArgs.Exception is System.OperationCanceledException || eventArgs.Exception is System.Threading.Tasks.TaskCanceledException)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[FirstChanceException] Canceled Exception: {eventArgs.Exception.Message}\nStack Trace:\n{eventArgs.Exception.StackTrace}\n");
+                }
+            };
         }
 
         /// <summary>
@@ -34,14 +41,13 @@ namespace Moonrise
         /// <param name="args">Details about the launch request and process.</param>
         protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            TaskService.Initialize(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
             _window = new MainWindow();
-
-            TaskService.Initialize(_window.DispatcherQueue);
             SettingsService.Instance.Load();
 
             //playbackService = PlaybackService.Instance;
 
-            //await LibraryService.Instance.HardScanLibrary("C:\\Users\\jamied\\Documents\\devmusic");
+            await LibraryService.Instance.HardScanLibrary(@"M:\music\");
 
             _window.Activate();
         }

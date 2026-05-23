@@ -1,14 +1,20 @@
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using System.Threading.Tasks;
+using Windows.Graphics.Imaging;
 
 namespace Moonrise.Services
 {
     public readonly record struct ArtKey(string Id, int Size);
-    public record ArtItem(string Id, int Size, BitmapImage Data)
+    public record ArtItem(string Id, int Size, ImageSource Data)
     {
         public int ByteSize => Size * Size * 4;
     }
@@ -16,160 +22,321 @@ namespace Moonrise.Services
     public class ArtService
     {
         public static readonly ArtService Instance = new();
-        public static readonly int CacheMemoryLimit = 80 * 1024 * 1024; // 80mb
+        public static readonly int CacheMemoryLimit = 100 * 1024 * 1024;
 
-        Dictionary<ArtKey, ArtItem> cache = new();
-        LinkedList<ArtKey> lruList = new();
+        private readonly Dictionary<ArtKey, ArtItem> cache = new();
+        private readonly LinkedList<ArtKey> lruList = new();
+        private readonly HashSet<ArtKey> placeholderItems = new();
+        private readonly Dictionary<ArtKey, int> refCounts = new();
+        private int currentCacheBytes = 0;
 
-        HashSet<ArtKey> placeholderItems = new();
-        int currentCacheBytes = 0;
+        private readonly SemaphoreSlim _ioSemaphore = new(2, 2);
 
-        public Task<BitmapImage?> GetArtwork(Track track, int size) => GetArtworkInternal(track.Id, track.FilePath, size);
-        public Task<BitmapImage?> GetArtwork(QueueTrack track, int size) => GetArtworkInternal(track.Id, track.FilePath, size);
+        public Task<ImageSource?> GetArtwork(Track track, int size, CancellationToken token = default) => 
+            GetArtworkInternal(track.Id, track.FilePath, size, token);
+            
+        public Task<ImageSource?> GetArtwork(QueueTrack track, int size, CancellationToken token = default) => 
+            GetArtworkInternal(track.Id, track.FilePath, size, token);
 
-        private async Task<BitmapImage?> GetArtworkInternal(string id, string filePath, int size)
+        private async Task<ImageSource?> GetArtworkInternal(string id, string filePath, int size, CancellationToken token)
         {
-            // placeholder check
             ArtKey key = new(id, size);
-            if (placeholderItems.Contains(key)) return null;
-
-            // if present in cache
-            if (cache.TryGetValue(key, out var cachedItem))
+            lock (cache)
             {
-                lruList.Remove(key);
-                lruList.AddLast(key);
-                return cachedItem.Data;
-            }
+                if (placeholderItems.Contains(key)) return null;
 
-            // if it has embedded art, also adds to cache
-            var embeddedImage = await getEmbeddedArtwork(filePath, size);
-            if (embeddedImage != null)
-            {
-                addToCache(key, new(id, size, embeddedImage));
-                return embeddedImage;
-            }
-
-            // if folder has cover.avif, adds to cache
-            string? avifPath = checkCompanionFileExists(filePath, "cover.avif");
-            if (avifPath != null)
-            {
-                var avifImage = await getImage(avifPath, size);
-                if (avifImage != null)
+                if (cache.TryGetValue(key, out var cachedItem))
                 {
-                    addToCache(key, new(id, size, avifImage));
-                    return avifImage;
+                    lruList.Remove(key);
+                    lruList.AddLast(key);
+                    return cachedItem.Data;
                 }
             }
 
-            // if folder has cover.png, adds to cache
-            string? pngPath = checkCompanionFileExists(filePath, "cover.png");
-            if (pngPath != null)
+            var absolutePath = LibraryService.Instance.PathToAbsolute(filePath);
+
+            try
             {
-                var pngImage = await getImage(pngPath, size);
-                if (pngImage != null)
-                {
-                    addToCache(key, new(id, size, pngImage));
-                    return pngImage;
-                }
+                await _ioSemaphore.WaitAsync();
+            }
+            catch (Exception)
+            {
+                return null;
             }
 
-            // if folder has cover.jpg, adds to cache
-            string? jpgPath = checkCompanionFileExists(filePath, "cover.jpg");
-            if (jpgPath != null)
+            try
             {
-                var jpgImage = await getImage(jpgPath, size);
-                if (jpgImage != null)
+                if (token.IsCancellationRequested) return null;
+
+                var embeddedImage = await getEmbeddedArtwork(absolutePath, size, token);
+                if (embeddedImage != null)
                 {
-                    addToCache(key, new(id, size, jpgImage));
-                    return jpgImage;
+                    addToCache(key, new(id, size, embeddedImage));
+                    return embeddedImage;
+                }
+
+                if (token.IsCancellationRequested) return null;
+
+                string? avifPath = checkCompanionFilePath(absolutePath, "cover.avif");
+                if (avifPath != null)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    var avifImage = await loadAndDecodeFile(avifPath, size, token);
+                    if (avifImage != null)
+                    {
+                        addToCache(key, new(id, size, avifImage));
+                        return avifImage;
+                    }
+                }
+
+                if (token.IsCancellationRequested) return null;
+
+                string? pngPath = checkCompanionFilePath(absolutePath, "cover.png");
+                if (pngPath != null)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    var pngImage = await loadAndDecodeFile(pngPath, size, token);
+                    if (pngImage != null)
+                    {
+                        addToCache(key, new(id, size, pngImage));
+                        return pngImage;
+                    }
+                }
+
+                if (token.IsCancellationRequested) return null;
+
+                string? jpgPath = checkCompanionFilePath(absolutePath, "cover.jpg");
+                if (jpgPath != null)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    var jpgImage = await loadAndDecodeFile(jpgPath, size, token);
+                    if (jpgImage != null)
+                    {
+                        addToCache(key, new(id, size, jpgImage));
+                        return jpgImage;
+                    }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                _ioSemaphore.Release();
+            }
 
-            // add to placeholderItems so it knows not to scan again
-            placeholderItems.Add(key);
+            lock (cache)
+            {
+                placeholderItems.Add(key);
+            }
             return null;
         }
-        private async Task<BitmapImage?> getEmbeddedArtwork(string path, int size)
+
+        private async Task<ImageSource?> getEmbeddedArtwork(string path, int size, CancellationToken token)
         {
+            if (token.IsCancellationRequested) return null;
             var pictureData = await Task.Run(() =>
             {
+                if (token.IsCancellationRequested) return null;
                 using var file = TagLib.File.Create(path);
                 var pic = file.Tag.Pictures?.FirstOrDefault();
                 return pic?.Data.Data;
             });
 
-            if (pictureData == null) return null;
+            if (pictureData == null || token.IsCancellationRequested) return null;
 
-            var bitmap = new BitmapImage();
-            bitmap.DecodePixelType = DecodePixelType.Logical;
-            bitmap.DecodePixelWidth = size;
-            bitmap.DecodePixelHeight = size;
-
-            using var memoryStream = new MemoryStream(pictureData);
-            await bitmap.SetSourceAsync(memoryStream.AsRandomAccessStream());
-
-            return bitmap;
+            return await decodeToSoftwareBitmapSource(pictureData, size, token);
         }
-        public async Task<BitmapImage?> getImage(string path, int size)
+
+        private async Task<ImageSource?> decodeToSoftwareBitmapSource(byte[] pictureData, int size, CancellationToken token)
         {
-            if (!File.Exists(path)) return null;
-
-            var bitmap = new BitmapImage();
-
-            bitmap.DecodePixelType = DecodePixelType.Logical;
-            bitmap.DecodePixelWidth = size;
-            bitmap.DecodePixelHeight = size;
-
             try
             {
-                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                if (token.IsCancellationRequested) return null;
+
+                var softwareBitmap = await Task.Run(async () =>
                 {
-                    await bitmap.SetSourceAsync(fs.AsRandomAccessStream());
+                    if (token.IsCancellationRequested) return null;
+                    using var memoryStream = new MemoryStream(pictureData);
+                    using var randomAccessStream = memoryStream.AsRandomAccessStream();
+                    var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
+
+                    var transform = new BitmapTransform
+                    {
+                        ScaledWidth = (uint)size,
+                        ScaledHeight = (uint)size,
+                        InterpolationMode = BitmapInterpolationMode.Linear
+                    };
+
+                    var pixelData = await decoder.GetPixelDataAsync(
+                        BitmapPixelFormat.Bgra8,
+                        BitmapAlphaMode.Premultiplied,
+                        transform,
+                        ExifOrientationMode.RespectExifOrientation,
+                        ColorManagementMode.ColorManageToSRgb);
+
+                    if (token.IsCancellationRequested) return null;
+                    var bmp = new SoftwareBitmap(BitmapPixelFormat.Bgra8, size, size, BitmapAlphaMode.Premultiplied);
+                    bmp.CopyFromBuffer(pixelData.DetachPixelData().AsBuffer());
+                    return bmp;
+                });
+
+                if (token.IsCancellationRequested || softwareBitmap == null)
+                {
+                    softwareBitmap?.Dispose();
+                    return null;
                 }
-                return bitmap;
+
+                var tcs = new TaskCompletionSource<ImageSource?>();
+                TaskService.Instance.Dispatcher.TryEnqueue(async () =>
+                {
+                    try
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            softwareBitmap.Dispose();
+                            tcs.SetResult(null);
+                            return;
+                        }
+                        var source = new SoftwareBitmapSource();
+                        await source.SetBitmapAsync(softwareBitmap);
+                        tcs.SetResult(source);
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
+
+                return await tcs.Task;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"failed to decode image at {path}: {ex.Message}");
+                Debug.WriteLine($"Failed to decode software bitmap: {ex.Message}");
                 return null;
             }
         }
-        private void addToCache(ArtKey key, ArtItem item)
+
+        private async Task<ImageSource?> loadAndDecodeFile(string path, int size, CancellationToken token)
         {
-            if (cache.TryGetValue(key, out var existingItem))
+            try
             {
-                currentCacheBytes -= existingItem.ByteSize;
-                cache[key] = item;
-                
-                lruList.Remove(key);
-            }
-            else
-            {
-                cache.Add(key, item);
-            }
-            
-            lruList.AddLast(key);
-            currentCacheBytes += item.ByteSize;
-
-            while (currentCacheBytes > CacheMemoryLimit && lruList.Count > 0)
-            {
-                var oldestKey = lruList.First!.Value;
-
-                if (cache.TryGetValue(oldestKey, out var evictedItem))
+                if (token.IsCancellationRequested) return null;
+                byte[]? data = await Task.Run(() =>
                 {
-                    currentCacheBytes -= evictedItem.ByteSize;
-                    cache.Remove(oldestKey);
-                }
+                    if (token.IsCancellationRequested) return null;
+                    if (File.Exists(path))
+                    {
+                        return File.ReadAllBytes(path);
+                    }
+                    return null;
+                });
 
-                lruList.RemoveFirst();
+                if (data == null || token.IsCancellationRequested) return null;
+
+                return await decodeToSoftwareBitmapSource(data, size, token);
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
-        //public async Task<BitmapImage> GetArtwork(Album album)
-        //{
-        //TODO: add embedded track tag scanning
-        //}
 
-        private static string? checkCompanionFileExists(string originalFilePath, string targetFileName)
+        private void addToCache(ArtKey key, ArtItem item)
+        {
+            lock (cache)
+            {
+                if (cache.TryGetValue(key, out var existingItem))
+                {
+                    currentCacheBytes -= existingItem.ByteSize;
+                    cache[key] = item;
+                    lruList.Remove(key);
+                    ReleaseArtwork(key, existingItem.Data);
+                }
+                else
+                {
+                    cache.Add(key, item);
+                }
+
+                lruList.AddLast(key);
+                currentCacheBytes += item.ByteSize;
+                AcquireArtwork(key, item.Data);
+
+                while ((currentCacheBytes > CacheMemoryLimit || cache.Count > 500) && lruList.Count > 0)
+                {
+                    var oldestKey = lruList.First!.Value;
+
+                    if (cache.TryGetValue(oldestKey, out var evictedItem))
+                    {
+                        currentCacheBytes -= evictedItem.ByteSize;
+                        cache.Remove(oldestKey);
+                        ReleaseArtwork(oldestKey, evictedItem.Data);
+                    }
+
+                    lruList.RemoveFirst();
+                }
+            }
+        }
+
+        public void AcquireArtwork(ArtKey key, ImageSource data)
+        {
+            lock (cache)
+            {
+                refCounts[key] = refCounts.GetValueOrDefault(key) + 1;
+            }
+        }
+
+        public void ReleaseArtwork(ArtKey key, ImageSource data)
+        {
+            lock (cache)
+            {
+                int newCount = refCounts.GetValueOrDefault(key) - 1;
+                if (newCount <= 0)
+                {
+                    refCounts.Remove(key);
+                }
+                else
+                {
+                    refCounts[key] = newCount;
+                }
+            }
+        }
+
+        public void ClearCache()
+        {
+            lock (cache)
+            {
+                foreach (var item in cache.Values)
+                {
+                    ReleaseArtwork(new ArtKey(item.Id, item.Size), item.Data);
+                }
+                cache.Clear();
+                lruList.Clear();
+                placeholderItems.Clear();
+                currentCacheBytes = 0;
+            }
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        public ImageSource? GetCachedArtwork(string id, int size)
+        {
+            lock (cache)
+            {
+                if (cache.TryGetValue(new ArtKey(id, size), out var item))
+                {
+                    return item.Data;
+                }
+                return null;
+            }
+        }
+
+        private static string? checkCompanionFilePath(string originalFilePath, string targetFileName)
         {
             string? parentFolder = Path.GetDirectoryName(originalFilePath);
 
@@ -178,10 +345,7 @@ namespace Moonrise.Services
                 return null;
             }
 
-            string specificFilePath = Path.Combine(parentFolder, targetFileName);
-
-            if (File.Exists(specificFilePath)) return specificFilePath;
-            return null;
+            return Path.Combine(parentFolder, targetFileName);
         }
     }
 }

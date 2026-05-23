@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
 
 namespace Moonrise.Models
 {
     public record Artist
     {
-        // relational info
-        public string Id { get; init; }
-        public string[] AlbumIds { get; init; }
+        public string Id { get; set; } = string.Empty;
+        public string[] AlbumIds { get; set; } = Array.Empty<string>();
 
-        // metadata
-        public string Name { get; init; }
-        public bool IsFavorite { get; init; }
+        public string Name { get; set; } = string.Empty;
+        public bool IsFavorite { get; set; }
 
-        // file info
-        public DateTime DateAdded { get; init; }
+        public DateTime DateAdded { get; set; }
     }
 }

@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
 
 namespace Moonrise.Models
 {
     public record Album
     {
-        // relational info
-        public string Id { get; init; }
-        public string[] TrackIds { get; init; }
-        public string ArtistId { get; init; }
+        public string Id { get; set; } = string.Empty;
+        public string[] TrackIds { get; set; } = Array.Empty<string>();
+        public string ArtistId { get; set; } = string.Empty;
 
-        // metadata
-        public string Title { get; init; }
-        public string Artist { get; init; } // album artist name
-        public int? Year { get; init; }
-        public string? Genre { get; init; }
-        public bool IsFavorite { get; init; }
+        public string Title { get; set; } = string.Empty;
+        public string Artist { get; set; } = string.Empty;
+        public int? Year { get; set; }
+        public string? Genre { get; set; }
+        public bool IsFavorite { get; set; }
 
-        // file info
-        public DateTime DateAdded { get; init; }
-
+        public DateTime DateAdded { get; set; }
     }
 }

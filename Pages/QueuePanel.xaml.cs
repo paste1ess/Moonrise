@@ -28,6 +28,7 @@ namespace Moonrise.Pages
         public QueuePanel()
         {
             InitializeComponent();
+            Unloaded += (s, e) => this.Bindings.StopTracking();
         }
     }
 }

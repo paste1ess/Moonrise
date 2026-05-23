@@ -10,7 +10,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ListView ItemsSource="{x:Bind Queue.History, Mode=OneWay}" CanReorderItems="False" AllowDrop="False" AllowFocusOnInteraction="False" Padding="16, 12">
+    <ListView ItemsSource="{x:Bind Queue.History, Mode=OneWay}" CanReorderItems="False" AllowDrop="False" AllowFocusOnInteraction="False" Padding="16, 12" Background="Transparent">
         <ListView.ItemTemplate>
             <DataTemplate x:DataType="services:QueueTrack">
                 <controls:QueueListItem Item="{x:Bind}" DisplayGrip="False"/>

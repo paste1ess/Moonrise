@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,6 +12,7 @@ namespace Moonrise.Services
     {
         public static readonly SettingsService Instance = new();
         private string _settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Moonrise", "settings.json");
+        private bool _isLoading = false;
 
         [ObservableProperty]
         public partial string MusicLibraryPath { get; set; } = string.Empty;
@@ -21,10 +22,10 @@ namespace Moonrise.Services
         [ObservableProperty]
         public partial bool BackgroundShadersBoostFps { get; set; } = false;
 
-        partial void OnMusicLibraryPathChanged(string value) => Save();
-        partial void OnBackgroundShadersEnabledChanged(bool value) => Save();
+        partial void OnMusicLibraryPathChanged(string value) { if (!_isLoading) Save(); }
+        partial void OnBackgroundShadersEnabledChanged(bool value) { if (!_isLoading) Save(); }
 
-        partial void OnBackgroundShadersBoostFpsChanged(bool value) => Save();
+        partial void OnBackgroundShadersBoostFpsChanged(bool value) { if (!_isLoading) Save(); }
 
         public void Save()
         {
@@ -42,9 +43,17 @@ namespace Moonrise.Services
         {
             if (!File.Exists(_settingsPath)) return;
             var s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_settingsPath), AppSettingsContext.Default.AppSettings) ?? new();
-            MusicLibraryPath = s.MusicLibraryPath;
-            BackgroundShadersEnabled = s.BackgroundShadersEnabled;
-            BackgroundShadersBoostFps = s.BackgroundShadersBoostFps;
+            _isLoading = true;
+            try
+            {
+                MusicLibraryPath = s.MusicLibraryPath;
+                BackgroundShadersEnabled = s.BackgroundShadersEnabled;
+                BackgroundShadersBoostFps = s.BackgroundShadersBoostFps;
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
     }
 

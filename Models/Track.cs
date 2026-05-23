@@ -1,30 +1,27 @@
-﻿using Microsoft.UI.Xaml.Media.Imaging;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Moonrise.Models
 {
     public record Track
     {
-        // relational info
-        required public string Id { get; init; }
-        required public string AlbumId { get; init; }
-        required public string ArtistId { get; init; }
+        public string Id { get; set; } = string.Empty;
+        public string AlbumId { get; set; } = string.Empty;
+        public string ArtistId { get; set; } = string.Empty;
 
-        // metadata
-        required public string Title { get; init; }
-        required public string Album { get; init; } // album name
-        required public string Artist { get; init; } // artist name
-        public int? Year { get; init; }
-        public string? Genre { get; init; }
-        public int? Bpm { get; init; }
-        public bool IsFavorite { get; init; }
+        public string Title { get; set; } = string.Empty;
+        public string Album { get; set; } = string.Empty;
+        public string Artist { get; set; } = string.Empty;
+        public int? Year { get; set; }
+        public string? Genre { get; set; }
+        public int? Bpm { get; set; }
+        public bool IsFavorite { get; set; }
 
-        // file info
-        required public string FilePath { get; init; }
-        public int Bitrate { get; init; }
-        required public TimeSpan Duration { get; init; }
-        public DateTime DateAdded { get; init; }
+        public string FilePath { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        public int Bitrate { get; set; }
+        public TimeSpan Duration { get; set; }
+        public DateTime DateAdded { get; set; }
+        public string LastModified { get; set; } = string.Empty;
+        public bool IsPresent { get; set; }
     }
 }

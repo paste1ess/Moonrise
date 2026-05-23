@@ -1,6 +1,9 @@
 {
   "profiles": {
-    "Moonrise": {
+    "Moonrise (Packaged)": {
+      "commandName": "MsixPackage"
+    },
+    "Moonrise (Unpackaged)": {
       "commandName": "Project"
     }
   }
