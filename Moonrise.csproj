@@ -113,5 +113,9 @@
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <PublishSingleFile Condition="'$(Configuration)' == 'Debug'">False</PublishSingleFile>
+    <PublishSingleFile Condition="'$(Configuration)' != 'Debug'">True</PublishSingleFile>
+    <SelfContained Condition="'$(Configuration)' == 'Debug'">False</SelfContained>
+    <SelfContained Condition="'$(Configuration)' != 'Debug'">True</SelfContained>
   </PropertyGroup>
 </Project>
