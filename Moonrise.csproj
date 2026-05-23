@@ -16,7 +16,7 @@
 	<WindowsPackageType>None</WindowsPackageType>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-	<SelfContained>true</SelfContained>
+	<SelfContained>false</SelfContained>
 	<ServerGarbageCollection>false</ServerGarbageCollection>
 	<RetainVM>false</RetainVM>
 	<GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
@@ -110,12 +110,27 @@
   <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
-    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">False</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">False</PublishTrimmed>
     <PublishSingleFile Condition="'$(Configuration)' == 'Debug'">False</PublishSingleFile>
-    <PublishSingleFile Condition="'$(Configuration)' != 'Debug'">True</PublishSingleFile>
+    <PublishSingleFile Condition="'$(Configuration)' != 'Debug'">False</PublishSingleFile>
     <SelfContained Condition="'$(Configuration)' == 'Debug'">False</SelfContained>
-    <SelfContained Condition="'$(Configuration)' != 'Debug'">True</SelfContained>
+    <SelfContained Condition="'$(Configuration)' != 'Debug'">False</SelfContained>
   </PropertyGroup>
+
+  <Target Name="CopyWinUIResourcesOnPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <WinUIResources Include="$(OutputPath)\*.pri" />
+      <WinUIXbfFiles Include="$(OutputPath)\*.xbf" />
+      <WinUIAssetFiles Include="$(OutputPath)\Assets\**\*.*" />
+      <WinUIPagesFiles Include="$(OutputPath)\Pages\**\*.xbf" />
+      <WinUIControlsFiles Include="$(OutputPath)\Controls\**\*.xbf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WinUIResources)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(WinUIXbfFiles)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(WinUIAssetFiles)" DestinationFiles="@(WinUIAssetFiles->'$(PublishDir)\Assets\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(WinUIPagesFiles)" DestinationFiles="@(WinUIPagesFiles->'$(PublishDir)\Pages\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(WinUIControlsFiles)" DestinationFiles="@(WinUIControlsFiles->'$(PublishDir)\Controls\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

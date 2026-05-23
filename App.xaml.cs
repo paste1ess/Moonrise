@@ -28,9 +28,24 @@ namespace Moonrise
             InitializeComponent();
             System.AppDomain.CurrentDomain.FirstChanceException += (sender, eventArgs) =>
             {
-                if (eventArgs.Exception is System.OperationCanceledException || eventArgs.Exception is System.Threading.Tasks.TaskCanceledException)
+                try
                 {
-                    System.Diagnostics.Debug.WriteLine($"[FirstChanceException] Canceled Exception: {eventArgs.Exception.Message}\nStack Trace:\n{eventArgs.Exception.StackTrace}\n");
+                    var logPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "crash_log.txt");
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine($"[{System.DateTime.Now:O}] {eventArgs.Exception.GetType().FullName}: {eventArgs.Exception.Message}");
+                    sb.AppendLine(eventArgs.Exception.StackTrace);
+                    var inner = eventArgs.Exception.InnerException;
+                    while (inner != null)
+                    {
+                        sb.AppendLine($"\n---> Inner Exception: {inner.GetType().FullName}: {inner.Message}");
+                        sb.AppendLine(inner.StackTrace);
+                        inner = inner.InnerException;
+                    }
+                    sb.AppendLine("\n========================================\n");
+                    System.IO.File.AppendAllText(logPath, sb.ToString());
+                }
+                catch
+                {
                 }
             };
         }
