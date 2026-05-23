@@ -47,7 +47,7 @@ namespace Moonrise
 
             //playbackService = PlaybackService.Instance;
 
-            await LibraryService.Instance.HardScanLibrary(@"M:\music\");
+            //await LibraryService.Instance.HardScanLibrary(@"M:\music\");
 
             _window.Activate();
         }
