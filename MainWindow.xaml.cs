@@ -8,6 +8,7 @@ using Microsoft.UI.Composition;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Pages;
@@ -19,6 +20,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Windows.Foundation;
 using Windows.Storage;
+using Windows.System;
 using WinRT.Interop;
 
 namespace Moonrise
@@ -156,11 +158,11 @@ namespace Moonrise
 
             if (state != PlaybackState.Playing || track == null)
             {
-                _shaderSpeedMultiplier = 80f / 100f;
+                _shaderSpeedMultiplier = (80f / 100f) * 1.2f;
             }
             else if (track.Bpm.HasValue && track.Bpm.Value > 0)
             {
-                _shaderSpeedMultiplier = track.Bpm.Value / 100f;
+                _shaderSpeedMultiplier = (track.Bpm.Value / 100f) * 1.2f;
             }
             else
             {
@@ -276,7 +278,7 @@ namespace Moonrise
                         NavFrame.Navigate(typeof(TracksPage));
                         break;
                     case "albums":
-                        NavFrame.Navigate(typeof(TracksPage));
+                        NavFrame.Navigate(typeof(AlbumsPage));
                         break;
                     case "artists":
                         NavFrame.Navigate(typeof(TracksPage));
@@ -313,6 +315,34 @@ namespace Moonrise
         private void PlayerNavButton_Click(object sender, RoutedEventArgs e)
         {
             NavigateToPlayer();
+        }
+
+        private void RootGrid_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == VirtualKey.F11)
+            {
+                ToggleFullScreen();
+                e.Handled = true;
+            }
+        }
+
+        private void ToggleFullScreen()
+        {
+            IntPtr hWnd = WindowNative.GetWindowHandle(this);
+            WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+            AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+
+            if (appWindow != null)
+            {
+                if (appWindow.Presenter.Kind == AppWindowPresenterKind.FullScreen)
+                {
+                    appWindow.SetPresenter(AppWindowPresenterKind.Default);
+                }
+                else
+                {
+                    appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+                }
+            }
         }
     }
 }

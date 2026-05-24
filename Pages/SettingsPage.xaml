@@ -11,104 +11,87 @@
 
 
 
-    <Grid Padding="24,16,24,16" RowSpacing="24" MaxWidth="1000" HorizontalAlignment="Stretch">
+    <Grid Padding="24,16,24,0" RowSpacing="24" MaxWidth="1000" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
-        <StackPanel Grid.Row="1" Spacing="16">
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Library"/>
-            <controls:SettingsCard
-                Header="Library Folder"
-                Description="Sets the library folder to a specific path">
-                <controls:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE8B7;" />
-                </controls:SettingsCard.HeaderIcon>
-                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                    <TextBlock Text="{x:Bind _settings.MusicLibraryPath, Mode=OneWay}"/>
-                    <Button Content="Choose Folder" Click="ChooseFolder_Click" />                    
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="16">
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Library"/>
+                <StackPanel Spacing="4">
+                    <controls:SettingsCard
+                        Header="Library Folder"
+                        Description="Sets the library folder to a specific path">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8B7;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind _settings.MusicLibraryPath, Mode=OneWay}" VerticalAlignment="Center"/>
+                            <Button Content="Choose Folder" Click="ChooseFolder_Click" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard
+                        Header="Hard Reset Library"
+                        Description="Rebuilds the database and re-scan the entire library folder. WILL cause loss of favorites and play counts!">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE7BA;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <Button x:Name="ScanButton" Content="Hard Reset" Click="ScanNow_Click"/>
+                    </controls:SettingsCard>
                 </StackPanel>
-            </controls:SettingsCard>
 
-            <controls:SettingsCard
-                Header="Hard Reset Library"
-                Description="Rebuilds the database and re-scan the entire library folder. WILL cause loss of favorites and play counts!">
-                <controls:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE7BA;" />
-                </controls:SettingsCard.HeaderIcon>
-                <Button x:Name="ScanButton" Content="Hard Reset" Click="ScanNow_Click">
-                    <Button.Resources>
-                        <ResourceDictionary>
-                            <ResourceDictionary.ThemeDictionaries>
-                                <ResourceDictionary x:Key="Light">
-                                    <SolidColorBrush x:Key="ButtonBackground" Color="#C42B1C" />
-                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#B32418" />
-                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#A21C14" />
-                                    <SolidColorBrush x:Key="ButtonForeground" Color="White" />
-                                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
-                                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
-                                </ResourceDictionary>
-                                <ResourceDictionary x:Key="Dark">
-                                    <SolidColorBrush x:Key="ButtonBackground" Color="#E81123" />
-                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#F1707B" />
-                                    <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#C30F20" />
-                                    <SolidColorBrush x:Key="ButtonForeground" Color="White" />
-                                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
-                                    <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
-                                </ResourceDictionary>
-                            </ResourceDictionary.ThemeDictionaries>
-                        </ResourceDictionary>
-                    </Button.Resources>
-                </Button>
-            </controls:SettingsCard>
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual"/>
+                <StackPanel Spacing="4">
+                    <controls:SettingsExpander
+                        Header="Mica+"
+                        Description="Enable a custom shader that efficiently takes advantage of Mica to create a more dynamic background"
+                        IsExpanded="{x:Bind _settings.BackgroundShadersEnabled, Mode=OneWay}">
 
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual"/>
-            <controls:SettingsExpander
-                Header="Mica+"
-                Description="Enable a custom shader that efficiently takes advantage of Mica to create a more dynamic background"
-                IsExpanded="{x:Bind _settings.BackgroundShadersEnabled, Mode=OneWay}">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xEF1F;" />
+                        </controls:SettingsExpander.HeaderIcon>
 
-                <controls:SettingsExpander.HeaderIcon>
-                    <FontIcon Glyph="&#xEF1F;" />
-                </controls:SettingsExpander.HeaderIcon>
+                        <controls:SettingsExpander.Content>
+                            <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersEnabled, Mode=TwoWay}"/>
+                        </controls:SettingsExpander.Content>
 
-                <controls:SettingsExpander.Content>
-                    <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersEnabled, Mode=TwoWay}"/>
-                </controls:SettingsExpander.Content>
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard Header="Battery Killer Mode"
+                   Description="Increases animation smoothness to 60 FPS. Not recommended on battery.">
+                                <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersBoostFps, Mode=TwoWay}"/>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
 
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Battery Killer Mode"
-                               Description="Increases animation smoothness to 60 FPS. Not recommended on battery.">
-                        <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersBoostFps, Mode=TwoWay}"/>
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+                </StackPanel>
+                
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="About"/>
+                <controls:SettingsExpander Header="Moonrise 🌙" Description="Waxing v0.1.0">
+                    <controls:SettingsExpander.HeaderIcon>
+                        <FontIcon Glyph="&#xEC4F;" />
+                    </controls:SettingsExpander.HeaderIcon>
 
-            </controls:SettingsExpander>
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="About"/>
-            <controls:SettingsExpander Header="Moonrise 🌙" Description="Waxing v0.1.0">
-                <controls:SettingsExpander.HeaderIcon>
-                    <FontIcon Glyph="&#xEC4F;" />
-                </controls:SettingsExpander.HeaderIcon>
+                    <controls:SettingsExpander.Content>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Center">
+                            <TextBlock Text="Made with ❤️" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </controls:SettingsExpander.Content>
 
-                <controls:SettingsExpander.Content>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Center">
-                        <TextBlock Text="Made with ❤️" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </controls:SettingsExpander.Content>
-
-                <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="Credits">
-                        <controls:SettingsCard.Description>
-                            <TextBlock Text="jamied - most of the dev work" />
-                        </controls:SettingsCard.Description>
-                    </controls:SettingsCard>
-                    <controls:SettingsCard Header="Source">
-                        <HyperlinkButton Content="GitHub Repository" NavigateUri="https://github.com/paste1ess/Moonrise"/>
-                    </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
-        </StackPanel>
-
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard Header="Credits">
+                            <controls:SettingsCard.Description>
+                                <TextBlock Text="jamied - most of the dev work" />
+                            </controls:SettingsCard.Description>
+                        </controls:SettingsCard>
+                        <controls:SettingsCard Header="Source">
+                            <HyperlinkButton Content="GitHub Repository" NavigateUri="https://github.com/paste1ess/Moonrise"/>
+                        </controls:SettingsCard>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

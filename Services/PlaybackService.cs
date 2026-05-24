@@ -6,11 +6,13 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Text;
+using System.Threading;
+using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage;
+using Windows.Storage.Streams;
 
 namespace Moonrise.Services
 {
@@ -46,13 +48,21 @@ namespace Moonrise.Services
             if (_artworkCts != null)
             {
                 _artworkCts.Cancel();
+                _artworkCts.Dispose();
             }
             if (value == null)
             {
                 CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
                 CurrentTrackBackgroundArtwork = null;
+
+                mediaPlayer.SystemMediaTransportControls.DisplayUpdater.MusicProperties.Title = "No track currently playing.";
+                mediaPlayer.SystemMediaTransportControls.DisplayUpdater.MusicProperties.Artist = "";
+                mediaPlayer.SystemMediaTransportControls.DisplayUpdater.Thumbnail = null;
+                mediaPlayer.SystemMediaTransportControls.DisplayUpdater.Update();
+
                 return;
             }
+
             _artworkCts = new CancellationTokenSource();
             _ = loadArtworkAsync(value, _artworkCts.Token);
         }
@@ -79,12 +89,41 @@ namespace Moonrise.Services
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
             CurrentTrackBackgroundArtwork = null;
 
+            var alwaysEnabled = Enum.ToObject(
+                mediaPlayer.CommandManager.NextBehavior.EnablingRule.GetType(), 1);
+            mediaPlayer.CommandManager.NextBehavior.EnablingRule = (dynamic)alwaysEnabled;
+            mediaPlayer.CommandManager.PreviousBehavior.EnablingRule = (dynamic)alwaysEnabled;
+
+            var smtc = mediaPlayer.SystemMediaTransportControls;
+            smtc.IsPlayEnabled = true;
+            smtc.IsPauseEnabled = true;
+            smtc.ButtonPressed += SmtcButtonPressed;
+
             mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
         }
 
         private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
         {
             Next();
+        }
+
+        private void SmtcButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
+        {
+            switch (args.Button)
+            {
+                case SystemMediaTransportControlsButton.Play:
+                    Play();
+                    break;
+                case SystemMediaTransportControlsButton.Pause:
+                    Pause();
+                    break;
+                case SystemMediaTransportControlsButton.Next:
+                    Next();
+                    break;
+                case SystemMediaTransportControlsButton.Previous:
+                    Back();
+                    break;
+            }
         }
 
         public void Next() 
@@ -128,10 +167,7 @@ namespace Moonrise.Services
                             oldSource.Dispose();
                         }
 
-                        var path = LibraryService.Instance.PathToAbsolute(nextTrack.FilePath);
-
-                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(path));
-                        mediaPlayer.Source = mediaSource;
+                        mediaPlayer.Source = CreatePlaybackItem(nextTrack);
                     }
                     finally
                     {
@@ -196,10 +232,7 @@ namespace Moonrise.Services
                             oldSource.Dispose();
                         }
 
-                        var path = LibraryService.Instance.PathToAbsolute(prevTrack.FilePath);
-
-                        IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(path));
-                        mediaPlayer.Source = mediaSource;
+                        mediaPlayer.Source = CreatePlaybackItem(prevTrack);
                     }
                     finally
                     {
@@ -287,9 +320,7 @@ namespace Moonrise.Services
                 oldSource.Dispose();
             }
 
-            var path = LibraryService.Instance.PathToAbsolute(track.FilePath);
-            IMediaPlaybackSource mediaSource = MediaSource.CreateFromUri(new Uri(path));
-            mediaPlayer.Source = mediaSource;
+            mediaPlayer.Source = CreatePlaybackItem(track);
 
             Play();
         }
@@ -309,12 +340,22 @@ namespace Moonrise.Services
                 var bgArt = await ArtService.Instance.GetArtwork(track, 6, token);
                 if (token.IsCancellationRequested) return;
 
+                var smtcRef = await ArtService.Instance.GetArtworkStreamReference(track, token);
+                if (token.IsCancellationRequested) return;
+
                 task.Dispatcher.TryEnqueue(() =>
                 {
                     if (CurrentTrack == track)
                     {
                         CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
                         CurrentTrackBackgroundArtwork = bgArt;
+
+                        if (mediaPlayer.Source is MediaPlaybackItem playbackItem)
+                        {
+                            var props = playbackItem.GetDisplayProperties();
+                            props.Thumbnail = smtcRef ?? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
+                            playbackItem.ApplyDisplayProperties(props);
+                        }
                     }
                 });
             }
@@ -325,6 +366,20 @@ namespace Moonrise.Services
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load playback artwork: {ex.Message}");
             }
+        }
+
+        private MediaPlaybackItem CreatePlaybackItem(Track track)
+        {
+            var path = LibraryService.Instance.PathToAbsolute(track.FilePath);
+            var mediaSource = MediaSource.CreateFromUri(new Uri(path));
+            var playbackItem = new MediaPlaybackItem(mediaSource);
+            var props = playbackItem.GetDisplayProperties();
+            props.Type = MediaPlaybackType.Music;
+            props.MusicProperties.Title = track.Title;
+            props.MusicProperties.Artist = track.Artist;
+            props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
+            playbackItem.ApplyDisplayProperties(props);
+            return playbackItem;
         }
     }
 }

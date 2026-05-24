@@ -249,5 +249,15 @@ namespace Moonrise.Services
         {
             return dbService.GetAllTracks();
         }
+
+        public async Task<Album?> GetAlbum(string id)
+        {
+            return dbService.GetAlbum(id);
+        }
+
+        public List<Album> GetAllAlbums()
+        {
+            return dbService.GetAllAlbums();
+        }
     }
 }

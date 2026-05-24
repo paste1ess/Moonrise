@@ -10,6 +10,8 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
+using Windows.Storage.Streams;
 
 namespace Moonrise.Services
 {
@@ -37,6 +39,149 @@ namespace Moonrise.Services
             
         public Task<ImageSource?> GetArtwork(QueueTrack track, int size, CancellationToken token = default) => 
             GetArtworkInternal(track.Id, track.FilePath, size, token);
+
+        public async Task<ImageSource?> GetArtwork(Album album, int size, CancellationToken token = default)
+        {
+            ArtKey key = new(album.Id, size);
+            lock (cache)
+            {
+                if (placeholderItems.Contains(key)) return null;
+
+                if (cache.TryGetValue(key, out var cachedItem))
+                {
+                    lruList.Remove(key);
+                    lruList.AddLast(key);
+                    return cachedItem.Data;
+                }
+            }
+
+            try
+            {
+                await _ioSemaphore.WaitAsync();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            try
+            {
+                if (token.IsCancellationRequested) return null;
+
+                List<Track> tracks = new();
+                foreach (var trackId in album.TrackIds)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    var track = await LibraryService.Instance.GetTrack(trackId);
+                    if (track != null)
+                    {
+                        tracks.Add(track);
+                    }
+                }
+
+                if (tracks.Count == 0 || token.IsCancellationRequested) return null;
+
+                var firstTrack = tracks[0];
+                var absolutePath = LibraryService.Instance.PathToAbsolute(firstTrack.FilePath);
+                var dir = Path.GetDirectoryName(absolutePath);
+
+                if (!string.IsNullOrEmpty(dir))
+                {
+                    string? foundCoverPath = null;
+                    await Task.Run(() =>
+                    {
+                        foreach (var name in new[] { "cover.avif", "cover.png", "cover.jpg", "cover.jpeg" })
+                        {
+                            if (token.IsCancellationRequested) return;
+                            var path = Path.Combine(dir, name);
+                            if (File.Exists(path))
+                            {
+                                foundCoverPath = path;
+                                return;
+                            }
+                        }
+                    });
+
+                    if (token.IsCancellationRequested) return null;
+
+                    if (foundCoverPath != null)
+                    {
+                        var image = await loadAndDecodeFile(foundCoverPath, size, token);
+                        if (image != null)
+                        {
+                            addToCache(key, new(album.Id, size, image));
+                            return image;
+                        }
+                    }
+                }
+
+                foreach (var track in tracks)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    var path = LibraryService.Instance.PathToAbsolute(track.FilePath);
+                    var embeddedImage = await getEmbeddedArtwork(path, size, token);
+                    if (embeddedImage != null)
+                    {
+                        addToCache(key, new(album.Id, size, embeddedImage));
+                        return embeddedImage;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                _ioSemaphore.Release();
+            }
+
+            lock (cache)
+            {
+                placeholderItems.Add(key);
+            }
+            return null;
+        }
+
+        public async Task<RandomAccessStreamReference?> GetArtworkStreamReference(Track track, CancellationToken token = default)
+        {
+            var absolutePath = LibraryService.Instance.PathToAbsolute(track.FilePath);
+            try
+            {
+                var pictureData = await Task.Run(() =>
+                {
+                    if (token.IsCancellationRequested) return null;
+                    using var file = TagLib.File.Create(absolutePath);
+                    var pic = file.Tag.Pictures?.FirstOrDefault();
+                    return pic?.Data.Data;
+                });
+
+                if (pictureData != null && !token.IsCancellationRequested)
+                {
+                    var stream = new InMemoryRandomAccessStream();
+                    await stream.WriteAsync(pictureData.AsBuffer());
+                    stream.Seek(0);
+                    return RandomAccessStreamReference.CreateFromStream(stream);
+                }
+
+                foreach (var name in new[] { "cover.avif", "cover.png", "cover.jpg", "cover.jpeg" })
+                {
+                    var companionPath = checkCompanionFilePath(absolutePath, name);
+                    if (companionPath != null && File.Exists(companionPath))
+                    {
+                        var file = await StorageFile.GetFileFromPathAsync(companionPath);
+                        return RandomAccessStreamReference.CreateFromFile(file);
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return null;
+        }
 
         private async Task<ImageSource?> GetArtworkInternal(string id, string filePath, int size, CancellationToken token)
         {
