@@ -36,20 +36,21 @@ namespace Moonrise.Pages
             TrackListView.ItemsSource = Tracks;
         }
 
-        private void TrackListItem_Clicked(object sender, RoutedEventArgs e)
+        private async void TrackListItem_Clicked(object sender, RoutedEventArgs e)
         {
             if (sender is Controls.TrackListItem item && item.Song is Track selectedTrack)
             {
-                PlaybackService.Instance.PlayTrack(selectedTrack);
-
                 var list = Tracks.ToList();
                 int index = list.IndexOf(selectedTrack);
-                if (index >= 0 && index < list.Count - 1)
-                {
-                    var remaining = list.Skip(index + 1).ToList();
-                    PlaybackService.Instance.Queue.SetQueue(remaining);
-                    PlaybackService.Instance.Queue.PassQueue();
-                }
+                if (index < 0) return;
+
+                PlaybackService.Instance.Queue.SetQueue(list);
+                var qt = PlaybackService.Instance.Queue.SkipAndTake(index);
+
+                var track = await Task.Run(() => LibraryService.Instance.GetTrack(qt.Id));
+                if (track == null) return;
+
+                PlaybackService.Instance.PlayTrack(track);
                 MainWindow.Instance?.NavigateToPlayer();
             }
         }

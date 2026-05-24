@@ -308,21 +308,37 @@ namespace Moonrise.Services
 
         public void PlayTrack(Track track)
         {
-            Pause();
-
-            CurrentTrack = track;
-
-            mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
-
-            if (mediaPlayer.Source is IDisposable oldSource)
+            var command = new RelayAppCommand(async (token) =>
             {
-                mediaPlayer.Source = null;
-                oldSource.Dispose();
-            }
+                await stopBase();
 
-            mediaPlayer.Source = CreatePlaybackItem(track);
+                var sourceTcs = new TaskCompletionSource();
+                task.Dispatcher.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        if (CurrentTrack != null)
+                            Queue.AddToHistory(QueueTrack.FromTrack(CurrentTrack));
+                        CurrentTrack = track;
+                        if (mediaPlayer.Source is IDisposable oldSource)
+                        {
+                            mediaPlayer.Source = null;
+                            oldSource.Dispose();
+                        }
+                        mediaPlayer.Source = CreatePlaybackItem(track);
+                    }
+                    finally
+                    {
+                        sourceTcs.SetResult();
+                    }
+                });
+                await sourceTcs.Task;
 
-            Play();
+                await playBase();
+
+            }, async (ex) => await errorActionBase());
+
+            task.Enqueue(command);
         }
 
         private async Task loadArtworkAsync(Track track, CancellationToken token)

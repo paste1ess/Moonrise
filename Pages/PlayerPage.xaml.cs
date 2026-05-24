@@ -1,22 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using Moonrise.Models;
 using Moonrise.Services;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -29,10 +19,6 @@ namespace Moonrise.Pages
     public sealed partial class PlayerPage : Page
     {
         private PlaybackService playbackService = PlaybackService.Instance;
-        private Track exampleTrack;
-        private Track exampleTrack2;
-        private Track exampleTrack3;
-        private Track exampleTrack4;
         public PlayerPage()
         {
             InitializeComponent();
@@ -66,19 +52,6 @@ namespace Moonrise.Pages
             ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = slideNavigationTransitionEffect });
 
             previousSelectedIndex = currentSelectedIndex;
-        }
-
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
-        {
-            base.OnNavigatedTo(e);
-
-            if (exampleTrack != null) return;
-
-            var allTracks = await Task.Run(() => LibraryService.Instance.GetAllTracks());
-            if (allTracks.Count > 0) exampleTrack = allTracks[0];
-            if (allTracks.Count > 1) exampleTrack2 = allTracks[1];
-            if (allTracks.Count > 2) exampleTrack3 = allTracks[2];
-            if (allTracks.Count > 3) exampleTrack4 = allTracks[3];
         }
 
         public string PlaybackStateToGlyph(PlaybackState state)
@@ -128,25 +101,6 @@ namespace Moonrise.Pages
                 playbackService.Play();
             else if (playbackService.CurrentPlaybackState == PlaybackState.Playing)
                 playbackService.Pause();
-            else
-            { 
-                playbackService.PlayTrack(exampleTrack);
-                playbackService.Queue.AddToStart(exampleTrack2);
-                playbackService.Queue.AddToStart(exampleTrack3);
-                playbackService.Queue.AddToStart(exampleTrack4);
-                playbackService.Queue.AddToStart(exampleTrack2);
-                playbackService.Queue.AddToStart(exampleTrack3);
-                playbackService.Queue.AddToStart(exampleTrack4);
-                playbackService.Queue.AddToStart(exampleTrack2);
-                playbackService.Queue.AddToStart(exampleTrack3);
-                playbackService.Queue.AddToStart(exampleTrack4);
-                playbackService.Queue.AddToStart(exampleTrack2);
-                playbackService.Queue.AddToStart(exampleTrack3);
-                playbackService.Queue.AddToStart(exampleTrack4);
-                playbackService.Queue.AddToStart(exampleTrack2);
-                playbackService.Queue.AddToStart(exampleTrack3);
-                playbackService.Queue.AddToStart(exampleTrack4);
-            }
         }
 
         private void Skip_Click(object sender, RoutedEventArgs e)

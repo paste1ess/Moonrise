@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
@@ -120,6 +120,7 @@ namespace Moonrise.Services
 
         public void PassQueue()
         {
+            History.Clear();
             ActiveQueue.ReplaceRange(OriginalQueue);
         }
 
@@ -142,7 +143,6 @@ namespace Moonrise.Services
 
         public QueueTrack SkipAndTake(int index)
         {
-            History.ReplaceRange(OriginalQueue.GetRange(0, index));
             QueueTrack selectedTrack = OriginalQueue[index];
             var remainingTracks = OriginalQueue.GetRange(index + 1, OriginalQueue.Count - index - 1);
 

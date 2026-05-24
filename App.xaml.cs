@@ -4,7 +4,9 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Win32;
 using Moonrise.Services;
+using System.Runtime.InteropServices;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -50,19 +52,13 @@ namespace Moonrise
             };
         }
 
-        /// <summary>
-        /// Invoked when the application is launched.
-        /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
+
         protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            
             TaskService.Initialize(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
             _window = new MainWindow();
             SettingsService.Instance.Load();
-
-            //playbackService = PlaybackService.Instance;
-
-            //await LibraryService.Instance.HardScanLibrary(@"M:\music\");
 
             _window.Activate();
         }
