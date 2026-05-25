@@ -15,6 +15,8 @@ namespace Moonrise.Services
         private DbService dbService;
         private string libraryPath;
 
+        public event Action? LibraryChanging;
+
         private LibraryService()
         {
             var savedPath = SettingsService.Instance.MusicLibraryPath;
@@ -41,12 +43,15 @@ namespace Moonrise.Services
 
         public async Task HardScanLibrary(string path)
         {
-            var oldPath = dbService.DbPath;
+            LibraryChanging?.Invoke();
+            PlaybackService.Instance.ResetForLibraryChange();
+
             dbService.Dispose();
 
             libraryPath = path;
 
             dbService = new DbService(Path.Combine(path, "library.db"));
+            dbService.ResetDb();
 
             ArtService.Instance.ClearCache();
 
@@ -59,6 +64,9 @@ namespace Moonrise.Services
 
         public async Task OpenAndScanLibrary(string path)
         {
+            LibraryChanging?.Invoke();
+            PlaybackService.Instance.ResetForLibraryChange();
+
             var dbPath = Path.Combine(path, "library.db");
             bool dbExists = File.Exists(dbPath);
 
@@ -68,10 +76,7 @@ namespace Moonrise.Services
 
             dbService = new DbService(dbPath);
 
-            if (!dbExists)
-            {
-                ArtService.Instance.ClearCache();
-            }
+            ArtService.Instance.ClearCache();
 
             TaskService.Instance.ClearAndReset();
             TaskService.Instance.Enqueue(new RelayAppCommand(async (_) =>
@@ -88,7 +93,7 @@ namespace Moonrise.Services
                 ".mp3", ".flac", ".m4a", ".wav", ".wma", ".ogg"
             };
 
-            var filesToParse = new ConcurrentBag<(string AbsolutePath, string RelativePath, string LastModified, long FileSize, string TrackId, bool IsFavorite)>();
+            var filesToParse = new ConcurrentBag<(string AbsolutePath, string RelativePath, string LastModified, long FileSize, string TrackId, bool IsFavorite, DateTime DateAdded)>();
             var unchangedTracks = new List<Track>();
             var seenRelativePaths = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
 
@@ -119,11 +124,13 @@ namespace Moonrise.Services
 
                 string trackId = cachedTrack?.Id ?? IdGenerator.NewTrackId();
                 bool isFavorite = cachedTrack?.IsFavorite ?? false;
+                DateTime dateAdded = cachedTrack?.DateAdded ?? DateTime.UtcNow;
 
-                filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, trackId, isFavorite));
+                filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, trackId, isFavorite, dateAdded));
             }
 
             var tracksToSave = new ConcurrentBag<Track>();
+            var lyricsToSave = new ConcurrentBag<(string TrackId, string Lyrics)>();
             var parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 8)
@@ -133,11 +140,16 @@ namespace Moonrise.Services
             {
                 try
                 {
-                    var track = ParseTrackMetadata(file.AbsolutePath, file.RelativePath, file.LastModified, file.FileSize, file.TrackId, file.IsFavorite);
-                    if (track != null)
+                    var result = ParseTrackMetadata(file.AbsolutePath, file.RelativePath, file.LastModified, file.FileSize, file.TrackId, file.IsFavorite, file.DateAdded);
+                    if (result.Item1 != null)
                     {
-                        tracksToSave.Add(track);
+                        tracksToSave.Add(result.Item1);
+                        if (result.Item2 != null)
+                        {
+                            lyricsToSave.Add((result.Item1.Id, result.Item2));
+                        }
                     }
+                    
                 }
                 catch (Exception ex)
                 {
@@ -150,6 +162,11 @@ namespace Moonrise.Services
             if (allTracksToSave.Count > 0)
             {
                 dbService.UpsertTracksBatch(allTracksToSave);
+            }
+
+            if (lyricsToSave.Count > 0)
+            {
+                dbService.UpsertLyricsBatch(lyricsToSave);
             }
 
             var missingTracks = dbTracks.Values
@@ -209,16 +226,16 @@ namespace Moonrise.Services
             }
         }
 
-        private Track? ParseTrackMetadata(string absolutePath, string relativePath, string lastModified, long fileSize, string trackId, bool isFavorite)
+        private (Track?, string?) ParseTrackMetadata(string absolutePath, string relativePath, string lastModified, long fileSize, string trackId, bool isFavorite, DateTime dateAdded)
         {
             using var file = TagLib.File.Create(absolutePath);
-            if (!file.Properties.MediaTypes.HasFlag(TagLib.MediaTypes.Audio)) return null;
+            if (!file.Properties.MediaTypes.HasFlag(TagLib.MediaTypes.Audio)) return (null, null);
 
             var artist = (file.Tag.Performers.FirstOrDefault() ?? "Unknown Artist").Trim();
             var album = (file.Tag.Album ?? "Unknown Album").Trim();
             var title = (file.Tag.Title ?? Path.GetFileNameWithoutExtension(absolutePath)).Trim();
 
-            return new Track
+            var track = new Track
             {
                 Id = trackId,
                 AlbumId = IdGenerator.GetAlbumId(album, artist),
@@ -233,16 +250,23 @@ namespace Moonrise.Services
                 FileSize = fileSize,
                 Bitrate = file.Properties.AudioBitrate,
                 Duration = file.Properties.Duration,
-                DateAdded = DateTime.UtcNow,
+                DateAdded = dateAdded,
                 LastModified = lastModified,
                 IsPresent = true,
                 IsFavorite = isFavorite
             };
+
+            return (track, file.Tag.Lyrics);
         }
 
         public async Task<Track?> GetTrack(string id)
         {
             return dbService.GetTrack(id);
+        }
+
+        public async Task<string?> GetLyrics(string id)
+        {
+            return dbService.GetLyrics(id);
         }
 
         public List<Track> GetAllTracks()

@@ -19,6 +19,7 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Windows.Foundation;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.System;
 using WinRT.Interop;
@@ -39,17 +40,12 @@ namespace Moonrise
         private CanvasRenderTarget? _offscreen;
         private float _lastWidth, _lastHeight;
         private float _shaderSpeedMultiplier = 80f / 120f;
+        private readonly AudioPeakService _peakService = new();
+        private volatile SoftwareBitmap? _currentBackgroundSoftwareBitmap;
+        private SoftwareBitmap? _lastRenderedBitmap;
+        private CanvasBitmap? _backgroundCanvasBitmap;
 
         public PlaybackService PlaybackService => PlaybackService.Instance;
-        public double CheckBackgroundOpacity(PlaybackState state, ImageSource artwork, bool isWindowFocused, bool isLightTheme)
-        {
-            if (!isWindowFocused || state != PlaybackState.Playing || artwork == null)
-            {
-                return 0.0;
-            }
-
-            return isLightTheme ? 0.25 : 0.45;
-        }
 
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -81,9 +77,18 @@ namespace Moonrise
             SetTaskManagerIcon();
 
             Activated += MainWindow_Activated;
+            Closed += (s, e) =>
+            {
+                _peakService.Dispose();
+                _backgroundCanvasBitmap?.Dispose();
+            };
 
             _isLightTheme = Application.Current.RequestedTheme == ApplicationTheme.Light;
-            ((FrameworkElement)Content).ActualThemeChanged += (s, _) => _isLightTheme = s.ActualTheme == ElementTheme.Light;
+            ((FrameworkElement)Content).ActualThemeChanged += (s, _) =>
+            {
+                _isLightTheme = s.ActualTheme == ElementTheme.Light;
+                UpdateBackgroundCanvas();
+            };
 
             _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
                     ? TimeSpan.FromSeconds(1.0 / 60.0)
@@ -93,7 +98,9 @@ namespace Moonrise
                 var now = DateTime.UtcNow;
                 float delta = (float)(now - _lastTick).TotalSeconds;
                 _lastTick = now;
-                _shaderTime += delta * (_isWindowFocused ? 1f : 1f / 18f) * _shaderSpeedMultiplier;
+                float peak = _peakService.GetVolumePeak();
+                float dynamicSpeed = (_shaderSpeedMultiplier * 0.7f) + (peak * 1.35f);
+                _shaderTime += delta * (_isWindowFocused ? 1f : 1f / 18f) * dynamicSpeed;
                 ShaderCanvas.Invalidate();
             };
 
@@ -104,12 +111,27 @@ namespace Moonrise
                 _shaderTimer.Start();
             }
 
+            BackgroundCanvas.Draw += BackgroundCanvas_Draw;
+            BackgroundCanvas.CreateResources += (_, _) =>
+            {
+                _backgroundCanvasBitmap?.Dispose();
+                _backgroundCanvasBitmap = null;
+                _lastRenderedBitmap = null;
+                BackgroundCanvas.Invalidate();
+            };
+
             PlaybackService.Instance.PropertyChanged += (s, e) =>
             {
+                if (e.PropertyName == nameof(PlaybackService.CurrentTrackBackgroundBitmap))
+                {
+                    _currentBackgroundSoftwareBitmap = PlaybackService.Instance.CurrentTrackBackgroundBitmap;
+                    DispatcherQueue.TryEnqueue(UpdateBackgroundCanvas);
+                }
                 if (e.PropertyName == nameof(PlaybackService.CurrentTrack) ||
                     e.PropertyName == nameof(PlaybackService.CurrentPlaybackState))
                 {
                     DispatcherQueue.TryEnqueue(UpdateShaderSpeedMultiplier);
+                    DispatcherQueue.TryEnqueue(UpdateBackgroundCanvas);
                 }
             };
 
@@ -191,7 +213,7 @@ namespace Moonrise
                     _shaderTimer.Start();
                 }
             }
-            Bindings.Update();
+            UpdateBackgroundCanvas();
         }
 
         private void SetTaskManagerIcon()
@@ -213,6 +235,43 @@ namespace Moonrise
 
             if (hIconSmall != nint.Zero)
                 SetClassLongPtr(hwnd, GCL_HICONSM, hIconSmall);
+        }
+
+        private void BackgroundCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            var bitmap = _currentBackgroundSoftwareBitmap;
+            if (bitmap != _lastRenderedBitmap)
+            {
+                _backgroundCanvasBitmap?.Dispose();
+                _backgroundCanvasBitmap = bitmap != null
+                    ? CanvasBitmap.CreateFromSoftwareBitmap(sender, bitmap)
+                    : null;
+                _lastRenderedBitmap = bitmap;
+            }
+            if (_backgroundCanvasBitmap != null)
+            {
+                args.DrawingSession.DrawImage(
+                    _backgroundCanvasBitmap,
+                    new Rect(0, 0, sender.ActualWidth, sender.ActualHeight),
+                    _backgroundCanvasBitmap.Bounds,
+                    1.0f,
+                    CanvasImageInterpolation.Cubic);
+            }
+        }
+
+        private void UpdateBackgroundCanvas()
+        {
+            BackgroundCanvas.Opacity = ComputeBackgroundOpacity();
+            BackgroundCanvas.Invalidate();
+        }
+
+        private double ComputeBackgroundOpacity()
+        {
+            if (!_isWindowFocused ||
+                PlaybackService.Instance.CurrentPlaybackState != PlaybackState.Playing ||
+                _currentBackgroundSoftwareBitmap == null)
+                return 0.0;
+            return _isLightTheme ? 0.25 : 0.45;
         }
 
         private void ShaderCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)

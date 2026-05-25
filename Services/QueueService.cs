@@ -149,5 +149,12 @@ namespace Moonrise.Services
             ActiveQueue.ReplaceRange(remainingTracks);
             return selectedTrack;
         }
+
+        public void ClearAll()
+        {
+            ActiveQueue.Clear();
+            OriginalQueue.Clear();
+            History.Clear();
+        }
     }
 }

@@ -26,11 +26,12 @@ namespace Moonrise.Pages
     /// </summary>
     public sealed partial class AlbumsPage : Page
     {
-        public ObservableCollection<Album> Albums { get; } = new();
+        public BulkObservableCollection<Album> Albums { get; } = new();
 
         public AlbumsPage()
         {
             InitializeComponent();
+            LibraryService.Instance.LibraryChanging += () => Albums.Clear();
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -41,12 +42,7 @@ namespace Moonrise.Pages
 
             if (Frame == null) return;
 
-            AlbumGridView.ItemsSource = null;
-            Albums.Clear();
-            foreach (var album in albumList)
-            {
-                Albums.Add(album);
-            }
+            Albums.ReplaceRange(albumList);
             AlbumGridView.ItemsSource = Albums;
         }
 

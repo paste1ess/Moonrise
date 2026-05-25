@@ -15,15 +15,14 @@
 
     <Grid KeyDown="RootGrid_KeyDown">
         <Grid>
-            <Image x:Name="BackgroundArtworkImage"
-                Source="{x:Bind PlaybackService.CurrentTrackBackgroundArtwork, Mode=OneWay}"
-                Stretch="Fill"
+            <canvas:CanvasControl
+                x:Name="BackgroundCanvas"
                 IsHitTestVisible="False"
-                Opacity="{x:Bind CheckBackgroundOpacity(PlaybackService.CurrentPlaybackState, PlaybackService.CurrentTrackBackgroundArtwork, _isWindowFocused, _isLightTheme), Mode=OneWay}">
-                <Image.OpacityTransition>
+                Opacity="0">
+                <canvas:CanvasControl.OpacityTransition>
                     <ScalarTransition Duration="0:0:0.35"/>
-                </Image.OpacityTransition>
-            </Image>
+                </canvas:CanvasControl.OpacityTransition>
+            </canvas:CanvasControl>
             <canvas:CanvasControl
                 x:Name="ShaderCanvas"/>
         </Grid>

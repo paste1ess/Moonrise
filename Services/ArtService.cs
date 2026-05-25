@@ -68,20 +68,16 @@ namespace Moonrise.Services
             {
                 if (token.IsCancellationRequested) return null;
 
-                List<Track> tracks = new();
+                Track? firstTrack = null;
                 foreach (var trackId in album.TrackIds)
                 {
                     if (token.IsCancellationRequested) return null;
-                    var track = await LibraryService.Instance.GetTrack(trackId);
-                    if (track != null)
-                    {
-                        tracks.Add(track);
-                    }
+                    firstTrack = await LibraryService.Instance.GetTrack(trackId);
+                    if (firstTrack != null) break;
                 }
 
-                if (tracks.Count == 0 || token.IsCancellationRequested) return null;
+                if (firstTrack == null || token.IsCancellationRequested) return null;
 
-                var firstTrack = tracks[0];
                 var absolutePath = LibraryService.Instance.PathToAbsolute(firstTrack.FilePath);
                 var dir = Path.GetDirectoryName(absolutePath);
 
@@ -115,9 +111,11 @@ namespace Moonrise.Services
                     }
                 }
 
-                foreach (var track in tracks)
+                foreach (var trackId in album.TrackIds)
                 {
                     if (token.IsCancellationRequested) return null;
+                    var track = await LibraryService.Instance.GetTrack(trackId);
+                    if (track == null) continue;
                     var path = LibraryService.Instance.PathToAbsolute(track.FilePath);
                     var embeddedImage = await getEmbeddedArtwork(path, size, token);
                     if (embeddedImage != null)
@@ -220,45 +218,18 @@ namespace Moonrise.Services
                     return embeddedImage;
                 }
 
-                if (token.IsCancellationRequested) return null;
-
-                string? avifPath = checkCompanionFilePath(absolutePath, "cover.avif");
-                if (avifPath != null)
+                foreach (var name in new[] { "cover.avif", "cover.png", "cover.jpg", "cover.jpeg" })
                 {
                     if (token.IsCancellationRequested) return null;
-                    var avifImage = await loadAndDecodeFile(avifPath, size, token);
-                    if (avifImage != null)
+                    string? companionPath = checkCompanionFilePath(absolutePath, name);
+                    if (companionPath != null)
                     {
-                        addToCache(key, new(id, size, avifImage));
-                        return avifImage;
-                    }
-                }
-
-                if (token.IsCancellationRequested) return null;
-
-                string? pngPath = checkCompanionFilePath(absolutePath, "cover.png");
-                if (pngPath != null)
-                {
-                    if (token.IsCancellationRequested) return null;
-                    var pngImage = await loadAndDecodeFile(pngPath, size, token);
-                    if (pngImage != null)
-                    {
-                        addToCache(key, new(id, size, pngImage));
-                        return pngImage;
-                    }
-                }
-
-                if (token.IsCancellationRequested) return null;
-
-                string? jpgPath = checkCompanionFilePath(absolutePath, "cover.jpg");
-                if (jpgPath != null)
-                {
-                    if (token.IsCancellationRequested) return null;
-                    var jpgImage = await loadAndDecodeFile(jpgPath, size, token);
-                    if (jpgImage != null)
-                    {
-                        addToCache(key, new(id, size, jpgImage));
-                        return jpgImage;
+                        var image = await loadAndDecodeFile(companionPath, size, token);
+                        if (image != null)
+                        {
+                            addToCache(key, new(id, size, image));
+                            return image;
+                        }
                     }
                 }
             }
@@ -366,6 +337,97 @@ namespace Moonrise.Services
             }
         }
 
+        private async Task<SoftwareBitmap?> decodeToBitmap(byte[] pictureData, int size, CancellationToken token)
+        {
+            try
+            {
+                return await Task.Run(async () =>
+                {
+                    if (token.IsCancellationRequested) return null;
+                    using var memoryStream = new MemoryStream(pictureData);
+                    using var randomAccessStream = memoryStream.AsRandomAccessStream();
+                    var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
+                    var transform = new BitmapTransform
+                    {
+                        ScaledWidth = (uint)size,
+                        ScaledHeight = (uint)size,
+                        InterpolationMode = BitmapInterpolationMode.Linear
+                    };
+                    var pixelData = await decoder.GetPixelDataAsync(
+                        BitmapPixelFormat.Bgra8,
+                        BitmapAlphaMode.Premultiplied,
+                        transform,
+                        ExifOrientationMode.RespectExifOrientation,
+                        ColorManagementMode.ColorManageToSRgb);
+                    if (token.IsCancellationRequested) return null;
+                    var bmp = new SoftwareBitmap(BitmapPixelFormat.Bgra8, size, size, BitmapAlphaMode.Premultiplied);
+                    bmp.CopyFromBuffer(pixelData.DetachPixelData().AsBuffer());
+                    return bmp;
+                });
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<SoftwareBitmap?> GetArtworkBitmap(Track track, int size, CancellationToken token = default)
+        {
+            var absolutePath = LibraryService.Instance.PathToAbsolute(track.FilePath);
+            try
+            {
+                await _ioSemaphore.WaitAsync(token);
+            }
+            catch
+            {
+                return null;
+            }
+            try
+            {
+                if (token.IsCancellationRequested) return null;
+
+                var pictureData = await Task.Run(() =>
+                {
+                    if (token.IsCancellationRequested) return null;
+                    using var file = TagLib.File.Create(absolutePath);
+                    var pic = file.Tag.Pictures?.FirstOrDefault();
+                    return pic?.Data.Data;
+                });
+
+                if (pictureData != null && !token.IsCancellationRequested)
+                {
+                    var bmp = await decodeToBitmap(pictureData, size, token);
+                    if (bmp != null) return bmp;
+                }
+
+                foreach (var name in new[] { "cover.avif", "cover.png", "cover.jpg", "cover.jpeg" })
+                {
+                    if (token.IsCancellationRequested) return null;
+                    var companionPath = checkCompanionFilePath(absolutePath, name);
+                    if (companionPath != null)
+                    {
+                        var data = await Task.Run(() =>
+                        {
+                            if (token.IsCancellationRequested) return null;
+                            return File.Exists(companionPath) ? File.ReadAllBytes(companionPath) : null;
+                        });
+                        if (data != null && !token.IsCancellationRequested)
+                        {
+                            var bmp = await decodeToBitmap(data, size, token);
+                            if (bmp != null) return bmp;
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch { }
+            finally
+            {
+                _ioSemaphore.Release();
+            }
+            return null;
+        }
+
         private async Task<ImageSource?> loadAndDecodeFile(string path, int size, CancellationToken token)
         {
             try
@@ -464,9 +526,6 @@ namespace Moonrise.Services
                 placeholderItems.Clear();
                 currentCacheBytes = 0;
             }
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
         }
 
         public ImageSource? GetCachedArtwork(string id, int size)

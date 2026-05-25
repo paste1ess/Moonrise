@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
-    x:Class="Moonrise.Pages.LyricsPanel"
+    x:Class="Moonrise.Pages.AlbumItemPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Moonrise.Pages"
@@ -8,7 +8,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="16, 12">
-        <TextBlock Text="{x:Bind Lyrics, Mode=OneWay}" Style="{StaticResource BodyLargeTextBlockStyle}"/>
+    <ScrollViewer>
+        <StackPanel>
+            
+        </StackPanel>
     </ScrollViewer>
 </Page>

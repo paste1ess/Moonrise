@@ -12,27 +12,27 @@ namespace Moonrise.Pages
     public sealed partial class TracksPage : Page
     {
         // Property for data binding
-        public ObservableCollection<Track> Tracks { get; } = new();
+        public BulkObservableCollection<Track> Tracks { get; } = new();
 
         public TracksPage()
         {
             InitializeComponent();
+            LibraryService.Instance.LibraryChanging += () => Tracks.Clear();
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
 
-            var trackList = await Task.Run(() => LibraryService.Instance.GetAllTracks());
+            var trackList = await Task.Run(() =>
+                LibraryService.Instance.GetAllTracks()
+                    .OrderBy(t => t.Album, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(t => t.Title, StringComparer.OrdinalIgnoreCase)
+                    .ToList());
 
             if (Frame == null) return;
 
-            TrackListView.ItemsSource = null;
-            Tracks.Clear();
-            foreach (var track in trackList)
-            {
-                Tracks.Add(track);
-            }
+            Tracks.ReplaceRange(trackList);
             TrackListView.ItemsSource = Tracks;
         }
 

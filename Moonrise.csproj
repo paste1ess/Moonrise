@@ -26,6 +26,7 @@
     <None Remove="Controls\CircleIconButton.xaml" />
     <None Remove="Controls\QueueListItem.xaml" />
     <None Remove="Controls\TrackListItem.xaml" />
+    <None Remove="Pages\AlbumItemPage.xaml" />
     <None Remove="Pages\AlbumsPage.xaml" />
     <None Remove="Pages\LyricsPanel.xaml" />
     <None Remove="Pages\PlayerPage.xaml" />
@@ -67,7 +68,13 @@
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\AlbumItemPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\AlbumGridItem.xaml">

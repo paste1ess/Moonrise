@@ -13,6 +13,7 @@ using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.Graphics.Imaging;
 
 namespace Moonrise.Services
 {
@@ -37,7 +38,7 @@ namespace Moonrise.Services
         [ObservableProperty]
         public partial ImageSource? CurrentTrackArtwork { get; set; }
         [ObservableProperty]
-        public partial ImageSource? CurrentTrackBackgroundArtwork { get; set; }
+        public partial SoftwareBitmap? CurrentTrackBackgroundBitmap { get; set; }
         
 
 
@@ -49,11 +50,12 @@ namespace Moonrise.Services
             {
                 _artworkCts.Cancel();
                 _artworkCts.Dispose();
+                _artworkCts = null;
             }
             if (value == null)
             {
                 CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
-                CurrentTrackBackgroundArtwork = null;
+                CurrentTrackBackgroundBitmap = null;
 
                 mediaPlayer.SystemMediaTransportControls.DisplayUpdater.MusicProperties.Title = "No track currently playing.";
                 mediaPlayer.SystemMediaTransportControls.DisplayUpdater.MusicProperties.Artist = "";
@@ -67,12 +69,7 @@ namespace Moonrise.Services
             _ = loadArtworkAsync(value, _artworkCts.Token);
         }
 
-        private TimeSpan _currentTrackTime;
-        public TimeSpan CurrentTrackTime
-        {
-            get => mediaPlayer.PlaybackSession.Position;
-            set => SetProperty(ref _currentTrackTime, value);
-        }
+        public TimeSpan CurrentTrackTime => mediaPlayer.PlaybackSession.Position;
 
         private readonly DispatcherTimer _positionTimer = new();
 
@@ -87,7 +84,7 @@ namespace Moonrise.Services
             _positionTimer.Tick += (_, _) => OnPropertyChanged(nameof(CurrentTrackTime));
 
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
-            CurrentTrackBackgroundArtwork = null;
+            CurrentTrackBackgroundBitmap = null;
 
             var alwaysEnabled = Enum.ToObject(
                 mediaPlayer.CommandManager.NextBehavior.EnablingRule.GetType(), 1);
@@ -306,6 +303,19 @@ namespace Moonrise.Services
             OnPropertyChanged(nameof(CurrentTrackTime));
         }
 
+        public void ResetForLibraryChange()
+        {
+            mediaPlayer.Pause();
+
+            task.Dispatcher.TryEnqueue(() =>
+            {
+                _positionTimer.Stop();
+                CurrentPlaybackState = PlaybackState.Stopped;
+                CurrentTrack = null;
+                Queue.ClearAll();
+            });
+        }
+
         public void PlayTrack(Track track)
         {
             var command = new RelayAppCommand(async (token) =>
@@ -346,14 +356,14 @@ namespace Moonrise.Services
             task.Dispatcher.TryEnqueue(() =>
             {
                 CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
-                CurrentTrackBackgroundArtwork = null;
+                CurrentTrackBackgroundBitmap = null;
             });
             try
             {
                 var art = await ArtService.Instance.GetArtwork(track, 320, token);
                 if (token.IsCancellationRequested) return;
 
-                var bgArt = await ArtService.Instance.GetArtwork(track, 6, token);
+                var bgBitmap = await ArtService.Instance.GetArtworkBitmap(track, 8, token);
                 if (token.IsCancellationRequested) return;
 
                 var smtcRef = await ArtService.Instance.GetArtworkStreamReference(track, token);
@@ -364,7 +374,7 @@ namespace Moonrise.Services
                     if (CurrentTrack == track)
                     {
                         CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
-                        CurrentTrackBackgroundArtwork = bgArt;
+                        CurrentTrackBackgroundBitmap = bgBitmap;
 
                         if (mediaPlayer.Source is MediaPlaybackItem playbackItem)
                         {
