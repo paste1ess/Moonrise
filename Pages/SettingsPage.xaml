@@ -33,14 +33,26 @@
                         </StackPanel>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        Header="Hard Reset Library"
-                        Description="Rebuilds the database and re-scan the entire library folder. WILL cause loss of favorites and play counts!">
-                        <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE7BA;" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <Button x:Name="ScanButton" Content="Hard Reset" Click="ScanNow_Click"/>
-                    </controls:SettingsCard>
+                    <controls:SettingsExpander
+                        Header="Rescan Library"
+                        Description="Rescans the library folder to look">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE8F7;" />
+                        </controls:SettingsExpander.HeaderIcon>
+                        <Button x:Name="RescanButton" Content="Rescan" Click="RescanButton_Click"/>
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard
+                                Header="Hard Reset Library"
+                                Description="Rebuilds the database and re-scan the entire library folder. WILL cause loss of favorites and play counts!">
+                                <controls:SettingsCard.HeaderIcon>
+                                    <FontIcon Glyph="&#xE7BA;" />
+                                </controls:SettingsCard.HeaderIcon>
+                                <Button x:Name="ScanButton" Content="Hard Reset" Click="ScanNow_Click"/>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+
+                    
                 </StackPanel>
 
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual"/>

@@ -18,24 +18,20 @@
 
         <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Tracks" />
 
-        <ListView x:Name="TrackListView"
-                  Grid.Row="1"
-                  Padding="0,0,16,16"
-                  Background="Transparent"
-                  ItemsSource="{x:Bind Tracks, Mode=OneWay}"
-                  SelectionMode="None">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:Track">
-                    <controls:TrackListItem Song="{x:Bind}" TrackView="True" HorizontalAlignment="Stretch" Clicked="TrackListItem_Clicked"/>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Padding" Value="0"/>
-                </Style>
-            </ListView.ItemContainerStyle>
-        </ListView>
+        <ScrollViewer
+            Grid.Row="1"
+            Background="Transparent"
+            Padding="0,0,16,16">
+            <ItemsRepeater x:Name="TrackListView" ItemsSource="{x:Bind Tracks, Mode=OneWay}">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="models:Track">
+                        <controls:TrackListItem Song="{x:Bind}" TrackView="True" HorizontalAlignment="Stretch" Clicked="TrackListItem_Clicked"/>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Vertical" Spacing="0"/>
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
+        </ScrollViewer>
     </Grid>
 </Page>

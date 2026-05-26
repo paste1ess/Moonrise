@@ -31,8 +31,15 @@ namespace Moonrise.Pages
         public AlbumsPage()
         {
             InitializeComponent();
-            LibraryService.Instance.LibraryChanging += () => Albums.Clear();
+            LibraryService.Instance.LibraryChanging += OnLibraryChanging;
+            Unloaded += (s, e) =>
+            {
+                LibraryService.Instance.LibraryChanging -= OnLibraryChanging;
+                Albums.Clear();
+            };
         }
+
+        private void OnLibraryChanging() => Albums.Clear();
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {

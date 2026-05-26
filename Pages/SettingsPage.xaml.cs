@@ -64,5 +64,16 @@ namespace Moonrise.Pages
                 await LibraryService.Instance.HardScanLibrary(_settings.MusicLibraryPath);
             }
         }
+
+        private async void RescanButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_settings.MusicLibraryPath))
+            {
+                TaskService.Instance.Enqueue(new RelayAppCommand(async (_) =>
+                {
+                    await LibraryService.Instance.ScanFolder(_settings.MusicLibraryPath);
+                }));
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Moonrise.Models;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -41,6 +42,14 @@ namespace Moonrise.Services
         {
             if (!_suppressNotification)
                 base.OnPropertyChanged(e);
+        }
+        public IEnumerable<T> GetRange(int index, int count)
+        {
+            if (Items is List<T> list)
+            {
+                return list.GetRange(index, count);
+            }
+            return this.Skip(index).Take(count).ToList();
         }
 
         public void ReplaceRange(IEnumerable<T> collection)
@@ -143,8 +152,8 @@ namespace Moonrise.Services
 
         public QueueTrack SkipAndTake(int index)
         {
-            QueueTrack selectedTrack = OriginalQueue[index];
-            var remainingTracks = OriginalQueue.GetRange(index + 1, OriginalQueue.Count - index - 1);
+            QueueTrack selectedTrack = ActiveQueue[index];
+            var remainingTracks = ActiveQueue.GetRange(index + 1, ActiveQueue.Count - index - 1);
 
             ActiveQueue.ReplaceRange(remainingTracks);
             return selectedTrack;

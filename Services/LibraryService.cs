@@ -45,19 +45,14 @@ namespace Moonrise.Services
         {
             LibraryChanging?.Invoke();
             PlaybackService.Instance.ResetForLibraryChange();
-
-            dbService.Dispose();
-
-            libraryPath = path;
-
-            dbService = new DbService(Path.Combine(path, "library.db"));
-            dbService.ResetDb();
-
-            ArtService.Instance.ClearCache();
-
             TaskService.Instance.ClearAndReset();
             TaskService.Instance.Enqueue(new RelayAppCommand(async (_) =>
             {
+                dbService.Dispose();
+                libraryPath = path;
+                dbService = new DbService(Path.Combine(path, "library.db"));
+                dbService.ResetDb();
+                ArtService.Instance.ClearCache();
                 await ScanFolder(libraryPath);
             }));
         }
@@ -87,6 +82,8 @@ namespace Moonrise.Services
 
         public async Task ScanFolder(string folderPath)
         {
+            ArtService.Instance.ClearCache();
+
             var dbTracks = dbService.GetAllTracks().ToDictionary(t => t.FilePath, StringComparer.OrdinalIgnoreCase);
             var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {

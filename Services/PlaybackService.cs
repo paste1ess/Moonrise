@@ -29,10 +29,13 @@ namespace Moonrise.Services
     {
         public static readonly PlaybackService Instance = new();
         private TaskService task => TaskService.Instance;
+        private DiscordRpcService rpc => DiscordRpcService.Instance;
         public readonly QueueService Queue = new();
 
         [ObservableProperty]
         public partial PlaybackState CurrentPlaybackState { get; set; }
+        [ObservableProperty]
+        public partial bool ShuffleState { get; set; }
         [ObservableProperty]
         public partial Track? CurrentTrack { get; set; }
         [ObservableProperty]
@@ -43,6 +46,21 @@ namespace Moonrise.Services
 
 
         private CancellationTokenSource? _artworkCts;
+        private SoftwareBitmap? _previousBackgroundBitmap;
+
+        partial void OnCurrentTrackBackgroundBitmapChanging(SoftwareBitmap? value)
+        {
+            _previousBackgroundBitmap = CurrentTrackBackgroundBitmap;
+        }
+
+        partial void OnCurrentTrackBackgroundBitmapChanged(SoftwareBitmap? value)
+        {
+            if (_previousBackgroundBitmap != value)
+            {
+                _previousBackgroundBitmap?.Dispose();
+            }
+            _previousBackgroundBitmap = null;
+        }
 
         partial void OnCurrentTrackChanged(Track? value)
         {
@@ -62,8 +80,12 @@ namespace Moonrise.Services
                 mediaPlayer.SystemMediaTransportControls.DisplayUpdater.Thumbnail = null;
                 mediaPlayer.SystemMediaTransportControls.DisplayUpdater.Update();
 
+                rpc.ClearPresence();
+
                 return;
             }
+
+            rpc.SetPresence(value.Title, value.Artist);
 
             _artworkCts = new CancellationTokenSource();
             _ = loadArtworkAsync(value, _artworkCts.Token);
@@ -81,7 +103,10 @@ namespace Moonrise.Services
             mediaPlayer = new();
 
             _positionTimer.Interval = TimeSpan.FromMilliseconds(500);
-            _positionTimer.Tick += (_, _) => OnPropertyChanged(nameof(CurrentTrackTime));
+            _positionTimer.Tick += (_, _) => { 
+                OnPropertyChanged(nameof(CurrentTrackTime));
+                //if (CurrentTrack != null) rpc.SetPresence(CurrentTrack.Title, CurrentTrack.Artist);
+            };
 
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
             CurrentTrackBackgroundBitmap = null;
@@ -249,6 +274,7 @@ namespace Moonrise.Services
         private async Task playBase()
         {
             mediaPlayer.Play();
+            if (CurrentTrack != null) rpc.SetPresence(CurrentTrack.Title, CurrentTrack.Artist);
             task.Dispatcher.TryEnqueue(() => {
                 CurrentPlaybackState = PlaybackState.Playing;
                 _positionTimer.Start();
@@ -258,6 +284,7 @@ namespace Moonrise.Services
         private async Task pauseBase()
         {
             mediaPlayer.Pause();
+            rpc.ClearPresence();
             task.Dispatcher.TryEnqueue(() => {
                 CurrentPlaybackState = PlaybackState.Paused;
                 _positionTimer.Stop();
@@ -267,6 +294,7 @@ namespace Moonrise.Services
         private async Task stopBase()
         {
             mediaPlayer.Pause();
+            rpc.ClearPresence();
             task.Dispatcher.TryEnqueue(() => {
                 if (mediaPlayer.PlaybackSession != null)
                 {
@@ -364,10 +392,18 @@ namespace Moonrise.Services
                 if (token.IsCancellationRequested) return;
 
                 var bgBitmap = await ArtService.Instance.GetArtworkBitmap(track, 8, token);
-                if (token.IsCancellationRequested) return;
+                if (token.IsCancellationRequested)
+                {
+                    bgBitmap?.Dispose();
+                    return;
+                }
 
                 var smtcRef = await ArtService.Instance.GetArtworkStreamReference(track, token);
-                if (token.IsCancellationRequested) return;
+                if (token.IsCancellationRequested)
+                {
+                    bgBitmap?.Dispose();
+                    return;
+                }
 
                 task.Dispatcher.TryEnqueue(() =>
                 {
@@ -382,6 +418,10 @@ namespace Moonrise.Services
                             props.Thumbnail = smtcRef ?? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
                             playbackItem.ApplyDisplayProperties(props);
                         }
+                    }
+                    else
+                    {
+                        bgBitmap?.Dispose();
                     }
                 });
             }

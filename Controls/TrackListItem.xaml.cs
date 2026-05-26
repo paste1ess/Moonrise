@@ -106,9 +106,9 @@ namespace Moonrise.Controls
 
             try
             {
-                await Task.Delay(150);
+                await Task.Delay(150, token);
 
-                if (token.IsCancellationRequested || _updateCount != currentUpdate) return;
+                if (_updateCount != currentUpdate) return;
 
                 var art = await ArtService.Instance.GetArtwork(currentTrack, 40, token);
 

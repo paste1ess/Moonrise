@@ -24,7 +24,8 @@ namespace Moonrise.Services
     public class ArtService
     {
         public static readonly ArtService Instance = new();
-        public static readonly int CacheMemoryLimit = 100 * 1024 * 1024;
+        public static readonly int CacheMemoryLimit = 50 * 1024 * 1024;
+        public static readonly int CacheItemLimit = 250;
 
         private readonly Dictionary<ArtKey, ArtItem> cache = new();
         private readonly LinkedList<ArtKey> lruList = new();
@@ -280,21 +281,18 @@ namespace Moonrise.Services
                     using var memoryStream = new MemoryStream(pictureData);
                     using var randomAccessStream = memoryStream.AsRandomAccessStream();
                     var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
-
                     var transform = new BitmapTransform
                     {
                         ScaledWidth = (uint)size,
                         ScaledHeight = (uint)size,
                         InterpolationMode = BitmapInterpolationMode.Linear
                     };
-
                     var pixelData = await decoder.GetPixelDataAsync(
                         BitmapPixelFormat.Bgra8,
                         BitmapAlphaMode.Premultiplied,
                         transform,
                         ExifOrientationMode.RespectExifOrientation,
                         ColorManagementMode.ColorManageToSRgb);
-
                     if (token.IsCancellationRequested) return null;
                     var bmp = new SoftwareBitmap(BitmapPixelFormat.Bgra8, size, size, BitmapAlphaMode.Premultiplied);
                     bmp.CopyFromBuffer(pixelData.DetachPixelData().AsBuffer());
@@ -332,7 +330,7 @@ namespace Moonrise.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to decode software bitmap: {ex.Message}");
+                Debug.WriteLine($"Failed to decode artwork: {ex.Message}");
                 return null;
             }
         }
@@ -473,7 +471,7 @@ namespace Moonrise.Services
                 currentCacheBytes += item.ByteSize;
                 AcquireArtwork(key, item.Data);
 
-                while ((currentCacheBytes > CacheMemoryLimit || cache.Count > 500) && lruList.Count > 0)
+                while ((currentCacheBytes > CacheMemoryLimit || cache.Count > CacheItemLimit) && lruList.Count > 0)
                 {
                     var oldestKey = lruList.First!.Value;
 

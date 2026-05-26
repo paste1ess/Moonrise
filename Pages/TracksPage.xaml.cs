@@ -17,8 +17,15 @@ namespace Moonrise.Pages
         public TracksPage()
         {
             InitializeComponent();
-            LibraryService.Instance.LibraryChanging += () => Tracks.Clear();
+            LibraryService.Instance.LibraryChanging += OnLibraryChanging;
+            Unloaded += (s, e) =>
+            {
+                LibraryService.Instance.LibraryChanging -= OnLibraryChanging;
+                Tracks.Clear();
+            };
         }
+
+        private void OnLibraryChanging() => Tracks.Clear();
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {

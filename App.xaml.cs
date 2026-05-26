@@ -59,6 +59,7 @@ namespace Moonrise
             TaskService.Initialize(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
             _window = new MainWindow();
             SettingsService.Instance.Load();
+            _ = DiscordRpcService.Instance;
 
             _window.Activate();
         }

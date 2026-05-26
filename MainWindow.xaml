@@ -112,7 +112,7 @@
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>
-                <Frame x:Name="NavFrame" />
+                <Frame x:Name="NavFrame" CacheSize="0" />
             </NavigationView>
         </Grid>
     </Grid>
