@@ -21,11 +21,14 @@ namespace Moonrise.Services
         public partial bool BackgroundShadersEnabled { get; set; } = false;
         [ObservableProperty]
         public partial bool BackgroundShadersBoostFps { get; set; } = false;
+        [ObservableProperty]
+        public partial bool DiscordRpcEnabled { get; set; } = false;
 
         partial void OnMusicLibraryPathChanged(string value) { if (!_isLoading) Save(); }
         partial void OnBackgroundShadersEnabledChanged(bool value) { if (!_isLoading) Save(); }
 
         partial void OnBackgroundShadersBoostFpsChanged(bool value) { if (!_isLoading) Save(); }
+        partial void OnDiscordRpcEnabledChanged(bool value) { if (!_isLoading) Save(); }
 
         public void Save()
         {
@@ -34,7 +37,8 @@ namespace Moonrise.Services
             {
                 MusicLibraryPath = MusicLibraryPath,
                 BackgroundShadersEnabled = BackgroundShadersEnabled,
-                BackgroundShadersBoostFps = BackgroundShadersBoostFps
+                BackgroundShadersBoostFps = BackgroundShadersBoostFps,
+                DiscordRpcEnabled = DiscordRpcEnabled,
             };
             File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, AppSettingsContext.Default.AppSettings));
         }
@@ -49,6 +53,7 @@ namespace Moonrise.Services
                 MusicLibraryPath = s.MusicLibraryPath;
                 BackgroundShadersEnabled = s.BackgroundShadersEnabled;
                 BackgroundShadersBoostFps = s.BackgroundShadersBoostFps;
+                DiscordRpcEnabled = s.DiscordRpcEnabled;
             }
             finally
             {
@@ -62,5 +67,6 @@ namespace Moonrise.Services
         public string MusicLibraryPath { get; set; } = string.Empty;
         public bool BackgroundShadersEnabled { get; set; } = false;
         public bool BackgroundShadersBoostFps { get; set; } = false;
+        public bool DiscordRpcEnabled { get; set; } = false;
     }
 }

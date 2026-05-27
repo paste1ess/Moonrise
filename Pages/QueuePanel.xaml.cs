@@ -24,11 +24,28 @@ namespace Moonrise.Pages
     /// </summary>
     public sealed partial class QueuePanel : Page
     {
-        public QueueService Queue => PlaybackService.Instance.Queue;
+        public PlaybackService Playback => PlaybackService.Instance;
+        public QueueService Queue => Playback.Queue;
+        
         public QueuePanel()
         {
             InitializeComponent();
-            Unloaded += (s, e) => this.Bindings.StopTracking();
+            Unloaded += (s, e) => Bindings.StopTracking();
+            Playback.PropertyChanged += Playback_PropertyChanged;
+        }
+
+        private void Playback_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ShuffleState")
+            {
+                DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+                {
+                    if (QueueListView.Items.Count > 0)
+                    {
+                        QueueListView.ScrollIntoView(QueueListView.Items[0]);
+                    }
+                });
+            }
         }
     }
 }

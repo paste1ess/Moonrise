@@ -52,6 +52,7 @@ namespace Moonrise.Pages
                 if (index < 0) return;
 
                 PlaybackService.Instance.Queue.SetQueue(list);
+                PlaybackService.Instance.Queue.PassQueue();
                 var qt = PlaybackService.Instance.Queue.SkipAndTake(index);
 
                 var track = await Task.Run(() => LibraryService.Instance.GetTrack(qt.Id));

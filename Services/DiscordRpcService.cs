@@ -11,6 +11,7 @@ namespace Moonrise.Services
     {
         private static readonly string discordAppId = "1508917641530708039";
         public static readonly DiscordRpcService Instance = new();
+        private static SettingsService settings => SettingsService.Instance;
 
         private DiscordRpcClient client;
         private PlaybackService playback => PlaybackService.Instance;
@@ -26,10 +27,28 @@ namespace Moonrise.Services
             };
 
             client.Initialize();
+
+            settings.PropertyChanged += Settings_PropertyChanged;
+        }
+
+        private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "DiscordRpcEnabled")
+            {
+                if (settings.DiscordRpcEnabled)
+                {
+                    var currentTrack = playback.CurrentTrack;
+                    if (currentTrack != null) SetPresence(currentTrack.Title, currentTrack.Artist);
+                } else
+                {
+                    ClearPresence();
+                }
+            }
         }
 
         public void SetPresence(string title, string artist)
         {
+            if (!settings.DiscordRpcEnabled) return;
             client.SetPresence(new RichPresence()
             {
                 Details = title,

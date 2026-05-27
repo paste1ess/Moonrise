@@ -325,6 +325,46 @@ namespace Moonrise.Services
 
             task.Enqueue(command);
         }
+        public void ToggleShuffle()
+        {
+            var oldShuffleState = ShuffleState;
+            var command = new RelayAppCommand(async (token) =>
+            {
+                if (CurrentTrack == null) return;
+                var queueTrack = QueueTrack.FromTrack(CurrentTrack);
+                var targetShuffleState = !ShuffleState;
+                BulkObservableCollection<QueueTrack>? newCollection = null;
+
+                if (targetShuffleState)
+                {
+                    var newQueueList = Queue.GetShuffledList(queueTrack);
+                    newCollection = new BulkObservableCollection<QueueTrack>();
+                    if (newQueueList != null) newCollection.ReplaceRange(newQueueList);
+                }
+                else
+                {
+                    newCollection = new BulkObservableCollection<QueueTrack>();
+                    var index = Queue.OriginalQueue.FindIndex(q => q.Id == queueTrack.Id);
+                    if (index >= 0)
+                    {
+                        var remaining = Queue.OriginalQueue.GetRange(index + 1, Queue.OriginalQueue.Count - index - 1);
+                        newCollection.ReplaceRange(remaining);
+                    }
+                    else
+                    {
+                        newCollection.ReplaceRange(Queue.OriginalQueue);
+                    }
+                }
+
+                task.Dispatcher.TryEnqueue(() =>
+                {
+                    ShuffleState = targetShuffleState;
+                    if (newCollection != null) Queue.ActiveQueue = newCollection;
+                });
+            }, async (ex) => ShuffleState = oldShuffleState);
+
+            task.Enqueue(command);
+        }
         public void Scrub(TimeSpan position)
         {
             mediaPlayer.PlaybackSession.Position = position;

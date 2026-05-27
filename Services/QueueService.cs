@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Moonrise.Services
 {
-    public class QueueTrack
+    public record QueueTrack
     {
         public string Id { get; init; } = string.Empty;
         public string Title { get; init; } = string.Empty;
@@ -59,10 +59,15 @@ namespace Moonrise.Services
             _suppressNotification = true;
             try
             {
-                Items.Clear();
-                foreach (var item in collection)
+                if (Items is List<T> list)
                 {
-                    Items.Add(item);
+                    list.Clear();
+                    list.AddRange(collection);
+                }
+                else
+                {
+                    Items.Clear();
+                    foreach (var item in collection) Items.Add(item);
                 }
             }
             finally
@@ -135,7 +140,22 @@ namespace Moonrise.Services
 
         public void ShuffleQueue()
         {
-            var list = new List<QueueTrack>(OriginalQueue);
+            ActiveQueue.ReplaceRange(GetShuffledList());
+        }
+
+        public List<QueueTrack> GetShuffledList(QueueTrack? excludeTrack = null)
+        {
+            var list = new List<QueueTrack>(OriginalQueue.Count);
+            bool excluded = false;
+            foreach (var track in OriginalQueue)
+            {
+                if (!excluded && excludeTrack != null && track.Id == excludeTrack.Id)
+                {
+                    excluded = true;
+                    continue;
+                }
+                list.Add(track);
+            }
 
             int n = list.Count;
             while (n > 1)
@@ -146,12 +166,12 @@ namespace Moonrise.Services
                 list[k] = list[n];
                 list[n] = value;
             }
-
-            ActiveQueue.ReplaceRange(list);
+            return list;
         }
 
         public QueueTrack SkipAndTake(int index)
         {
+            if (index < 0 || index >= ActiveQueue.Count) return null;
             QueueTrack selectedTrack = ActiveQueue[index];
             var remainingTracks = ActiveQueue.GetRange(index + 1, ActiveQueue.Count - index - 1);
 

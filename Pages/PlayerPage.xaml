@@ -94,7 +94,7 @@
                 <TextBlock Grid.Column="2" Text="{x:Bind FormatDuration(playbackService.CurrentTrack.Duration), Mode=OneWay, FallbackValue='0:00'}" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
             </Grid>
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-                <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False"/>
+                <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False" Active="{x:Bind playbackService.ShuffleState, Mode=OneWay}" Click="Shuffle_Click"/>
                 <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True" Click="Previous_Click"/>
                 <controls:CircleIconButton Glyph="{x:Bind PlaybackStateToGlyph(playbackService.CurrentPlaybackState), Mode=OneWay}" Size="58" FontSize="18" Filled="True" Click="PlayPause_Click"/>
                 <controls:CircleIconButton Glyph="&#xE893;" Size="46" FontSize="16" Filled="True" Click="Skip_Click"/>

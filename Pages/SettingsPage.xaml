@@ -35,7 +35,7 @@
 
                     <controls:SettingsExpander
                         Header="Rescan Library"
-                        Description="Rescans the library folder to look">
+                        Description="Updates your library by scanning for changes in your files">
                         <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE8F7;" />
                         </controls:SettingsExpander.HeaderIcon>
@@ -59,7 +59,7 @@
                 <StackPanel Spacing="4">
                     <controls:SettingsExpander
                         Header="Mica+"
-                        Description="Enable a custom shader that efficiently takes advantage of Mica to create a more dynamic background"
+                        Description="Enables a custom shader that efficiently takes advantage of Mica to create a more dynamic background"
                         IsExpanded="{x:Bind _settings.BackgroundShadersEnabled, Mode=OneWay}">
 
                         <controls:SettingsExpander.HeaderIcon>
@@ -79,7 +79,23 @@
 
                     </controls:SettingsExpander>
                 </StackPanel>
-                
+
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Connectivity"/>
+                <StackPanel Spacing="4">
+                    <controls:SettingsCard
+                        Header="Discord Status Integration"
+                        Description="Allows Discord to display your currently playing song on your profile">
+
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE704;" />
+                        </controls:SettingsCard.HeaderIcon>
+
+                        <controls:SettingsCard.Content>
+                            <ToggleSwitch IsOn="{x:Bind _settings.DiscordRpcEnabled, Mode=TwoWay}"/>
+                        </controls:SettingsCard.Content>
+                    </controls:SettingsCard>
+                </StackPanel>
+
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="About"/>
                 <controls:SettingsExpander Header="Moonrise 🌙" Description="Waxing v0.1.0">
                     <controls:SettingsExpander.HeaderIcon>

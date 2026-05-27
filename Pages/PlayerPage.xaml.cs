@@ -112,5 +112,10 @@ namespace Moonrise.Pages
         {
             playbackService.Back();
         }
+
+        private void Shuffle_Click(object sender, RoutedEventArgs e)
+        {
+            playbackService.ToggleShuffle();
+        }
     }
 }

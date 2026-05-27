@@ -65,6 +65,23 @@ namespace Moonrise.Controls
                 ? (Style)control.Resources["FilledIconButton"]
                 : (Style)control.Resources["TransparentIconButton"];
         }
+
+        public bool Active
+        {
+            get => (bool)GetValue(ActiveProperty);
+            set => SetValue(ActiveProperty, value);
+        }
+
+        public static readonly DependencyProperty ActiveProperty =
+            DependencyProperty.Register(nameof(Active), typeof(bool), typeof(CircleIconButton), new PropertyMetadata(false, OnActiveChanged));
+        private static void OnActiveChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var control = (CircleIconButton)d;
+            control.GlyphIcon.Style = (bool)e.NewValue
+                ? (Style)control.Resources["ActiveIcon"]
+                : (Style)control.Resources["InactiveIcon"];
+        }
+
         public CircleIconButton()
         {
             this.InitializeComponent();
