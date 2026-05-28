@@ -37,7 +37,7 @@ namespace Moonrise.Controls
         }
 
         public static readonly DependencyProperty ActiveProperty =
-            DependencyProperty.Register(nameof(Active), typeof(bool), typeof(LyricItem), new PropertyMetadata(true, OnActiveChanged));
+            DependencyProperty.Register(nameof(Active), typeof(bool), typeof(LyricItem), new PropertyMetadata(false, OnActiveChanged));
         private static void OnActiveChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var control = (LyricItem)d;

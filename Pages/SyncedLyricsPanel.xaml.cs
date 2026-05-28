@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -50,9 +51,10 @@ namespace Moonrise.Pages
 
     public sealed partial class SyncedLyricsPanel : Page
     {
+        private static readonly Regex LrcTimestampRegex = new(@"\[(\d{2}):(\d{2}\.\d{2,3})\]", RegexOptions.Compiled);
         public PlaybackService Playback => PlaybackService.Instance;
 
-        List<Lyric> data = [];
+        //List<Lyric> data = [];
         //    new Lyric("What, what, what, what, what", TimeSpan.FromSeconds(0)),
         //    new Lyric("Ummmmm", TimeSpan.FromSeconds(4.5)),
         //    new Lyric("This is the 'first' line of the song", TimeSpan.FromSeconds(8.2)),
@@ -63,7 +65,6 @@ namespace Moonrise.Pages
         //    new Lyric("Idk i forgot", TimeSpan.FromSeconds(32.0))
         //];
 
-        private CancellationTokenSource? _lyricsCts;
 
         public ObservableCollection<EvaluatedLyric> DisplayLyrics { get; } = new();
 
@@ -81,14 +82,19 @@ namespace Moonrise.Pages
         public SyncedLyricsPanel()
         {
             InitializeComponent();
-
-            Playback.PropertyChanged += Playback_PropertyChanged;
         }
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            Playback.PropertyChanged += Playback_PropertyChanged;
+
             DisplayLyrics.Clear();
             _ = GetSyncedLyrics(LibraryService.Instance.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
+        }
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            Playback.PropertyChanged -= Playback_PropertyChanged;
         }
 
         private void Playback_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -143,17 +149,16 @@ namespace Moonrise.Pages
             }
             else if (e.PropertyName == nameof(PlaybackService.CurrentTrack))
             {
-                DisplayLyrics.Clear();
-                _ = GetSyncedLyrics(LibraryService.Instance.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    DisplayLyrics.Clear();
+                    _ = GetSyncedLyrics(LibraryService.Instance.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
+                });
+                
             }
         }
         private async Task GetSyncedLyrics(string? path)
         {
-            _lyricsCts?.Cancel();
-            _lyricsCts?.Dispose();
-            _lyricsCts = new CancellationTokenSource();
-            var token = _lyricsCts.Token;
-
             if (path == null) return;
 
             string lrcPath = Path.ChangeExtension(path, ".lrc");
@@ -167,15 +172,12 @@ namespace Moonrise.Pages
                 string? line;
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    TimeSpan timestamp;
-
-                    var match = Regex.Match(line, @"\[(\d{2}):(\d{2}\.\d{2})\]");
+                    var match = LrcTimestampRegex.Match(line);
                     if (match.Success)
                     {
                         int minutes = int.Parse(match.Groups[1].Value);
-                        double seconds = double.Parse(match.Groups[2].Value);
-                        timestamp = TimeSpan.FromSeconds(minutes * 60 + seconds);
-
+                        double seconds = double.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+                        var timestamp = TimeSpan.FromSeconds(minutes * 60 + seconds);
                         string lyric = line.Substring(match.Index + match.Length).Trim();
                         lyrics.Add(new(lyric, timestamp));
                     }
@@ -186,13 +188,12 @@ namespace Moonrise.Pages
                 return;
             }
 
-            if (!token.IsCancellationRequested)
+            DispatcherQueue.TryEnqueue(() =>
             {
-                data = lyrics;
                 DisplayLyrics.Clear();
-                foreach (var l in data)
+                foreach (var l in lyrics)
                     DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp));
-            }
+            });
         }
     }
 }
