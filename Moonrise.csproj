@@ -6,14 +6,13 @@
     <RootNamespace>Moonrise</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant())</RuntimeIdentifier>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile Condition="Exists('Properties\PublishProfiles\win-$(Platform).pubxml')">win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
-    <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	<WindowsPackageType>MSIX</WindowsPackageType>
+	<Nullable>enable</Nullable>
+    <WindowsPackageType>MSIX</WindowsPackageType>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
 	<SelfContained>false</SelfContained>
@@ -24,6 +23,7 @@
   <ItemGroup>
     <None Remove="Controls\AlbumGridItem.xaml" />
     <None Remove="Controls\CircleIconButton.xaml" />
+    <None Remove="Controls\LyricItem.xaml" />
     <None Remove="Controls\QueueListItem.xaml" />
     <None Remove="Controls\TrackListItem.xaml" />
     <None Remove="Pages\AlbumItemPage.xaml" />
@@ -31,6 +31,7 @@
     <None Remove="Pages\LyricsPanel.xaml" />
     <None Remove="Pages\PlayerPage.xaml" />
     <None Remove="Pages\QueuePanel.xaml" />
+    <None Remove="Pages\SyncedLyricsPanel.xaml" />
     <None Remove="Pages\TracksPage.xaml" />
   </ItemGroup>
 
@@ -50,6 +51,24 @@
   </ItemGroup>
 	
 	
+
+  <!--
+    Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
+    Tools extension to be activated for this project even if the Windows App SDK Nuget
+    package has not yet been restored.
+  -->
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
+
+  <!--
+    Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
+    Explorer "Package and Publish" context menu entry to be enabled for this project even if
+    the Windows App SDK Nuget package has not yet been restored.
+  -->
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
 
   <!--
     Microsoft.Windows.SDK.BuildTools.WinApp adds first-class support for
@@ -102,7 +121,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Pages\LyricsPanel.xaml">
+    <Page Update="Pages\StaticLyricsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
@@ -137,20 +156,40 @@
     <PublishSingleFile Condition="'$(Configuration)' != 'Debug'">False</PublishSingleFile>
     <SelfContained Condition="'$(Configuration)' == 'Debug'">False</SelfContained>
     <SelfContained Condition="'$(Configuration)' != 'Debug'">False</SelfContained>
-  </PropertyGroup>
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
+    <GenerateTestArtifacts>False</GenerateTestArtifacts>
+    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
 
-  <Target Name="CopyWinUIResourcesOnPublish" AfterTargets="Publish">
-    <ItemGroup>
-      <WinUIResources Include="$(OutputPath)\*.pri" />
-      <WinUIXbfFiles Include="$(OutputPath)\*.xbf" />
-      <WinUIAssetFiles Include="$(OutputPath)\Assets\**\*.*" />
-      <WinUIPagesFiles Include="$(OutputPath)\Pages\**\*.xbf" />
-      <WinUIControlsFiles Include="$(OutputPath)\Controls\**\*.xbf" />
-    </ItemGroup>
-    <Copy SourceFiles="@(WinUIResources)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(WinUIXbfFiles)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(WinUIAssetFiles)" DestinationFiles="@(WinUIAssetFiles->'$(PublishDir)\Assets\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(WinUIPagesFiles)" DestinationFiles="@(WinUIPagesFiles->'$(PublishDir)\Pages\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(WinUIControlsFiles)" DestinationFiles="@(WinUIControlsFiles->'$(PublishDir)\Controls\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-  </Target>
+
+
+    <AppxBundle>Never</AppxBundle>
+    <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+	<PackageCertificateKeyFile>Moonrise_TemporaryKey.pfx</PackageCertificateKeyFile>
+	<PackageCertificatePassword></PackageCertificatePassword>
+  </PropertyGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\LyricsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\LyricItem.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\SyncedLyricsPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>
+
+

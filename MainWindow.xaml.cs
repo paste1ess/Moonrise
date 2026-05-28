@@ -73,7 +73,7 @@ namespace Moonrise
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(AppTitleBar);
             AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
-            AppWindow.SetIcon("Assets/AppIcon.ico");
+            AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"));
             SetTaskManagerIcon();
 
             Activated += MainWindow_Activated;

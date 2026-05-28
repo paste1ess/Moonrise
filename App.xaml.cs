@@ -28,15 +28,48 @@ namespace Moonrise
         public App()
         {
             InitializeComponent();
-            System.AppDomain.CurrentDomain.FirstChanceException += (sender, eventArgs) =>
+            System.AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
             {
                 try
                 {
-                    var logPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "crash_log.txt");
+                    var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Moonrise", "crash_log.txt");
+                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
                     var sb = new System.Text.StringBuilder();
-                    sb.AppendLine($"[{System.DateTime.Now:O}] {eventArgs.Exception.GetType().FullName}: {eventArgs.Exception.Message}");
-                    sb.AppendLine(eventArgs.Exception.StackTrace);
-                    var inner = eventArgs.Exception.InnerException;
+                    if (eventArgs.ExceptionObject is Exception ex)
+                    {
+                        sb.AppendLine($"[{System.DateTime.Now:O}] {ex.GetType().FullName}: {ex.Message}");
+                        sb.AppendLine(ex.StackTrace);
+                        var inner = ex.InnerException;
+                        while (inner != null)
+                        {
+                            sb.AppendLine($"\n---> Inner Exception: {inner.GetType().FullName}: {inner.Message}");
+                            sb.AppendLine(inner.StackTrace);
+                            inner = inner.InnerException;
+                        }
+                    }
+                    else
+                    {
+                        sb.AppendLine($"[{System.DateTime.Now:O}] Unknown exception: {eventArgs.ExceptionObject}");
+                    }
+                    sb.AppendLine("\n========================================\n");
+                    System.IO.File.AppendAllText(logPath, sb.ToString());
+                }
+                catch
+                {
+                }
+            };
+
+            this.UnhandledException += (sender, eventArgs) =>
+            {
+                try
+                {
+                    var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Moonrise", "crash_log.txt");
+                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
+                    var sb = new System.Text.StringBuilder();
+                    var ex = eventArgs.Exception;
+                    sb.AppendLine($"[{System.DateTime.Now:O}] UI Thread Unhandled {ex.GetType().FullName}: {ex.Message}");
+                    sb.AppendLine(ex.StackTrace);
+                    var inner = ex.InnerException;
                     while (inner != null)
                     {
                         sb.AppendLine($"\n---> Inner Exception: {inner.GetType().FullName}: {inner.Message}");

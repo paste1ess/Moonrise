@@ -22,7 +22,7 @@ namespace Moonrise.Pages
         public PlayerPage()
         {
             InitializeComponent();
-            Unloaded += (s, e) => this.Bindings.StopTracking();
+            //Unloaded += (s, e) => this.Bindings.StopTracking();
         }
         private int previousSelectedIndex;
 
@@ -43,6 +43,7 @@ namespace Moonrise.Pages
                 default:
                     pageType = typeof(LyricsPanel);
                     break;
+
             }
 
             var slideNavigationTransitionEffect = currentSelectedIndex - previousSelectedIndex > 0
