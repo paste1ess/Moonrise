@@ -320,6 +320,9 @@ namespace Moonrise
             NavView.IsPaneOpen = !NavView.IsPaneOpen;
         }
 
+        public string PlaybackStateToGlyph(PlaybackState state)
+    => state == PlaybackState.Playing ? "\uE769" : "\uE768";
+
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
@@ -383,6 +386,24 @@ namespace Moonrise
                 ToggleFullScreen();
                 e.Handled = true;
             }
+        }
+
+        private void RewindButton_Click(object sender, RoutedEventArgs e)
+        {
+            PlaybackService.Back();
+        }
+
+        private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (PlaybackService.CurrentPlaybackState == PlaybackState.Paused)
+                PlaybackService.Play();
+            else if (PlaybackService.CurrentPlaybackState == PlaybackState.Playing)
+                PlaybackService.Pause();
+        }
+
+        private void SkipButton_Click(object sender, RoutedEventArgs e)
+        {
+            PlaybackService.Next();
         }
 
         private void ToggleFullScreen()

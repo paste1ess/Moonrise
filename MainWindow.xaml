@@ -42,27 +42,58 @@
                     <FontIconSource Glyph="&#xEC4F;" Foreground="{StaticResource AccentTextFillColorPrimaryBrush}"/>
                 </TitleBar.IconSource>
                 <TitleBar.RightHeader>
-                    <Grid Height="44" VerticalAlignment="Stretch" Margin="0,2">
-                        <Button x:Name="PlayerNavButton"
-                            Click="PlayerNavButton_Click"
-                            Width="40"
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Title, Mode=OneWay}" TextAlignment="Right"/>
+                            <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Artist, Mode=OneWay}" TextAlignment="Right" FontSize="11"/>
+                        </StackPanel>
+                        <Button
+                            Click="RewindButton_Click"
+                            Width="50"
                             Padding="0"
                             VerticalAlignment="Stretch"
                             Style="{StaticResource SubtleButtonStyle}">
-                            <FontIcon Glyph="&#xE786;" FontSize="16"/>
+                            <FontIcon Glyph="&#xE892;" FontSize="16"/>
                         </Button>
+                        <Button
+                            Click="PlayPauseButton_Click"
+                            Width="50"
+                            Padding="0"
+                            VerticalAlignment="Stretch"
+                            Style="{StaticResource SubtleButtonStyle}">
+                            <FontIcon Glyph="{x:Bind PlaybackStateToGlyph(PlaybackService.CurrentPlaybackState), Mode=OneWay}" FontSize="16"/>
+                        </Button>
+                        <Button
+                            Click="SkipButton_Click"
+                            Width="50"
+                            Padding="0"
+                            VerticalAlignment="Stretch"
+                            Style="{StaticResource SubtleButtonStyle}">
+                            <FontIcon Glyph="&#xE893;" FontSize="16"/>
+                        </Button>
+                        <AppBarSeparator/>
+                        <Grid Height="44" VerticalAlignment="Stretch" Margin="0,2">
+                            <Button x:Name="PlayerNavButton"
+                                Click="PlayerNavButton_Click"
+                                Width="50"
+                                Padding="0"
+                                VerticalAlignment="Stretch"
+                                Style="{StaticResource SubtleButtonStyle}">
+                                <FontIcon Glyph="&#xE786;" FontSize="16"/>
+                            </Button>
 
-                        <Rectangle x:Name="PlayerNavIndicator"
-                            Width="16"
-                            Height="3"
-                            RadiusX="2"
-                            RadiusY="2"
-                            VerticalAlignment="Bottom"
-                            HorizontalAlignment="Center"
-                            Margin="0,0,0,2"
-                            Fill="{ThemeResource NavigationViewSelectionIndicatorForeground}"
-                            Visibility="Collapsed"/>
-                    </Grid>
+                            <Rectangle x:Name="PlayerNavIndicator"
+                                Width="16"
+                                Height="3"
+                                RadiusX="2"
+                                RadiusY="2"
+                                VerticalAlignment="Bottom"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,2"
+                                Fill="{ThemeResource NavigationViewSelectionIndicatorForeground}"
+                                Visibility="Collapsed"/>
+                        </Grid>
+                    </StackPanel>
                 </TitleBar.RightHeader>
             </TitleBar>
 
