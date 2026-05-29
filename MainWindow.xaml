@@ -34,7 +34,7 @@
 
             <TitleBar
                 x:Name="AppTitleBar"
-                Title="Moonrise"
+                Title="Moonrise (beta)"
                 IsBackButtonVisible="False"
                 IsPaneToggleButtonVisible="True"
                 PaneToggleRequested="TitleBar_PaneToggleRequested">
