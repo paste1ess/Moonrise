@@ -170,7 +170,7 @@ namespace Moonrise
                 }
             };
 
-            NavFrame.Navigate(typeof(HomePage));
+            NavView.SelectedItem = NavView.MenuItems[0];
         }
 
         private void UpdateShaderSpeedMultiplier()
@@ -404,6 +404,15 @@ namespace Moonrise
         private void SkipButton_Click(object sender, RoutedEventArgs e)
         {
             PlaybackService.Next();
+        }
+
+        private void RootGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            var width = e.NewSize.Width;
+            var nowPlayingVisible = width >= 800 ? Visibility.Visible : Visibility.Collapsed;
+            NowPlayingPanel.Visibility = nowPlayingVisible;
+            NowPlayingSeparator.Visibility = nowPlayingVisible;
+            PlaybackButtonsPanel.Visibility = width >= 600 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void ToggleFullScreen()

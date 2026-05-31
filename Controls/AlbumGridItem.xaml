@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Button Width="200" Padding="12" Background="Transparent" BorderThickness="0">
+    <Button Width="200" Padding="12" Background="Transparent" BorderThickness="0" Click="OnClick">
         <StackPanel HorizontalAlignment="Center" Padding="0" Spacing="2">
             <Grid Grid.Column="0" CornerRadius="4" Width="174" Height="174" Margin="0,0,0,4">
                 <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>

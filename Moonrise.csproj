@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -25,6 +25,7 @@
     <None Remove="Controls\CircleIconButton.xaml" />
     <None Remove="Controls\LyricItem.xaml" />
     <None Remove="Controls\QueueListItem.xaml" />
+    <None Remove="Controls\TrackList.xaml" />
     <None Remove="Controls\TrackListItem.xaml" />
     <None Remove="Pages\AlbumItemPage.xaml" />
     <None Remove="Pages\AlbumsPage.xaml" />
@@ -174,6 +175,11 @@
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\TrackList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\LyricsPanel.xaml">

@@ -48,13 +48,30 @@ namespace Moonrise.Controls
         }
 
         public static readonly DependencyProperty TrackViewProperty =
-            DependencyProperty.Register(nameof(TrackView), typeof(bool), typeof(TrackListItem), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(TrackView), typeof(bool), typeof(TrackListItem),
+                new PropertyMetadata(true, (d, _) => ((TrackListItem)d).OnPropertyChanged(nameof(TrackViewVisibility))));
 
         public bool TrackView
         {
             get => (bool)GetValue(TrackViewProperty);
             set => SetValue(TrackViewProperty, value);
         }
+
+        public Visibility TrackViewVisibility => TrackView ? Visibility.Visible : Visibility.Collapsed;
+
+        public static readonly DependencyProperty ArtViewProperty =
+            DependencyProperty.Register(nameof(ArtView), typeof(bool), typeof(TrackListItem),
+                new PropertyMetadata(true, (d, _) => ((TrackListItem)d).OnPropertyChanged(nameof(ArtViewVisibility))));
+
+        public bool ArtView
+        {
+            get => (bool)GetValue(ArtViewProperty);
+            set => SetValue(ArtViewProperty, value);
+        }
+
+        public Visibility ArtViewVisibility => ArtView ? Visibility.Visible : Visibility.Collapsed;
+
+
 
         [ObservableProperty]
         public partial ImageSource? DisplayedCoverArt { get; set; }
@@ -138,6 +155,8 @@ namespace Moonrise.Controls
             {
             }
         }
+
+        public string FormatTrackNumber(int? trackNumber) => trackNumber.HasValue ? trackNumber.Value.ToString() : string.Empty;
 
         public string FormatDuration(TimeSpan duration)
         {

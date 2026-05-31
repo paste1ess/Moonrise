@@ -26,7 +26,7 @@
                   SelectionMode="None">
             <GridView.ItemTemplate>
                 <DataTemplate x:DataType="models:Album">
-                    <controls:AlbumGridItem Album="{x:Bind}"/>
+                    <controls:AlbumGridItem Album="{x:Bind}" Click="AlbumGridItem_Clicked"/>
                 </DataTemplate>
             </GridView.ItemTemplate>
         </GridView>

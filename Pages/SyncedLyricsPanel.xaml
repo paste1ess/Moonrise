@@ -11,7 +11,7 @@
 
     <Grid>
         <ScrollViewer x:Name="LyricScroller" VerticalScrollBarVisibility="Hidden" SizeChanged="LyricScroller_SizeChanged">
-            <ItemsRepeater x:Name="LyricRepeater" ItemsSource="{x:Bind DisplayLyrics, Mode=OneWay}">
+            <ItemsRepeater x:Name="LyricRepeater" ItemsSource="{x:Bind DisplayLyrics, Mode=OneWay}" HorizontalAlignment="Left">
                 <ItemsRepeater.Layout>
                     <StackLayout Spacing="48" />
                 </ItemsRepeater.Layout>

@@ -42,6 +42,11 @@ namespace Moonrise.Controls
         {
             var control = (LyricItem)d;
             var isActive = (bool)e.NewValue;
+
+            control.TextObject.MaxWidth = isActive
+                ? control.ActualWidth * 0.8
+                : double.PositiveInfinity;
+
             if (isActive)
             {
                 control.ActiveStoryboard.Begin();
@@ -52,48 +57,18 @@ namespace Moonrise.Controls
             }
         }
 
-        public double BaseFontSize
-        {
-            get => (double)GetValue(BaseFontSizeProperty);
-            set => SetValue(BaseFontSizeProperty, value);
-        }
-        public static readonly DependencyProperty BaseFontSizeProperty =
-            DependencyProperty.Register(nameof(BaseFontSize), typeof(double), typeof(LyricItem), new PropertyMetadata(40.0, OnFontSizeFactorsChanged));
-
-        public double AnimationMultiplier
-        {
-            get => (double)GetValue(AnimationMultiplierProperty);
-            set => SetValue(AnimationMultiplierProperty, value);
-        }
-        public static readonly DependencyProperty AnimationMultiplierProperty =
-            DependencyProperty.Register(nameof(AnimationMultiplier), typeof(double), typeof(LyricItem), new PropertyMetadata(1.0, OnFontSizeFactorsChanged));
-
-        private static void OnFontSizeFactorsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var control = (LyricItem)d;
-            control.TextObject.FontSize = control.BaseFontSize * control.AnimationMultiplier;
-        }
-
         public LyricItem()
         {
             InitializeComponent();
         }
 
-        private DispatcherTimer? _resizeTimer;
-
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (e.NewSize.Width == e.PreviousSize.Width) return;
-
-            _resizeTimer?.Stop();
-            _resizeTimer ??= new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
-            _resizeTimer.Tick += (s, _) =>
+            if (Active)
             {
-                _resizeTimer.Stop();
-                var scale = Math.Clamp(e.NewSize.Width / 700.0, 0.6, 1.0);
-                BaseFontSize = 40.0 * scale;
-            };
-            _resizeTimer.Start();
+                TextObject.MaxWidth = e.NewSize.Width * 0.8;
+            }
         }
     }
 }

@@ -31,21 +31,21 @@ namespace Moonrise.Pages
         public AlbumsPage()
         {
             InitializeComponent();
-            LibraryService.Instance.LibraryChanging += OnLibraryChanging;
+            LibraryService.Instance.LibraryChanged += OnLibraryChanged;
             Unloaded += (s, e) =>
             {
-                LibraryService.Instance.LibraryChanging -= OnLibraryChanging;
+                LibraryService.Instance.LibraryChanged -= OnLibraryChanged;
                 Albums.Clear();
             };
         }
 
-        private void OnLibraryChanging() => Albums.Clear();
+        private void OnLibraryChanged() => Albums.Clear();
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
 
-            var albumList = await Task.Run(() => LibraryService.Instance.GetAllAlbums());
+            var albumList = await Task.Run(() => LibraryService.Instance.GetAllAlbums().ToList());
 
             if (Frame == null) return;
 
@@ -57,7 +57,7 @@ namespace Moonrise.Pages
         {
             if (sender is Controls.AlbumGridItem item && item.Album is Album selectedAlbum)
             {
-                // navigate to AlbumItemPage
+                Frame.Navigate(typeof(AlbumItemPage), selectedAlbum);
             }
         }
     }

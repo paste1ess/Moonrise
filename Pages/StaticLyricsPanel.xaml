@@ -9,6 +9,6 @@
     mc:Ignorable="d">
 
     <ScrollViewer Padding="16, 12" HorizontalAlignment="Stretch">
-        <TextBlock Text="{x:Bind Lyrics, Mode=OneWay}" Style="{StaticResource BodyLargeTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Center"/>
+        <TextBlock Text="{x:Bind Lyrics, Mode=OneWay}" Style="{StaticResource BodyLargeTextBlockStyle}" Margin="0,44" HorizontalAlignment="Stretch" HorizontalTextAlignment="Center"/>
     </ScrollViewer>
 </Page>

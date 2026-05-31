@@ -11,18 +11,25 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <Storyboard x:Name="ActiveStoryboard">
-            <DoubleAnimation Storyboard.TargetName="LyricRoot" 
-                             Storyboard.TargetProperty="AnimationMultiplier" 
-                             To="1.6" 
-                             Duration="0:0:0.35"
-                             EnableDependentAnimation="True">
+            <DoubleAnimation Storyboard.TargetName="LyricScale"
+                             Storyboard.TargetProperty="ScaleX"
+                             To="1.25"
+                             Duration="0:0:0.35">
                 <DoubleAnimation.EasingFunction>
                     <ExponentialEase EasingMode="EaseOut" Exponent="5" />
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="TextObject" 
-                             Storyboard.TargetProperty="Opacity" 
-                             To="1.0" 
+            <DoubleAnimation Storyboard.TargetName="LyricScale"
+                             Storyboard.TargetProperty="ScaleY"
+                             To="1.25"
+                             Duration="0:0:0.35">
+                <DoubleAnimation.EasingFunction>
+                    <ExponentialEase EasingMode="EaseOut" Exponent="5" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="TextObject"
+                             Storyboard.TargetProperty="Opacity"
+                             To="1.0"
                              Duration="0:0:0.35">
                 <DoubleAnimation.EasingFunction>
                     <ExponentialEase EasingMode="EaseOut" Exponent="5" />
@@ -30,18 +37,25 @@
             </DoubleAnimation>
         </Storyboard>
         <Storyboard x:Name="InactiveStoryboard">
-            <DoubleAnimation Storyboard.TargetName="LyricRoot" 
-                             Storyboard.TargetProperty="AnimationMultiplier" 
-                             To="1.0" 
-                             Duration="0:0:0.35"
-                             EnableDependentAnimation="True">
+            <DoubleAnimation Storyboard.TargetName="LyricScale"
+                             Storyboard.TargetProperty="ScaleX"
+                             To="1.0"
+                             Duration="0:0:0.35">
                 <DoubleAnimation.EasingFunction>
                     <ExponentialEase EasingMode="EaseOut" Exponent="5" />
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="TextObject" 
-                             Storyboard.TargetProperty="Opacity" 
-                             To="0.4" 
+            <DoubleAnimation Storyboard.TargetName="LyricScale"
+                             Storyboard.TargetProperty="ScaleY"
+                             To="1.0"
+                             Duration="0:0:0.35">
+                <DoubleAnimation.EasingFunction>
+                    <ExponentialEase EasingMode="EaseOut" Exponent="5" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="TextObject"
+                             Storyboard.TargetProperty="Opacity"
+                             To="0.4"
                              Duration="0:0:0.35">
                 <DoubleAnimation.EasingFunction>
                     <ExponentialEase EasingMode="EaseOut" Exponent="5" />
@@ -51,12 +65,18 @@
     </UserControl.Resources>
 
     <Grid>
-        <TextBlock x:Name="TextObject" 
-                   Text="{x:Bind Text, Mode=OneWay}" 
+        <TextBlock x:Name="TextObject"
+                   Text="{x:Bind Text, Mode=OneWay}"
                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                    FontSize="40"
                    Opacity="0.4"
                    FontWeight="SemiBold"
-                   TextWrapping="Wrap"/>
+                   HorizontalAlignment="Left"
+                   RenderTransformOrigin="0,0.5"
+                   TextWrapping="Wrap">
+            <TextBlock.RenderTransform>
+                <ScaleTransform x:Name="LyricScale" />
+            </TextBlock.RenderTransform>
+        </TextBlock>
     </Grid>
 </UserControl>

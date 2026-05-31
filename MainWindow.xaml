@@ -13,7 +13,7 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid KeyDown="RootGrid_KeyDown">
+    <Grid KeyDown="RootGrid_KeyDown" SizeChanged="RootGrid_SizeChanged">
         <Grid>
             <canvas:CanvasControl
                 x:Name="BackgroundCanvas"
@@ -43,35 +43,39 @@
                 </TitleBar.IconSource>
                 <TitleBar.RightHeader>
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel x:Name="NowPlayingPanel" VerticalAlignment="Center" Margin="0,0,16,0" IsHitTestVisible="False">
                             <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Title, Mode=OneWay}" TextAlignment="Right"/>
                             <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Artist, Mode=OneWay}" TextAlignment="Right" FontSize="11"/>
                         </StackPanel>
-                        <Button
-                            Click="RewindButton_Click"
-                            Width="50"
-                            Padding="0"
-                            VerticalAlignment="Stretch"
-                            Style="{StaticResource SubtleButtonStyle}">
-                            <FontIcon Glyph="&#xE892;" FontSize="16"/>
-                        </Button>
-                        <Button
-                            Click="PlayPauseButton_Click"
-                            Width="50"
-                            Padding="0"
-                            VerticalAlignment="Stretch"
-                            Style="{StaticResource SubtleButtonStyle}">
-                            <FontIcon Glyph="{x:Bind PlaybackStateToGlyph(PlaybackService.CurrentPlaybackState), Mode=OneWay}" FontSize="16"/>
-                        </Button>
-                        <Button
-                            Click="SkipButton_Click"
-                            Width="50"
-                            Padding="0"
-                            VerticalAlignment="Stretch"
-                            Style="{StaticResource SubtleButtonStyle}">
-                            <FontIcon Glyph="&#xE893;" FontSize="16"/>
-                        </Button>
-                        <AppBarSeparator/>
+                        <AppBarSeparator x:Name="NowPlayingSeparator" IsHitTestVisible="False"/>
+                        <StackPanel x:Name="PlaybackButtonsPanel" Orientation="Horizontal" Spacing="8">
+                            <Button
+                                Click="RewindButton_Click"
+                                Width="50"
+                                Padding="0"
+                                VerticalAlignment="Stretch"
+                                Style="{StaticResource SubtleButtonStyle}">
+                                <FontIcon Glyph="&#xE892;" FontSize="16"/>
+                            </Button>
+                            <Button
+                                Click="PlayPauseButton_Click"
+                                Width="50"
+                                Padding="0"
+                                VerticalAlignment="Stretch"
+                                Style="{StaticResource SubtleButtonStyle}">
+                                <FontIcon Glyph="{x:Bind PlaybackStateToGlyph(PlaybackService.CurrentPlaybackState), Mode=OneWay}" FontSize="16"/>
+                            </Button>
+                            <Button
+                                Click="SkipButton_Click"
+                                Width="50"
+                                Padding="0"
+                                VerticalAlignment="Stretch"
+                                Style="{StaticResource SubtleButtonStyle}">
+                                <FontIcon Glyph="&#xE893;" FontSize="16"/>
+                            </Button>
+                            <AppBarSeparator IsHitTestVisible="False"/>
+                        </StackPanel>
+
                         <Grid Height="44" VerticalAlignment="Stretch" Margin="0,2">
                             <Button x:Name="PlayerNavButton"
                                 Click="PlayerNavButton_Click"
@@ -95,6 +99,7 @@
                         </Grid>
                     </StackPanel>
                 </TitleBar.RightHeader>
+
             </TitleBar>
 
             <NavigationView

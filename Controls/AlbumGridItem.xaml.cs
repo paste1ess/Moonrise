@@ -29,6 +29,9 @@ namespace Moonrise.Controls
         private ImageSource? _currentArt;
         private CancellationTokenSource? _artworkCts;
 
+        public event RoutedEventHandler? Click;
+        private void OnClick(object sender, RoutedEventArgs e) => Click?.Invoke(this, e);
+
         private void ReleaseCurrentArt()
         {
             if (_currentArtKey.HasValue && _currentArt != null)
@@ -59,8 +62,6 @@ namespace Moonrise.Controls
 
         [ObservableProperty]
         public partial ImageSource? DisplayedCoverArt { get; set; }
-
-        public event RoutedEventHandler? Clicked;
 
         public AlbumGridItem()
         {
@@ -138,11 +139,6 @@ namespace Moonrise.Controls
             catch (Exception)
             {
             }
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            Clicked?.Invoke(this, e);
         }
     }
 }

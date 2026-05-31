@@ -169,7 +169,7 @@ namespace Moonrise.Services
             return list;
         }
 
-        public QueueTrack SkipAndTake(int index)
+        public QueueTrack? SkipAndTake(int index)
         {
             if (index < 0 || index >= ActiveQueue.Count) return null;
             QueueTrack selectedTrack = ActiveQueue[index];

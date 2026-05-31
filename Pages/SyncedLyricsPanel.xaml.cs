@@ -131,20 +131,23 @@ namespace Moonrise.Pages
 
                 if (activeChanged && activeIndex != -1)
                 {
-                    var element = LyricRepeater.TryGetElement(activeIndex);
-
-                    if (element != null)
+                    var capturedIndex = activeIndex;
+                    _ = Task.Delay(50).ContinueWith(_ => DispatcherQueue.TryEnqueue(() =>
                     {
-                        element.StartBringIntoView(new BringIntoViewOptions
+                        var element = LyricRepeater.TryGetElement(capturedIndex);
+                        if (element != null)
                         {
-                            VerticalAlignmentRatio = 0.5,
-                            AnimationDesired = true
-                        });
-                    }
-                    else
-                    {
-                        LyricScroller.ChangeView(null, activeIndex * 96, null);
-                    }
+                            element.StartBringIntoView(new BringIntoViewOptions
+                            {
+                                VerticalAlignmentRatio = 0.5,
+                                AnimationDesired = true
+                            });
+                        }
+                        else
+                        {
+                            LyricScroller.ChangeView(null, capturedIndex * 96, null);
+                        }
+                    }));
                 }
             }
             else if (e.PropertyName == nameof(PlaybackService.CurrentTrack))

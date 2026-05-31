@@ -16,7 +16,7 @@ namespace Moonrise.Services
         private string libraryPath;
 
         public event Action? LibraryChanging;
-
+        public event Action? LibraryChanged;
         private LibraryService()
         {
             var savedPath = SettingsService.Instance.MusicLibraryPath;
@@ -54,6 +54,7 @@ namespace Moonrise.Services
                 dbService.ResetDb();
                 ArtService.Instance.ClearCache();
                 await ScanFolder(libraryPath);
+                LibraryChanged?.Invoke();
             }));
         }
 
@@ -178,6 +179,9 @@ namespace Moonrise.Services
 
             var allPresentTracks = dbService.GetAllTracks().Where(t => t.IsPresent).ToList();
 
+            var existingAlbums = dbService.GetAllAlbums().ToDictionary(a => a.Id);
+            var existingArtists = dbService.GetAllArtists().ToDictionary(a => a.Id);
+
             var albumsToSave = allPresentTracks
                 .GroupBy(t => t.AlbumId)
                 .Select(g => {
@@ -193,7 +197,7 @@ namespace Moonrise.Services
                         Year = g.Where(t => t.Year.HasValue).Select(t => t.Year!.Value).FirstOrDefault(),
                         Genre = g.Where(t => t.Genre != null).Select(t => t.Genre).FirstOrDefault(),
                         DateAdded = g.Min(t => t.DateAdded),
-                        IsFavorite = false
+                        IsFavorite = existingAlbums.TryGetValue(g.Key, out var existingAlbum) ? existingAlbum.IsFavorite : false
                     };
                 }).ToList();
 
@@ -208,7 +212,7 @@ namespace Moonrise.Services
                         AlbumIds = albumIds,
                         Name = first.Artist,
                         DateAdded = g.Min(t => t.DateAdded),
-                        IsFavorite = false
+                        IsFavorite = existingArtists.TryGetValue(g.Key, out var existingArtist) ? existingArtist.IsFavorite : false
                     };
                 }).ToList();
 
@@ -240,9 +244,10 @@ namespace Moonrise.Services
                 Title = title,
                 Album = album,
                 Artist = artist,
+                TrackNumber = file.Tag.Track != 0 ? (int?)file.Tag.Track : null,
                 Year = (int)file.Tag.Year != 0 ? (int?)file.Tag.Year : null,
                 Genre = file.Tag.Genres.FirstOrDefault(),
-                Bpm = (int)file.Tag.BeatsPerMinute,
+                Bpm = file.Tag.BeatsPerMinute != 0 ? (int?)file.Tag.BeatsPerMinute : null,
                 FilePath = relativePath,
                 FileSize = fileSize,
                 Bitrate = file.Properties.AudioBitrate,
@@ -266,9 +271,14 @@ namespace Moonrise.Services
             return dbService.GetLyrics(id);
         }
 
-        public List<Track> GetAllTracks()
+        public IEnumerable<Track> GetAllTracks()
         {
             return dbService.GetAllTracks();
+        }
+
+        public IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids)
+        {
+            return dbService.GetTracksByIds(ids);
         }
 
         public async Task<Album?> GetAlbum(string id)
@@ -276,7 +286,7 @@ namespace Moonrise.Services
             return dbService.GetAlbum(id);
         }
 
-        public List<Album> GetAllAlbums()
+        public IEnumerable<Album> GetAllAlbums()
         {
             return dbService.GetAllAlbums();
         }

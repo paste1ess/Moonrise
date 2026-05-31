@@ -22,16 +22,7 @@
             Grid.Row="1"
             Background="Transparent"
             Padding="0,0,16,16">
-            <ItemsRepeater x:Name="TrackListView" ItemsSource="{x:Bind Tracks, Mode=OneWay}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="models:Track">
-                        <controls:TrackListItem Song="{x:Bind}" TrackView="True" HorizontalAlignment="Stretch" Clicked="TrackListItem_Clicked"/>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-                <ItemsRepeater.Layout>
-                    <StackLayout Orientation="Vertical" Spacing="0"/>
-                </ItemsRepeater.Layout>
-            </ItemsRepeater>
+            <controls:TrackList x:Name="TrackListView"/>
         </ScrollViewer>
     </Grid>
 </Page>

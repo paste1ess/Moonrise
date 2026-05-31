@@ -17,15 +17,17 @@ namespace Moonrise.Pages
         public TracksPage()
         {
             InitializeComponent();
-            LibraryService.Instance.LibraryChanging += OnLibraryChanging;
+            TrackListView.Tracks = Tracks;
+
+            LibraryService.Instance.LibraryChanged += OnLibraryChanged;
             Unloaded += (s, e) =>
             {
-                LibraryService.Instance.LibraryChanging -= OnLibraryChanging;
+                LibraryService.Instance.LibraryChanged -= OnLibraryChanged;
                 Tracks.Clear();
             };
         }
 
-        private void OnLibraryChanging() => Tracks.Clear();
+        private void OnLibraryChanged() => Tracks.Clear();
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -40,27 +42,7 @@ namespace Moonrise.Pages
             if (Frame == null) return;
 
             Tracks.ReplaceRange(trackList);
-            TrackListView.ItemsSource = Tracks;
-        }
-
-        private async void TrackListItem_Clicked(object sender, RoutedEventArgs e)
-        {
-            if (sender is Controls.TrackListItem item && item.Song is Track selectedTrack)
-            {
-                var list = Tracks.ToList();
-                int index = list.IndexOf(selectedTrack);
-                if (index < 0) return;
-
-                PlaybackService.Instance.Queue.SetQueue(list);
-                PlaybackService.Instance.Queue.PassQueue();
-                var qt = PlaybackService.Instance.Queue.SkipAndTake(index);
-
-                var track = await Task.Run(() => LibraryService.Instance.GetTrack(qt.Id));
-                if (track == null) return;
-
-                PlaybackService.Instance.PlayTrack(track);
-                MainWindow.Instance?.NavigateToPlayer();
-            }
+            TrackListView.Tracks = Tracks;
         }
     }
 }
