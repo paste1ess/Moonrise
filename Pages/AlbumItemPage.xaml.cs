@@ -89,6 +89,8 @@ public sealed partial class AlbumItemPage : Page
         PlaybackService.Instance.Queue.PassQueue();
         PlaybackService.Instance.Queue.SkipAndTake(0);
 
+        PlaybackService.Instance.ShuffleState = false;
+
         PlaybackService.Instance.PlayTrack(selectedTrack);
         MainWindow.Instance?.NavigateToPlayer();
     }

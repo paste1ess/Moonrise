@@ -23,9 +23,9 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{x:Bind FormatTrackNumber(Song.TrackNumber), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" Visibility="{x:Bind TrackViewVisibility, Mode=OneWay}" VerticalAlignment="Center" MinWidth="24"/>
+            <TextBlock Grid.Column="0" Text="{x:Bind FormatTrackNumber(Song.TrackNumber), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" Visibility="{x:Bind TrackViewVisibility, Mode=OneWay}" VerticalAlignment="Center" MinWidth="24" Margin="6,0,0,0"/>
 
-            <Grid Grid.Column="1" CornerRadius="4" Height="40" Width="40" Visibility="{x:Bind ArtViewVisibility, Mode=OneWay}">
+            <Grid Grid.Column="1" CornerRadius="4" Height="40" MaxWidth="40" Visibility="{x:Bind ArtViewVisibility, Mode=OneWay}">
                 <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>
             </Grid>
 
