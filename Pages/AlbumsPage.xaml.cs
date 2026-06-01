@@ -45,7 +45,10 @@ namespace Moonrise.Pages
         {
             base.OnNavigatedTo(e);
 
-            var albumList = await Task.Run(() => LibraryService.Instance.GetAllAlbums().ToList());
+            var albumList = await Task.Run(() => LibraryService.Instance.GetAllAlbums()
+                    .OrderBy(t => t.Artist, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(t => t.Title, StringComparer.OrdinalIgnoreCase)
+                    .ToList());
 
             if (Frame == null) return;
 

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -8,12 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using Windows.Graphics.Imaging;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using Windows.Graphics.Imaging;
 
 namespace Moonrise.Services
 {
@@ -35,7 +36,7 @@ namespace Moonrise.Services
     {
         public static readonly PlaybackService Instance = new();
         private TaskService task => TaskService.Instance;
-        private DiscordRpcService rpc => DiscordRpcService.Instance;
+        private IDiscordRpcService rpc => App.Services.GetRequiredService<IDiscordRpcService>();
         public readonly QueueService Queue = new();
 
         [ObservableProperty]
@@ -162,11 +163,20 @@ namespace Moonrise.Services
             {
                 if (RepeatState == RepeatState.RepeatOne)
                 {
-                    task.Dispatcher.TryEnqueue(async () =>
+                    var repeatTcs = new TaskCompletionSource();
+                    task.Dispatcher.TryEnqueue(() =>
                     {
-                        mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
-                        await playBase();
+                        try
+                        {
+                            mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
+                            _ = playBase();
+                        }
+                        finally
+                        {
+                            repeatTcs.SetResult();
+                        }
                     });
+                    await repeatTcs.Task;
                     return;
                 }
 
@@ -192,18 +202,21 @@ namespace Moonrise.Services
                 await dequeueTcs.Task;
                 if (queueTrack == null)
                 {
-                    if (RepeatState == RepeatState.RepeatAll && Queue.OriginalQueue.Count > 0)
+                    if (RepeatState == RepeatState.RepeatAll)
                     {
                         var repeatTcs = new TaskCompletionSource();
                         task.Dispatcher.TryEnqueue(() =>
                         {
                             try
                             {
-                                if (ShuffleState)
-                                    Queue.ShuffleQueue();
-                                else
-                                    Queue.PassQueue();
-                                queueTrack = Queue.TakeFromStart();
+                                if (Queue.OriginalQueue.Count > 0)
+                                {
+                                    if (ShuffleState)
+                                        Queue.ShuffleQueue();
+                                    else
+                                        Queue.PassQueue();
+                                    queueTrack = Queue.TakeFromStart();
+                                }
                             }
                             finally
                             {

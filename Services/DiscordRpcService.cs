@@ -7,7 +7,13 @@ using Windows.Media.Playback;
 
 namespace Moonrise.Services
 {
-    internal class DiscordRpcService : IDisposable
+    internal interface IDiscordRpcService : IDisposable
+    {
+        void SetPresence(string title, string artist);
+        void ClearPresence();
+    }
+
+    internal class DiscordRpcService : IDiscordRpcService, IDisposable
     {
         private static readonly string discordAppId = "1508917641530708039";
         public static readonly DiscordRpcService Instance = new();

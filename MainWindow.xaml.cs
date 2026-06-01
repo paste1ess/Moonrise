@@ -80,7 +80,18 @@ namespace Moonrise
             Closed += (s, e) =>
             {
                 _peakService.Dispose();
+
+                BackgroundCanvas.Draw -= BackgroundCanvas_Draw;
                 _backgroundCanvasBitmap?.Dispose();
+                _backgroundCanvasBitmap = null;
+                _lastRenderedBitmap = null;
+                _currentBackgroundSoftwareBitmap = null;
+
+                _shaderTimer.Stop();
+                ShaderCanvas.Draw -= ShaderCanvas_Draw;
+                _offscreen?.Dispose();
+                _offscreen = null;
+                _shaderEffect = null;
             };
 
             _isLightTheme = Application.Current.RequestedTheme == ApplicationTheme.Light;
@@ -239,30 +250,46 @@ namespace Moonrise
 
         private void BackgroundCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            var bitmap = _currentBackgroundSoftwareBitmap;
-            if (bitmap != _lastRenderedBitmap)
+            if (_backgroundCanvasBitmap is null && _currentBackgroundSoftwareBitmap is null) return;
+
+            try
             {
-                _backgroundCanvasBitmap?.Dispose();
-                _backgroundCanvasBitmap = bitmap != null
-                    ? CanvasBitmap.CreateFromSoftwareBitmap(sender, bitmap)
-                    : null;
-                _lastRenderedBitmap = bitmap;
+                var bitmap = _currentBackgroundSoftwareBitmap;
+                if (bitmap != _lastRenderedBitmap)
+                {
+                    _backgroundCanvasBitmap?.Dispose();
+                    _backgroundCanvasBitmap = bitmap != null
+                        ? CanvasBitmap.CreateFromSoftwareBitmap(sender, bitmap)
+                        : null;
+                    _lastRenderedBitmap = bitmap;
+                }
+                if (_backgroundCanvasBitmap != null)
+                {
+                    args.DrawingSession.DrawImage(
+                        _backgroundCanvasBitmap,
+                        new Rect(0, 0, sender.ActualWidth, sender.ActualHeight),
+                        _backgroundCanvasBitmap.Bounds,
+                        1.0f,
+                        CanvasImageInterpolation.Cubic);
+                }
             }
-            if (_backgroundCanvasBitmap != null)
+            catch (Exception ex)
             {
-                args.DrawingSession.DrawImage(
-                    _backgroundCanvasBitmap,
-                    new Rect(0, 0, sender.ActualWidth, sender.ActualHeight),
-                    _backgroundCanvasBitmap.Bounds,
-                    1.0f,
-                    CanvasImageInterpolation.Cubic);
+                Debug.WriteLine($"Error drawing background canvas: {ex.Message}");
             }
         }
 
         private void UpdateBackgroundCanvas()
         {
-            BackgroundCanvas.Opacity = ComputeBackgroundOpacity();
-            BackgroundCanvas.Invalidate();
+            try
+            {
+                BackgroundCanvas.Opacity = ComputeBackgroundOpacity();
+                BackgroundCanvas.Invalidate();
+            }
+            catch
+            {
+
+            }
         }
 
         private double ComputeBackgroundOpacity()
@@ -278,10 +305,15 @@ namespace Moonrise
         {
             if (_shaderEffect is null) return;
 
+            float centerX = (float)(_lastWidth * 0.5);
+            float centerY = (float)(_lastHeight * 0.5);
+            float2 currentCenter = new float2(centerX, centerY);
+
 
             _shaderEffect.ConstantBuffer = new BackgroundShader(
                 _shaderTime,
-                _isLightTheme
+                _isLightTheme,
+                currentCenter
             );
 
             float renderScale = 0.1f;

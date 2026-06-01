@@ -15,11 +15,13 @@ namespace Moonrise.Shaders
     {
         public readonly float Time;
         public readonly bool LightMode;
+        private readonly float2 ScreenCenter;
 
-        public BackgroundShader(float time, bool lightMode)
+        public BackgroundShader(float time, bool lightMode, float2 screenCenter)
         {
             Time = time;
             LightMode = lightMode;
+            ScreenCenter = screenCenter;
         }
 
         private float Hash(float2 p)
@@ -65,8 +67,18 @@ namespace Moonrise.Shaders
 
         public float4 Execute()
         {
-            float2 uv = D2D.GetScenePosition().XY / 30f;
-            float slowTime = Time * 0.1f;
+            float2 scenePos = D2D.GetScenePosition().XY;
+            float2 uv = (scenePos - ScreenCenter) / 30f;
+
+            float slowTime = Time * 0.09f;
+            float rotTime = Time * 0.01f;
+            float s = Hlsl.Sin(rotTime);
+            float c = Hlsl.Cos(rotTime);
+
+            uv = new float2(
+                uv.X * c - uv.Y * s,
+                uv.X * s + uv.Y * c
+            );
 
             float2 q = new(
                 Fbm(uv + slowTime, 3),
@@ -78,7 +90,7 @@ namespace Moonrise.Shaders
 
             float alpha = LightMode ? Hlsl.Max((1f - cloud) * 0.25f, 0.05f) : cloudRemapped * 0.8f;
 
-            Float3 baseColor = LightMode ? new(0.08f, 0.08f, 0.08f) : new(0.034f, 0.034f, 0.034f);
+            float3 baseColor = LightMode ? new(0.08f, 0.08f, 0.08f) : new(0.034f, 0.034f, 0.034f);
             return new(baseColor, alpha);
         }
 

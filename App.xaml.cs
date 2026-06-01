@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -19,7 +20,7 @@ namespace Moonrise
     public partial class App : Application
     {
         private Window? _window;
-        private PlaybackService playbackService;
+        public static IServiceProvider Services { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -28,71 +29,21 @@ namespace Moonrise
         public App()
         {
             InitializeComponent();
-            System.AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
-            {
-                try
-                {
-                    var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Moonrise", "crash_log.txt");
-                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
-                    var sb = new System.Text.StringBuilder();
-                    if (eventArgs.ExceptionObject is Exception ex)
-                    {
-                        sb.AppendLine($"[{System.DateTime.Now:O}] {ex.GetType().FullName}: {ex.Message}");
-                        sb.AppendLine(ex.StackTrace);
-                        var inner = ex.InnerException;
-                        while (inner != null)
-                        {
-                            sb.AppendLine($"\n---> Inner Exception: {inner.GetType().FullName}: {inner.Message}");
-                            sb.AppendLine(inner.StackTrace);
-                            inner = inner.InnerException;
-                        }
-                    }
-                    else
-                    {
-                        sb.AppendLine($"[{System.DateTime.Now:O}] Unknown exception: {eventArgs.ExceptionObject}");
-                    }
-                    sb.AppendLine("\n========================================\n");
-                    System.IO.File.AppendAllText(logPath, sb.ToString());
-                }
-                catch
-                {
-                }
-            };
-
-            this.UnhandledException += (sender, eventArgs) =>
-            {
-                try
-                {
-                    var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Moonrise", "crash_log.txt");
-                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
-                    var sb = new System.Text.StringBuilder();
-                    var ex = eventArgs.Exception;
-                    sb.AppendLine($"[{System.DateTime.Now:O}] UI Thread Unhandled {ex.GetType().FullName}: {ex.Message}");
-                    sb.AppendLine(ex.StackTrace);
-                    var inner = ex.InnerException;
-                    while (inner != null)
-                    {
-                        sb.AppendLine($"\n---> Inner Exception: {inner.GetType().FullName}: {inner.Message}");
-                        sb.AppendLine(inner.StackTrace);
-                        inner = inner.InnerException;
-                    }
-                    sb.AppendLine("\n========================================\n");
-                    System.IO.File.AppendAllText(logPath, sb.ToString());
-                }
-                catch
-                {
-                }
-            };
         }
 
 
         protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            
+            var services = new ServiceCollection();
+
+            services.AddSingleton<IDiscordRpcService>(DiscordRpcService.Instance);
+
             TaskService.Initialize(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
             _window = new MainWindow();
             SettingsService.Instance.Load();
-            _ = DiscordRpcService.Instance;
+
+            Services = services.BuildServiceProvider();
+            _ = Services.GetRequiredService<IDiscordRpcService>();
 
             _window.Activate();
         }
