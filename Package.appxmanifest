@@ -10,10 +10,10 @@
 
   <Identity
     Name="jamiw.Moonrise"
-    Publisher="CN=jamiw"
+    Publisher="CN=96AC7234-4E41-4805-93EE-FF8709DB991D"
     Version="0.1.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="bf73f25d-740d-460b-b6c7-cb768b951af0" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="a2d6b280-e8f5-465e-a637-3727dad92c5a" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>Moonrise</DisplayName>

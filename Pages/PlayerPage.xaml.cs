@@ -57,6 +57,8 @@ namespace Moonrise.Pages
 
         public string PlaybackStateToGlyph(PlaybackState state)
     => state == PlaybackState.Playing ? "\uE769" : "\uE768";
+        public string RepeatStateToGlyph(RepeatState state) => state == RepeatState.RepeatOne ? "\uE8ED" : state == RepeatState.RepeatAll ? "\uE8EE" : "\uF5E7";
+        public bool RepeatStateToActive(RepeatState state) => state != RepeatState.Off;
         public string FormatDuration(TimeSpan duration)
     => $"{(int)duration.TotalMinutes}:{duration.Seconds:D2}";
 
@@ -117,6 +119,20 @@ namespace Moonrise.Pages
         private void Shuffle_Click(object sender, RoutedEventArgs e)
         {
             playbackService.ToggleShuffle();
+        }
+
+        private void Repeat_Click(object sender, RoutedEventArgs e)
+        {
+            if (playbackService.RepeatState == RepeatState.Off)
+            {
+                playbackService.RepeatState = RepeatState.RepeatAll;
+            } else if (playbackService.RepeatState == RepeatState.RepeatAll)
+            {
+                playbackService.RepeatState = RepeatState.RepeatOne;
+            } else
+            {
+                playbackService.RepeatState = RepeatState.Off;
+            }
         }
     }
 }

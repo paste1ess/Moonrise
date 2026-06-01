@@ -25,6 +25,12 @@ namespace Moonrise.Services
         None,
         Error
     }
+    public enum RepeatState
+    {
+        Off,
+        RepeatAll,
+        RepeatOne
+    }
     public partial class PlaybackService : ObservableObject
     {
         public static readonly PlaybackService Instance = new();
@@ -36,6 +42,8 @@ namespace Moonrise.Services
         public partial PlaybackState CurrentPlaybackState { get; set; }
         [ObservableProperty]
         public partial bool ShuffleState { get; set; }
+        [ObservableProperty]
+        public partial RepeatState RepeatState { get; set; }
         [ObservableProperty]
         public partial Track? CurrentTrack { get; set; }
         [ObservableProperty]
@@ -152,6 +160,16 @@ namespace Moonrise.Services
         {
             var command = new RelayAppCommand(async (token) =>
             {
+                if (RepeatState == RepeatState.RepeatOne)
+                {
+                    task.Dispatcher.TryEnqueue(async () =>
+                    {
+                        mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
+                        await playBase();
+                    });
+                    return;
+                }
+
                 await stopBase();
 
                 QueueTrack? queueTrack = null;
@@ -172,7 +190,30 @@ namespace Moonrise.Services
                     }
                 });
                 await dequeueTcs.Task;
-                if (queueTrack == null) return;
+                if (queueTrack == null)
+                {
+                    if (RepeatState == RepeatState.RepeatAll && Queue.OriginalQueue.Count > 0)
+                    {
+                        var repeatTcs = new TaskCompletionSource();
+                        task.Dispatcher.TryEnqueue(() =>
+                        {
+                            try
+                            {
+                                if (ShuffleState)
+                                    Queue.ShuffleQueue();
+                                else
+                                    Queue.PassQueue();
+                                queueTrack = Queue.TakeFromStart();
+                            }
+                            finally
+                            {
+                                repeatTcs.SetResult();
+                            }
+                        });
+                        await repeatTcs.Task;
+                    }
+                    if (queueTrack == null) return;
+                }
 
                 var nextTrack = await LibraryService.Instance.GetTrack(queueTrack.Id);
                 if (nextTrack == null) return;

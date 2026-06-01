@@ -98,7 +98,7 @@
                 <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True" Click="Previous_Click"/>
                 <controls:CircleIconButton Glyph="{x:Bind PlaybackStateToGlyph(playbackService.CurrentPlaybackState), Mode=OneWay}" Size="58" FontSize="18" Filled="True" Click="PlayPause_Click"/>
                 <controls:CircleIconButton Glyph="&#xE893;" Size="46" FontSize="16" Filled="True" Click="Skip_Click"/>
-                <controls:CircleIconButton Glyph="&#xE8EE;" Size="46" FontSize="16" Filled="False"/>
+                <controls:CircleIconButton Glyph="{x:Bind RepeatStateToGlyph(playbackService.RepeatState), Mode=OneWay}" Active="{x:Bind RepeatStateToActive(playbackService.RepeatState), Mode=OneWay}" Size="46" FontSize="16" Filled="False" Click="Repeat_Click"/>
             </StackPanel>
         </Grid>
         <Grid x:Name="QueueContainer" Grid.Column="1" Grid.Row="0">
