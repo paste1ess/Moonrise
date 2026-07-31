@@ -43,6 +43,12 @@ namespace Moonrise.Pages
         {
             InitializeComponent();
             playbackService.PropertyChanged += OnPlaybackPropertyChanged;
+            Unloaded += (s, e) =>
+            {
+                playbackService.PropertyChanged -= OnPlaybackPropertyChanged;
+                _lyricsCts?.Cancel();
+                _lyricsCts?.Dispose();
+            };
             _ = UpdateLyrics(playbackService.CurrentTrack?.Id);
         }
 

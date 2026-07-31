@@ -30,7 +30,11 @@ namespace Moonrise.Pages
         public QueuePanel()
         {
             InitializeComponent();
-            Unloaded += (s, e) => Bindings.StopTracking();
+            Unloaded += (s, e) =>
+            {
+                Bindings.StopTracking();
+                Playback.PropertyChanged -= Playback_PropertyChanged;
+            };
             Playback.PropertyChanged += Playback_PropertyChanged;
         }
 

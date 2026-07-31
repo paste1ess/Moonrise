@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="24,16,24,0">
+    <ScrollViewer Padding="24,16,24,0" MaxWidth="1400">
         <StackPanel Margin="0,0,0,16" Spacing="32">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" Spacing="24">
                 <Grid CornerRadius="4" Width="320" Height="320">

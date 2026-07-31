@@ -20,7 +20,11 @@ namespace Moonrise.Pages
         public SettingsPage()
         {
             InitializeComponent();
-            Unloaded += (s, e) => this.Bindings.StopTracking();
+            Unloaded += (s, e) =>
+            {
+                this.Bindings.StopTracking();
+                _settings.PropertyChanged -= Settings_PropertyChanged;
+            };
             UpdateScanButtonState();
             _settings.PropertyChanged += Settings_PropertyChanged;
         }
