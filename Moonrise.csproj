@@ -19,6 +19,7 @@
 	<ServerGarbageCollection>false</ServerGarbageCollection>
 	<RetainVM>false</RetainVM>
 	<GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
+	<PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\AlbumGridItem.xaml" />
@@ -90,6 +91,7 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>

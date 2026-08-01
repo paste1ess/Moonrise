@@ -71,8 +71,6 @@ namespace Moonrise.Controls
 
         public Visibility ArtViewVisibility => ArtView ? Visibility.Visible : Visibility.Collapsed;
 
-
-
         [ObservableProperty]
         public partial ImageSource? DisplayedCoverArt { get; set; }
 
@@ -166,6 +164,16 @@ namespace Moonrise.Controls
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Clicked?.Invoke(this, e);
+        }
+
+        private void PlayNext_Click(object sender, RoutedEventArgs e)
+        {
+            PlaybackService.Instance.Queue.AddToStart(Song);
+        }
+
+        private void PlayLast_Click(object sender, RoutedEventArgs e)
+        {
+            PlaybackService.Instance.Queue.AddToEnd(Song);
         }
     }
 }

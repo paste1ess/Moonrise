@@ -24,8 +24,8 @@ namespace Moonrise.Services
     public class ArtService
     {
         public static readonly ArtService Instance = new();
-        public static readonly int CacheMemoryLimit = 50 * 1024 * 1024;
-        public static readonly int CacheItemLimit = 1000;
+        public static readonly int CacheMemoryLimit = 50 * 1024 * 1024; // 50 mb
+        public static readonly int CacheItemLimit = 2000; // 2000 items
 
         private readonly Dictionary<ArtKey, ArtItem> cache = new();
         private readonly LinkedList<ArtKey> lruList = new();

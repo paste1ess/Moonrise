@@ -14,6 +14,21 @@
             HorizontalAlignment="Stretch"
             HorizontalContentAlignment="Stretch"
             Click="Button_Click">
+        <Button.ContextFlyout>
+            <MenuFlyout>
+                <MenuFlyoutItem Text="Play Next" Icon="Import" Click="PlayNext_Click"/>
+                <MenuFlyoutItem Text="Play Last" Click="PlayLast_Click">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xEA52;"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem Text="Favorite">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xEB51;"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+            </MenuFlyout>
+        </Button.ContextFlyout>
         <Grid Padding="6,6,12,6" HorizontalAlignment="Stretch" ColumnSpacing="24" VerticalAlignment="Center">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
