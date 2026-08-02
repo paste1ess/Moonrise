@@ -36,6 +36,7 @@ namespace Moonrise
         {
             var services = new ServiceCollection();
 
+            services.AddSingleton<IArtService, ArtService>();
             services.AddSingleton<IDiscordRpcService>(DiscordRpcService.Instance);
 
             TaskService.Initialize(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
@@ -43,6 +44,7 @@ namespace Moonrise
             SettingsService.Instance.Load();
 
             Services = services.BuildServiceProvider();
+            _ = Services.GetRequiredService<IArtService>();
             _ = Services.GetRequiredService<IDiscordRpcService>();
 
             _window.Activate();

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -17,6 +18,7 @@ namespace Moonrise.Pages;
 public sealed partial class AlbumItemPage : Page
 {
     private CancellationTokenSource? _artworkCts;
+    private IArtService art => App.Services.GetRequiredService<IArtService>();
 
     [ObservableProperty]
     public partial ImageSource? AlbumArt { get; set; }
@@ -69,9 +71,9 @@ public sealed partial class AlbumItemPage : Page
 
         try
         {
-            var art = await ArtService.Instance.GetArtwork(album, 320, token);
+            var artImage = await art.GetArtwork(album, 320, token);
             if (!token.IsCancellationRequested)
-                AlbumArt = art;
+                AlbumArt = artImage;
         }
         catch (OperationCanceledException) { }
         catch (Exception) { }

@@ -21,9 +21,21 @@ namespace Moonrise.Services
         public int ByteSize => Size * Size * 4;
     }
 
-    public class ArtService
+    public interface IArtService
     {
-        public static readonly ArtService Instance = new();
+        Task<ImageSource?> GetArtwork(Track track, int size, CancellationToken token = default);
+        Task<ImageSource?> GetArtwork(QueueTrack track, int size, CancellationToken token = default);
+        Task<ImageSource?> GetArtwork(Album album, int size, CancellationToken token = default);
+        Task<RandomAccessStreamReference?> GetArtworkStreamReference(Track track, CancellationToken token = default);
+        Task<SoftwareBitmap?> GetArtworkBitmap(Track track, int size, CancellationToken token = default);
+        ImageSource? GetCachedArtwork(string id, int size);
+        void AcquireArtwork(ArtKey key, ImageSource data);
+        void ReleaseArtwork(ArtKey key, ImageSource data);
+        void ClearCache();
+    }
+
+    public class ArtService : IArtService
+    {
         public static readonly int CacheMemoryLimit = 50 * 1024 * 1024; // 50 mb
         public static readonly int CacheItemLimit = 2000; // 2000 items
 

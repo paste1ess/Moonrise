@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -18,12 +19,13 @@ namespace Moonrise.Controls
         private ArtKey? _currentArtKey;
         private ImageSource? _currentArt;
         private CancellationTokenSource? _artworkCts;
+        private IArtService art => App.Services.GetRequiredService<IArtService>();
 
         private void ReleaseCurrentArt()
         {
             if (_currentArtKey.HasValue && _currentArt != null)
             {
-                ArtService.Instance.ReleaseArtwork(_currentArtKey.Value, _currentArt);
+                art.ReleaseArtwork(_currentArtKey.Value, _currentArt);
                 _currentArtKey = null;
                 _currentArt = null;
             }
@@ -105,13 +107,13 @@ namespace Moonrise.Controls
                 return;
             }
 
-            var cached = ArtService.Instance.GetCachedArtwork(currentTrack.Id, 40);
+            var cached = art.GetCachedArtwork(currentTrack.Id, 40);
             if (cached != null)
             {
                 ReleaseCurrentArt();
                 _currentArtKey = new ArtKey(currentTrack.Id, 40);
                 _currentArt = cached;
-                ArtService.Instance.AcquireArtwork(_currentArtKey.Value, cached);
+                art.AcquireArtwork(_currentArtKey.Value, cached);
                 DisplayedCoverArt = cached;
                 return;
             }
@@ -125,7 +127,7 @@ namespace Moonrise.Controls
 
                 if (_updateCount != currentUpdate) return;
 
-                var art = await ArtService.Instance.GetArtwork(currentTrack, 40, token);
+                var artImage = await art.GetArtwork(currentTrack, 40, token);
 
                 if (token.IsCancellationRequested) return;
 
@@ -136,13 +138,13 @@ namespace Moonrise.Controls
                     if (Song == currentTrack)
                     {
                         ReleaseCurrentArt();
-                        if (art != null)
+                        if (artImage != null)
                         {
                             _currentArtKey = new ArtKey(currentTrack.Id, 40);
-                            _currentArt = art;
-                            ArtService.Instance.AcquireArtwork(_currentArtKey.Value, art);
+                            _currentArt = artImage;
+                            art.AcquireArtwork(_currentArtKey.Value, artImage);
                         }
-                        DisplayedCoverArt = art;
+                        DisplayedCoverArt = artImage;
                     }
                 });
             }

@@ -11,7 +11,7 @@ namespace Moonrise.Services
         void DeleteToast();
         void DeleteToast(float time);
     }
-    internal class ToastService : IToastService
+    internal class ToastService// : IToastService
     {
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Moonrise.Models;
 using System;
 using System.Collections.Concurrent;
@@ -12,6 +13,7 @@ namespace Moonrise.Services
     public class LibraryService
     {
         public static LibraryService Instance = new LibraryService();
+        private IArtService art => App.Services.GetRequiredService<IArtService>();
         private DbService dbService;
         private string libraryPath;
 
@@ -52,7 +54,7 @@ namespace Moonrise.Services
                 libraryPath = path;
                 dbService = new DbService(Path.Combine(path, "library.db"));
                 dbService.ResetDb();
-                ArtService.Instance.ClearCache();
+                art.ClearCache();
                 await ScanFolder(libraryPath);
                 LibraryChanged?.Invoke();
             }));
@@ -72,7 +74,7 @@ namespace Moonrise.Services
 
             dbService = new DbService(dbPath);
 
-            ArtService.Instance.ClearCache();
+            art.ClearCache();
 
             TaskService.Instance.ClearAndReset();
             TaskService.Instance.Enqueue(new RelayAppCommand(async (_) =>
@@ -83,7 +85,7 @@ namespace Moonrise.Services
 
         public async Task ScanFolder(string folderPath)
         {
-            ArtService.Instance.ClearCache();
+            art.ClearCache();
 
             var dbTracks = dbService.GetAllTracks().ToDictionary(t => t.FilePath, StringComparer.OrdinalIgnoreCase);
             var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)

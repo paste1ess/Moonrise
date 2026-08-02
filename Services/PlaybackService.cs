@@ -37,6 +37,7 @@ namespace Moonrise.Services
         public static readonly PlaybackService Instance = new();
         private TaskService task => TaskService.Instance;
         private IDiscordRpcService rpc => App.Services.GetRequiredService<IDiscordRpcService>();
+        private IArtService art => App.Services.GetRequiredService<IArtService>();
         public readonly QueueService Queue = new();
 
         [ObservableProperty]
@@ -482,17 +483,17 @@ namespace Moonrise.Services
             });
             try
             {
-                var art = await ArtService.Instance.GetArtwork(track, 320, token);
+                var artwork = await art.GetArtwork(track, 320, token);
                 if (token.IsCancellationRequested) return;
 
-                var bgBitmap = await ArtService.Instance.GetArtworkBitmap(track, 8, token);
+                var bgBitmap = await art.GetArtworkBitmap(track, 8, token);
                 if (token.IsCancellationRequested)
                 {
                     bgBitmap?.Dispose();
                     return;
                 }
 
-                var smtcRef = await ArtService.Instance.GetArtworkStreamReference(track, token);
+                var smtcRef = await art.GetArtworkStreamReference(track, token);
                 if (token.IsCancellationRequested)
                 {
                     bgBitmap?.Dispose();
@@ -503,7 +504,7 @@ namespace Moonrise.Services
                 {
                     if (CurrentTrack == track)
                     {
-                        CurrentTrackArtwork = art ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
+                        CurrentTrackArtwork = artwork ?? new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
                         CurrentTrackBackgroundBitmap = bgBitmap;
 
                         if (mediaPlayer.Source is MediaPlaybackItem playbackItem)

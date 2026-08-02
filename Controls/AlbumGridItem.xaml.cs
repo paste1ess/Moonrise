@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -28,6 +29,7 @@ namespace Moonrise.Controls
         private ArtKey? _currentArtKey;
         private ImageSource? _currentArt;
         private CancellationTokenSource? _artworkCts;
+        private IArtService art => App.Services.GetRequiredService<IArtService>();
 
         public event RoutedEventHandler? Click;
         private void OnClick(object sender, RoutedEventArgs e) => Click?.Invoke(this, e);
@@ -36,7 +38,7 @@ namespace Moonrise.Controls
         {
             if (_currentArtKey.HasValue && _currentArt != null)
             {
-                ArtService.Instance.ReleaseArtwork(_currentArtKey.Value, _currentArt);
+                art.ReleaseArtwork(_currentArtKey.Value, _currentArt);
                 _currentArtKey = null;
                 _currentArt = null;
             }
@@ -92,13 +94,13 @@ namespace Moonrise.Controls
                 return;
             }
 
-            var cached = ArtService.Instance.GetCachedArtwork(currentAlbum.Id, 174);
+            var cached = art.GetCachedArtwork(currentAlbum.Id, 174);
             if (cached != null)
             {
                 ReleaseCurrentArt();
                 _currentArtKey = new ArtKey(currentAlbum.Id, 174);
                 _currentArt = cached;
-                ArtService.Instance.AcquireArtwork(_currentArtKey.Value, cached);
+                art.AcquireArtwork(_currentArtKey.Value, cached);
                 DisplayedCoverArt = cached;
                 return;
             }
@@ -112,7 +114,7 @@ namespace Moonrise.Controls
 
                 if (token.IsCancellationRequested || _updateCount != currentUpdate) return;
 
-                var art = await ArtService.Instance.GetArtwork(currentAlbum, 174, token);
+                var artImage = await art.GetArtwork(currentAlbum, 174, token);
 
                 if (token.IsCancellationRequested) return;
 
@@ -123,13 +125,13 @@ namespace Moonrise.Controls
                     if (Album == currentAlbum)
                     {
                         ReleaseCurrentArt();
-                        if (art != null)
+                        if (artImage != null)
                         {
                             _currentArtKey = new ArtKey(currentAlbum.Id, 174);
-                            _currentArt = art;
-                            ArtService.Instance.AcquireArtwork(_currentArtKey.Value, art);
+                            _currentArt = artImage;
+                            art.AcquireArtwork(_currentArtKey.Value, artImage);
                         }
-                        DisplayedCoverArt = art;
+                        DisplayedCoverArt = artImage;
                     }
                 });
             }
