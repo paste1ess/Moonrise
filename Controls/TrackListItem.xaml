@@ -16,8 +16,8 @@
             Click="Button_Click">
         <Button.ContextFlyout>
             <MenuFlyout>
-                <MenuFlyoutItem Text="Play Next" Icon="Import" Click="PlayNext_Click"/>
-                <MenuFlyoutItem Text="Play Last" Click="PlayLast_Click">
+                <MenuFlyoutItem Text="Play next" Icon="Import" Click="PlayNext_Click"/>
+                <MenuFlyoutItem Text="Play last" Click="PlayLast_Click">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xEA52;"/>
                     </MenuFlyoutItem.Icon>

@@ -135,5 +135,10 @@ namespace Moonrise.Controls
                 ReleaseCurrentArt();
             };
         }
+
+        private void RemoveFromQueue_Click(object sender, RoutedEventArgs e)
+        {
+            PlaybackService.Instance.Queue.ActiveQueue.Remove(Item);
+        }
     }
 }
