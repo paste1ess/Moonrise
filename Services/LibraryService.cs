@@ -14,6 +14,7 @@ namespace Moonrise.Services
     {
         public static LibraryService Instance = new LibraryService();
         private IArtService art => App.Services.GetRequiredService<IArtService>();
+        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
         private DbService dbService;
         private string libraryPath;
 
@@ -26,11 +27,31 @@ namespace Moonrise.Services
             if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
             {
                 libraryPath = savedPath;
-                dbService = new DbService(Path.Combine(savedPath, "library.db"));
+                dbService = new DbService(Path.Combine(savedPath, "moonrise.db"));
             }
             else
             {
                 dbService = new DbService(":memory:");
+            }
+        }
+
+        public void Initialize()
+        {
+            var savedPath = SettingsService.Instance.MusicLibraryPath;
+
+            if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
+            {
+                if (libraryPath != savedPath || dbService == null)
+                {
+                    dbService?.Dispose();
+                    libraryPath = savedPath;
+                    dbService = new DbService(Path.Combine(savedPath, "moonrise.db"));
+                }
+
+                task.Enqueue(new RelayAppCommand(async (_) =>
+                {
+                    await ScanFolder(libraryPath);
+                }));
             }
         }
 
@@ -47,12 +68,12 @@ namespace Moonrise.Services
         {
             LibraryChanging?.Invoke();
             PlaybackService.Instance.ResetForLibraryChange();
-            TaskService.Instance.ClearAndReset();
-            TaskService.Instance.Enqueue(new RelayAppCommand(async (_) =>
+            task.ClearAndReset();
+            task.Enqueue(new RelayAppCommand(async (_) =>
             {
                 dbService.Dispose();
                 libraryPath = path;
-                dbService = new DbService(Path.Combine(path, "library.db"));
+                dbService = new DbService(Path.Combine(path, "moonrise.db"));
                 dbService.ResetDb();
                 art.ClearCache();
                 await ScanFolder(libraryPath);
@@ -65,7 +86,7 @@ namespace Moonrise.Services
             LibraryChanging?.Invoke();
             PlaybackService.Instance.ResetForLibraryChange();
 
-            var dbPath = Path.Combine(path, "library.db");
+            var dbPath = Path.Combine(path, "moonrise.db");
             bool dbExists = File.Exists(dbPath);
 
             dbService.Dispose();
@@ -76,8 +97,8 @@ namespace Moonrise.Services
 
             art.ClearCache();
 
-            TaskService.Instance.ClearAndReset();
-            TaskService.Instance.Enqueue(new RelayAppCommand(async (_) =>
+            task.ClearAndReset();
+            task.Enqueue(new RelayAppCommand(async (_) =>
             {
                 await ScanFolder(libraryPath);
             }));

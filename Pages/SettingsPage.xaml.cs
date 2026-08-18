@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Moonrise.Services;
@@ -17,6 +18,7 @@ namespace Moonrise.Pages
     public sealed partial class SettingsPage : Page
     {
         private SettingsService _settings = SettingsService.Instance;
+        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
         public SettingsPage()
         {
             InitializeComponent();
@@ -73,7 +75,7 @@ namespace Moonrise.Pages
         {
             if (!string.IsNullOrEmpty(_settings.MusicLibraryPath))
             {
-                TaskService.Instance.Enqueue(new RelayAppCommand(async (_) =>
+                task.Enqueue(new RelayAppCommand(async (_) =>
                 {
                     await LibraryService.Instance.ScanFolder(_settings.MusicLibraryPath);
                 }));

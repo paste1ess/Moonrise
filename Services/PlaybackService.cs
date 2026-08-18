@@ -35,7 +35,7 @@ namespace Moonrise.Services
     public partial class PlaybackService : ObservableObject
     {
         public static readonly PlaybackService Instance = new();
-        private TaskService task => TaskService.Instance;
+        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
         private IDiscordRpcService rpc => App.Services.GetRequiredService<IDiscordRpcService>();
         private IArtService art => App.Services.GetRequiredService<IArtService>();
         public readonly QueueService Queue = new();

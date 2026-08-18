@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,22 +7,22 @@ using System.Threading.Channels;
 
 namespace Moonrise.Services
 {
-    public class TaskService : IDisposable
+    public interface ITaskService : IDisposable
     {
-        public static TaskService Instance { get; private set; } = null!;
+        DispatcherQueue Dispatcher { get; }
+        void Enqueue(IAppCommand command);
+        CancellationToken ClearAndReset();
+    }
 
+    public class TaskService : ITaskService, IDisposable
+    {
         private Channel<IAppCommand> _channel;
         private readonly CancellationTokenSource _cts;
         private CancellationTokenSource _operationCts;
 
         public DispatcherQueue Dispatcher { get; }
 
-        public static void Initialize(DispatcherQueue dispatcher)
-        {
-            if (Instance == null) Instance = new TaskService(dispatcher);
-        }
-
-        private TaskService(DispatcherQueue dispatcher)
+        internal TaskService(DispatcherQueue dispatcher)
         {
             Dispatcher = dispatcher;
             _cts = new CancellationTokenSource();

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Models;
@@ -318,7 +319,7 @@ namespace Moonrise.Services
                 }
 
                 var tcs = new TaskCompletionSource<ImageSource?>();
-                TaskService.Instance.Dispatcher.TryEnqueue(async () =>
+                App.Services.GetRequiredService<ITaskService>().Dispatcher.TryEnqueue(async () =>
                 {
                     try
                     {

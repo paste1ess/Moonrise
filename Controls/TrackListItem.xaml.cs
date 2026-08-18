@@ -20,6 +20,7 @@ namespace Moonrise.Controls
         private ImageSource? _currentArt;
         private CancellationTokenSource? _artworkCts;
         private IArtService art => App.Services.GetRequiredService<IArtService>();
+        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
 
         private void ReleaseCurrentArt()
         {
@@ -131,7 +132,7 @@ namespace Moonrise.Controls
 
                 if (token.IsCancellationRequested) return;
 
-                TaskService.Instance.Dispatcher.TryEnqueue(() =>
+                task.Dispatcher.TryEnqueue(() =>
                 {
                     if (token.IsCancellationRequested || _updateCount != currentUpdate) return;
 
