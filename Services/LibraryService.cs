@@ -100,6 +100,7 @@ namespace Moonrise.Services
                 dbService = new DbService(Path.Combine(path, "moonrise.db"));
                 dbService.ResetDb();
                 art.ClearCache();
+                toast.Show(string.Empty, "The database has been reset for " + path, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
                 await ScanFolder(libraryPath);
                 LibraryChanged?.Invoke();
             }));

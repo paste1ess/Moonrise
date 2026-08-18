@@ -66,9 +66,18 @@ namespace Moonrise.Pages
 
         private bool _isUpdatingMargin = false;
 
+        public static bool CheckIsInstrumental(Track? track, ILibraryService library)
+        {
+            if (track == null) return false;
+
+            var lyrics = library.GetLyrics(track.Id).GetAwaiter().GetResult();
+            return lyrics != null && lyrics.Trim().Equals("[INSTRUMENTAL]", StringComparison.OrdinalIgnoreCase);
+        }
+
         public static bool CheckHasSyncedLyrics(Track? track, ILibraryService library)
         {
             if (track == null || string.IsNullOrEmpty(track.FilePath)) return false;
+            if (CheckIsInstrumental(track, library)) return false;
 
             string path = library.PathToAbsolute(track.FilePath);
             if (string.IsNullOrEmpty(path)) return false;

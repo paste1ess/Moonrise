@@ -10,24 +10,42 @@ namespace Moonrise.Pages
     public sealed partial class LyricsPanel : Page
     {
         private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
+        private readonly PlaybackService playback = PlaybackService.Instance;
 
         public LyricsPanel()
         {
             InitializeComponent();
+            UpdateLyricsSelection(false);
 
-            if (SyncedLyricsPanel.CheckHasSyncedLyrics(PlaybackService.Instance.CurrentTrack, library))
+            playback.PropertyChanged += Playback_PropertyChanged;
+            Unloaded += (s, e) => playback.PropertyChanged -= Playback_PropertyChanged;
+        }
+
+        private void Playback_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(PlaybackService.CurrentTrack))
             {
-                DropDown.Content = "Synced";
-                ContentFrame.Navigate(typeof(SyncedLyricsPanel));
-            }
-            else
-            {
-                DropDown.Content = "Static";
-                ContentFrame.Navigate(typeof(StaticLyricsPanel));
+                DispatcherQueue.TryEnqueue(() => UpdateLyricsSelection(true));
             }
         }
 
-        private void SelectLyricsType(string type)
+        private void UpdateLyricsSelection(bool animate)
+        {
+            if (SyncedLyricsPanel.CheckIsInstrumental(playback.CurrentTrack, library))
+            {
+                SelectLyricsType("Static", animate);
+            }
+            else if (SyncedLyricsPanel.CheckHasSyncedLyrics(playback.CurrentTrack, library))
+            {
+                SelectLyricsType("Synced", animate);
+            }
+            else
+            {
+                SelectLyricsType("Static", animate);
+            }
+        }
+
+        private void SelectLyricsType(string type, bool animate = true)
         {
             Type pageType = type switch
             {
@@ -38,17 +56,27 @@ namespace Moonrise.Pages
 
             DropDown.Content = type ?? "Static";
 
-            ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromBottom });
+            if (ContentFrame.CurrentSourcePageType != pageType)
+            {
+                if (animate)
+                {
+                    ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromBottom });
+                }
+                else
+                {
+                    ContentFrame.Navigate(pageType);
+                }
+            }
         }
 
         private void Static_Click(object sender, RoutedEventArgs e)
         {
-            SelectLyricsType("Static");
+            SelectLyricsType("Static", true);
         }
 
         private void Synced_Click(object sender, RoutedEventArgs e)
         {
-            SelectLyricsType("Synced");
+            SelectLyricsType("Synced", true);
         }
     }
 }
