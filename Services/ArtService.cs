@@ -47,6 +47,12 @@ namespace Moonrise.Services
         private int currentCacheBytes = 0;
 
         private readonly SemaphoreSlim _ioSemaphore = new(2, 2);
+        private readonly ITaskService _taskService;
+
+        public ArtService(ITaskService taskService)
+        {
+            _taskService = taskService;
+        }
 
         public Task<ImageSource?> GetArtwork(Track track, int size, CancellationToken token = default) => 
             GetArtworkInternal(track.Id, track.FilePath, size, token);
@@ -319,7 +325,7 @@ namespace Moonrise.Services
                 }
 
                 var tcs = new TaskCompletionSource<ImageSource?>();
-                App.Services.GetRequiredService<ITaskService>().Dispatcher.TryEnqueue(async () =>
+                _taskService.Dispatcher.TryEnqueue(async () =>
                 {
                     try
                     {

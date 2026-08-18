@@ -29,8 +29,8 @@ namespace Moonrise.Controls
         private ArtKey? _currentArtKey;
         private ImageSource? _currentArt;
         private CancellationTokenSource? _artworkCts;
-        private IArtService art => App.Services.GetRequiredService<IArtService>();
-        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
+        private readonly IArtService art = App.Services.GetRequiredService<IArtService>();
+        private readonly ITaskService task = App.Services.GetRequiredService<ITaskService>();
 
         public event RoutedEventHandler? Click;
         private void OnClick(object sender, RoutedEventArgs e) => Click?.Invoke(this, e);

@@ -18,7 +18,7 @@ namespace Moonrise.Pages
     public sealed partial class SettingsPage : Page
     {
         private SettingsService _settings = SettingsService.Instance;
-        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
+        private readonly ITaskService task = App.Services.GetRequiredService<ITaskService>();
         public SettingsPage()
         {
             InitializeComponent();

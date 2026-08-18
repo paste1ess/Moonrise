@@ -18,7 +18,7 @@ namespace Moonrise.Pages;
 public sealed partial class AlbumItemPage : Page
 {
     private CancellationTokenSource? _artworkCts;
-    private IArtService art => App.Services.GetRequiredService<IArtService>();
+    private readonly IArtService art = App.Services.GetRequiredService<IArtService>();
 
     [ObservableProperty]
     public partial ImageSource? AlbumArt { get; set; }

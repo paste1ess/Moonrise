@@ -1,4 +1,5 @@
 using ComputeSharp.D2D1.WinUI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI;
@@ -40,7 +41,7 @@ namespace Moonrise
         private CanvasRenderTarget? _offscreen;
         private float _lastWidth, _lastHeight;
         private float _shaderSpeedMultiplier = 80f / 120f;
-        private readonly AudioPeakService _peakService = new();
+        private readonly IAudioPeakService _peakService = App.Services.GetRequiredService<IAudioPeakService>();
         private volatile SoftwareBitmap? _currentBackgroundSoftwareBitmap;
         private SoftwareBitmap? _lastRenderedBitmap;
         private CanvasBitmap? _backgroundCanvasBitmap;

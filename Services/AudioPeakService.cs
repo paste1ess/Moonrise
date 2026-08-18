@@ -4,7 +4,12 @@ using NAudio.CoreAudioApi;
 
 namespace Moonrise.Services
 {
-    public sealed class AudioPeakService : IDisposable
+    public interface IAudioPeakService : IDisposable
+    {
+        float GetVolumePeak();
+    }
+
+    public sealed class AudioPeakService : IAudioPeakService, IDisposable
     {
         private MMDeviceEnumerator? _enumerator;
         private MMDevice? _device;
