@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     xmlns:local="using:Moonrise"
+    xmlns:models="using:Moonrise.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Moonrise"
     mc:Ignorable="d">
@@ -157,5 +158,47 @@
                 <Frame x:Name="NavFrame" CacheSize="0" />
             </NavigationView>
         </Grid>
+        <ItemsControl
+            ItemsSource="{x:Bind ToastService.ActiveToasts, Mode=OneWay}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Margin="0,56,0,0"
+            Canvas.ZIndex="1000"
+            IsHitTestVisible="True">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:ToastModel">
+                    <InfoBar
+                        IsOpen="{x:Bind IsOpen, Mode=TwoWay}"
+                        Severity="{x:Bind Severity, Mode=OneWay}"
+                        IsClosable="{x:Bind IsClosable, Mode=OneWay}"
+                        CloseButtonClick="Toast_CloseButtonClick"
+                        Tag="{x:Bind}"
+                        Margin="0,0,0,8"
+                        HorizontalAlignment="Center">
+                        <InfoBar.Content>
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <TextBlock
+                                    Text="{x:Bind Message, Mode=OneWay}"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    VerticalAlignment="Center" />
+                                <ProgressBar
+                                    Width="80"
+                                    Height="3"
+                                    CornerRadius="1.5"
+                                    IsIndeterminate="{x:Bind IsIndeterminate, Mode=OneWay}"
+                                    Value="{x:Bind Progress, Mode=OneWay}"
+                                    Opacity="{x:Bind ProgressBarOpacity, Mode=OneWay}"
+                                    Visibility="{x:Bind ProgressBarVisibility, Mode=OneWay}"
+                                    VerticalAlignment="Center">
+                                    <ProgressBar.OpacityTransition>
+                                        <ScalarTransition Duration="0:0:0.3"/>
+                                    </ProgressBar.OpacityTransition>
+                                </ProgressBar>
+                            </StackPanel>
+                        </InfoBar.Content>
+                    </InfoBar>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
 </Window>

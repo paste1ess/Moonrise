@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Moonrise.Models;
 using Moonrise.Pages;
 using Moonrise.Services;
 using Moonrise.Shaders;
@@ -50,6 +51,7 @@ namespace Moonrise
         private CanvasBitmap? _backgroundCanvasBitmap;
 
         public PlaybackService PlaybackService => PlaybackService.Instance;
+        public IToastService ToastService => App.Services.GetRequiredService<IToastService>();
 
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -482,6 +484,14 @@ namespace Moonrise
         private void SkipButton_Click(object sender, RoutedEventArgs e)
         {
             PlaybackService.Next();
+        }
+
+        private void Toast_CloseButtonClick(InfoBar sender, object args)
+        {
+            if (sender.Tag is ToastModel toast)
+            {
+                ToastService.Dismiss(toast);
+            }
         }
 
         private void RootGrid_SizeChanged(object sender, SizeChangedEventArgs e)

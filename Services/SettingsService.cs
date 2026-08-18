@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,6 +25,8 @@ namespace Moonrise.Services
         private string _settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Moonrise", "settings.json");
         private bool _isLoading = false;
 
+        private readonly IToastService _toast;
+
         [ObservableProperty]
         public partial string MusicLibraryPath { get; set; } = string.Empty;
 
@@ -39,18 +42,29 @@ namespace Moonrise.Services
 
         partial void OnBackgroundShadersBoostFpsChanged(bool value) { if (!_isLoading) Save(); }
         partial void OnDiscordRpcEnabledChanged(bool value) { if (!_isLoading) Save(); }
+        public SettingsService(IToastService toastService)
+        {
+            _toast = toastService;
+        }
 
         public void Save()
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
-            var settings = new AppSettings
+            try
             {
-                MusicLibraryPath = MusicLibraryPath,
-                BackgroundShadersEnabled = BackgroundShadersEnabled,
-                BackgroundShadersBoostFps = BackgroundShadersBoostFps,
-                DiscordRpcEnabled = DiscordRpcEnabled,
-            };
-            File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, AppSettingsContext.Default.AppSettings));
+                Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
+                var settings = new AppSettings
+                {
+                    MusicLibraryPath = MusicLibraryPath,
+                    BackgroundShadersEnabled = BackgroundShadersEnabled,
+                    BackgroundShadersBoostFps = BackgroundShadersBoostFps,
+                    DiscordRpcEnabled = DiscordRpcEnabled,
+                };
+                File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, AppSettingsContext.Default.AppSettings));
+            } catch(Exception ex)
+            {
+                _toast.Show("Error", ex.Message, InfoBarSeverity.Error);
+            }
+            
         }
 
         public void Load()

@@ -32,17 +32,19 @@ namespace Moonrise.Services
         private readonly IArtService art;
         private readonly ITaskService task;
         private readonly ISettingsService settings;
+        private readonly IToastService toast;
         private DbService dbService;
         private string libraryPath;
 
         public event Action? LibraryChanging;
         public event Action? LibraryChanged;
 
-        public LibraryService(ISettingsService settingsService, IArtService artService, ITaskService taskService)
+        public LibraryService(ISettingsService settingsService, IArtService artService, ITaskService taskService, IToastService toastService)
         {
             settings = settingsService;
             art = artService;
             task = taskService;
+            toast = toastService;
 
             var savedPath = settings.MusicLibraryPath;
 
@@ -128,6 +130,7 @@ namespace Moonrise.Services
 
         public async Task ScanFolder(string folderPath)
         {
+            using var toastHandle = toast.ShowProgress(string.Empty, "Scanning 0 songs", isIndeterminate: true, isClosable: true);
             art.ClearCache();
 
             var dbTracks = dbService.GetAllTracks().ToDictionary(t => t.FilePath, StringComparer.OrdinalIgnoreCase);
@@ -143,6 +146,8 @@ namespace Moonrise.Services
             var dirInfo = new DirectoryInfo(folderPath);
             var filesOnDisk = dirInfo.EnumerateFiles("*.*", SearchOption.AllDirectories)
                                      .Where(f => supportedExtensions.Contains(f.Extension));
+
+            int scannedCount = 0;
 
             foreach (var fileInfo in filesOnDisk)
             {
@@ -161,6 +166,11 @@ namespace Moonrise.Services
                         {
                             unchangedTracks.Add(cachedTrack with { IsPresent = true });
                         }
+                        scannedCount++;
+                        if (scannedCount % 50 == 0)
+                        {
+                            toastHandle.Update(message: $"Scanning {scannedCount} songs");
+                        }
                         continue;
                     }
                 }
@@ -172,12 +182,16 @@ namespace Moonrise.Services
                 filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, trackId, isFavorite, dateAdded));
             }
 
+            toastHandle.Update(message: $"Scanning {scannedCount} songs");
+
             var tracksToSave = new ConcurrentBag<Track>();
             var lyricsToSave = new ConcurrentBag<(string TrackId, string Lyrics)>();
             var parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 8)
             };
+
+            int totalFiles = filesToParse.Count + unchangedTracks.Count;
 
             await Parallel.ForEachAsync(filesToParse, parallelOptions, (file, cancellationToken) =>
             {
@@ -192,11 +206,18 @@ namespace Moonrise.Services
                             lyricsToSave.Add((result.Item1.Id, result.Item2));
                         }
                     }
-                    
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
+                }
+                finally
+                {
+                    int current = Interlocked.Increment(ref scannedCount);
+                    if (current % 10 == 0 || current == totalFiles)
+                    {
+                        toastHandle.Update(message: $"Scanning {current} songs");
+                    }
                 }
                 return ValueTask.CompletedTask;
             });
@@ -270,6 +291,8 @@ namespace Moonrise.Services
             {
                 dbService.UpsertArtistsBatch(artistsToSave);
             }
+
+            toastHandle.Complete($"Finished scanning {scannedCount} songs.");
         }
 
         private (Track?, string?) ParseTrackMetadata(string absolutePath, string relativePath, string lastModified, long fileSize, string trackId, bool isFavorite, DateTime dateAdded)

@@ -42,6 +42,7 @@ namespace Moonrise
             services.AddSingleton<IArtService, ArtService>();
             services.AddSingleton<IDiscordRpcService, DiscordRpcService>();
             services.AddSingleton<ITaskService>(_ => new TaskService(dispatcher));
+            services.AddSingleton<IToastService>(_ => new ToastService(dispatcher));
             services.AddSingleton<IAudioPeakService, AudioPeakService>();
             services.AddSingleton<ILibraryService, LibraryService>();
 
