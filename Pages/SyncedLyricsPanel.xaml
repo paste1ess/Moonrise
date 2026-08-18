@@ -10,7 +10,15 @@
     mc:Ignorable="d">
 
     <Grid>
-        <ScrollViewer x:Name="LyricScroller" VerticalScrollBarVisibility="Hidden" SizeChanged="LyricScroller_SizeChanged">
+        <TextBlock 
+            Text="No synced lyrics found" 
+            Style="{StaticResource BodyLargeTextBlockStyle}" 
+            Margin="0,44" 
+            HorizontalAlignment="Stretch" 
+            HorizontalTextAlignment="Center" 
+            Visibility="{x:Bind NoLyricsVisibility, Mode=OneWay}" />
+
+        <ScrollViewer x:Name="LyricScroller" VerticalScrollBarVisibility="Hidden" SizeChanged="LyricScroller_SizeChanged" Visibility="{x:Bind LyricsVisibility, Mode=OneWay}">
             <ItemsRepeater x:Name="LyricRepeater" ItemsSource="{x:Bind DisplayLyrics, Mode=OneWay}" HorizontalAlignment="Left">
                 <ItemsRepeater.Layout>
                     <StackLayout Spacing="48" />

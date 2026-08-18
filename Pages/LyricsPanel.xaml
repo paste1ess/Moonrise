@@ -12,7 +12,6 @@
         <Frame x:Name="ContentFrame" IsNavigationStackEnabled="False" Background="Transparent" BorderThickness="0"/>
 
         <DropDownButton x:Name="DropDown" 
-            Content="Static"
             HorizontalAlignment="Right" 
             VerticalAlignment="Top" 
             Margin="0, 16, 16, 0">

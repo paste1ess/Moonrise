@@ -1,33 +1,22 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using DiscordRPC;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
+using Moonrise.Models;
 using Moonrise.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using System.Threading.Tasks;
 
 namespace Moonrise.Pages
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-
     public record Lyric(string Text, TimeSpan Timestamp);
 
     public partial class EvaluatedLyric : ObservableObject
@@ -46,28 +35,64 @@ namespace Moonrise.Pages
         }
     }
 
-
-    public sealed partial class SyncedLyricsPanel : Page
+    public sealed partial class SyncedLyricsPanel : Page, INotifyPropertyChanged
     {
         private static readonly Regex LrcTimestampRegex = new(@"\[(\d{2}):(\d{2}\.\d{2,3})\]", RegexOptions.Compiled);
         private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
         public PlaybackService Playback => PlaybackService.Instance;
 
-        //List<Lyric> data = [];
-        //    new Lyric("What, what, what, what, what", TimeSpan.FromSeconds(0)),
-        //    new Lyric("Ummmmm", TimeSpan.FromSeconds(4.5)),
-        //    new Lyric("This is the 'first' line of the song", TimeSpan.FromSeconds(8.2)),
-        //    new Lyric("And now", TimeSpan.FromSeconds(12.0)),
-        //    new Lyric("    Um", TimeSpan.FromSeconds(15.5)),
-        //    new Lyric("", TimeSpan.FromSeconds(20.0)),
-        //    new Lyric("Family guy funny moments", TimeSpan.FromSeconds(27.1)),
-        //    new Lyric("Idk i forgot", TimeSpan.FromSeconds(32.0))
-        //];
-
-
         public ObservableCollection<EvaluatedLyric> DisplayLyrics { get; } = new();
 
+        private bool _hasSyncedLyrics;
+        public bool HasSyncedLyrics
+        {
+            get => _hasSyncedLyrics;
+            private set
+            {
+                if (_hasSyncedLyrics != value)
+                {
+                    _hasSyncedLyrics = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasSyncedLyrics)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LyricsVisibility)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NoLyricsVisibility)));
+                }
+            }
+        }
+
+        public Visibility LyricsVisibility => HasSyncedLyrics ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility NoLyricsVisibility => HasSyncedLyrics ? Visibility.Collapsed : Visibility.Visible;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private bool _isUpdatingMargin = false;
+
+        public static bool CheckHasSyncedLyrics(Track? track, ILibraryService library)
+        {
+            if (track == null || string.IsNullOrEmpty(track.FilePath)) return false;
+
+            string path = library.PathToAbsolute(track.FilePath);
+            if (string.IsNullOrEmpty(path)) return false;
+
+            string lrcPath = Path.ChangeExtension(path, ".lrc");
+            if (!File.Exists(lrcPath)) return false;
+
+            try
+            {
+                using var reader = new StreamReader(lrcPath);
+                string? line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (LrcTimestampRegex.IsMatch(line))
+                        return true;
+                }
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+
+            return false;
+        }
 
         private void LyricScroller_SizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -82,14 +107,17 @@ namespace Moonrise.Pages
         {
             InitializeComponent();
         }
+
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
             Playback.PropertyChanged += Playback_PropertyChanged;
 
             DisplayLyrics.Clear();
+            HasSyncedLyrics = CheckHasSyncedLyrics(Playback.CurrentTrack, library);
             _ = GetSyncedLyrics(library.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
         }
+
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
@@ -154,17 +182,34 @@ namespace Moonrise.Pages
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     DisplayLyrics.Clear();
+                    HasSyncedLyrics = CheckHasSyncedLyrics(Playback.CurrentTrack, library);
                     _ = GetSyncedLyrics(library.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
                 });
-                
             }
         }
+
         private async Task GetSyncedLyrics(string? path)
         {
-            if (path == null) return;
+            if (string.IsNullOrEmpty(path))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    DisplayLyrics.Clear();
+                    HasSyncedLyrics = false;
+                });
+                return;
+            }
 
             string lrcPath = Path.ChangeExtension(path, ".lrc");
-            if (!File.Exists(lrcPath)) return;
+            if (!File.Exists(lrcPath))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    DisplayLyrics.Clear();
+                    HasSyncedLyrics = false;
+                });
+                return;
+            }
 
             List<Lyric> lyrics = new();
 
@@ -187,6 +232,11 @@ namespace Moonrise.Pages
             }
             catch (IOException)
             {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    DisplayLyrics.Clear();
+                    HasSyncedLyrics = false;
+                });
                 return;
             }
 
@@ -195,6 +245,7 @@ namespace Moonrise.Pages
                 DisplayLyrics.Clear();
                 foreach (var l in lyrics)
                     DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp));
+                HasSyncedLyrics = lyrics.Count > 0;
             });
         }
     }
