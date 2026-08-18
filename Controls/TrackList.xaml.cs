@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -15,13 +16,11 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace Moonrise.Controls;
 
 public sealed partial class TrackList : UserControl
 {
+    private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
     public IEnumerable<Track> Tracks
     {
         get { return (IEnumerable<Track>)GetValue(TracksProperty); }
@@ -85,7 +84,7 @@ public sealed partial class TrackList : UserControl
 
             if (qt == null) return;
 
-            var track = await Task.Run(() => LibraryService.Instance.GetTrack(qt.Id));
+            var track = await Task.Run(() => library.GetTrack(qt.Id));
             if (track == null) return;
 
             PlaybackService.Instance.PlayTrack(track);

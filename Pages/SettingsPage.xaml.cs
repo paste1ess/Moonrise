@@ -17,8 +17,9 @@ namespace Moonrise.Pages
 {
     public sealed partial class SettingsPage : Page
     {
-        private SettingsService _settings = SettingsService.Instance;
+        private readonly ISettingsService _settings = App.Services.GetRequiredService<ISettingsService>();
         private readonly ITaskService task = App.Services.GetRequiredService<ITaskService>();
+        private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
         public SettingsPage()
         {
             InitializeComponent();
@@ -33,7 +34,7 @@ namespace Moonrise.Pages
 
         private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SettingsService.MusicLibraryPath))
+            if (e.PropertyName == nameof(ISettingsService.MusicLibraryPath))
             {
                 DispatcherQueue.TryEnqueue(UpdateScanButtonState);
             }
@@ -59,7 +60,7 @@ namespace Moonrise.Pages
             if (folder != null)
             {
                 _settings.MusicLibraryPath = folder.Path;
-                await LibraryService.Instance.OpenAndScanLibrary(folder.Path);
+                await library.OpenAndScanLibrary(folder.Path);
             }
         }
 
@@ -67,7 +68,7 @@ namespace Moonrise.Pages
         {
             if (!string.IsNullOrEmpty(_settings.MusicLibraryPath))
             {
-                await LibraryService.Instance.HardScanLibrary(_settings.MusicLibraryPath);
+                await library.HardScanLibrary(_settings.MusicLibraryPath);
             }
         }
 
@@ -77,7 +78,7 @@ namespace Moonrise.Pages
             {
                 task.Enqueue(new RelayAppCommand(async (_) =>
                 {
-                    await LibraryService.Instance.ScanFolder(_settings.MusicLibraryPath);
+                    await library.ScanFolder(_settings.MusicLibraryPath);
                 }));
             }
         }

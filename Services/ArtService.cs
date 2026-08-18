@@ -48,6 +48,7 @@ namespace Moonrise.Services
 
         private readonly SemaphoreSlim _ioSemaphore = new(2, 2);
         private readonly ITaskService _taskService;
+        private ILibraryService library => App.Services.GetRequiredService<ILibraryService>();
 
         public ArtService(ITaskService taskService)
         {
@@ -92,13 +93,13 @@ namespace Moonrise.Services
                 foreach (var trackId in album.TrackIds)
                 {
                     if (token.IsCancellationRequested) return null;
-                    firstTrack = await LibraryService.Instance.GetTrack(trackId);
+                    firstTrack = await library.GetTrack(trackId);
                     if (firstTrack != null) break;
                 }
 
                 if (firstTrack == null || token.IsCancellationRequested) return null;
 
-                var absolutePath = LibraryService.Instance.PathToAbsolute(firstTrack.FilePath);
+                var absolutePath = library.PathToAbsolute(firstTrack.FilePath);
                 var dir = Path.GetDirectoryName(absolutePath);
 
                 if (!string.IsNullOrEmpty(dir))
@@ -134,9 +135,9 @@ namespace Moonrise.Services
                 foreach (var trackId in album.TrackIds)
                 {
                     if (token.IsCancellationRequested) return null;
-                    var track = await LibraryService.Instance.GetTrack(trackId);
+                    var track = await library.GetTrack(trackId);
                     if (track == null) continue;
-                    var path = LibraryService.Instance.PathToAbsolute(track.FilePath);
+                    var path = library.PathToAbsolute(track.FilePath);
                     var embeddedImage = await getEmbeddedArtwork(path, size, token);
                     if (embeddedImage != null)
                     {
@@ -166,7 +167,7 @@ namespace Moonrise.Services
 
         public async Task<RandomAccessStreamReference?> GetArtworkStreamReference(Track track, CancellationToken token = default)
         {
-            var absolutePath = LibraryService.Instance.PathToAbsolute(track.FilePath);
+            var absolutePath = library.PathToAbsolute(track.FilePath);
             try
             {
                 var pictureData = await Task.Run(() =>
@@ -216,7 +217,7 @@ namespace Moonrise.Services
                 }
             }
 
-            var absolutePath = LibraryService.Instance.PathToAbsolute(filePath);
+            var absolutePath = library.PathToAbsolute(filePath);
 
             try
             {
@@ -390,7 +391,7 @@ namespace Moonrise.Services
 
         public async Task<SoftwareBitmap?> GetArtworkBitmap(Track track, int size, CancellationToken token = default)
         {
-            var absolutePath = LibraryService.Instance.PathToAbsolute(track.FilePath);
+            var absolutePath = library.PathToAbsolute(track.FilePath);
             try
             {
                 await _ioSemaphore.WaitAsync(token);

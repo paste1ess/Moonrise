@@ -16,13 +16,14 @@ namespace Moonrise.Services
     internal class DiscordRpcService : IDiscordRpcService, IDisposable
     {
         private static readonly string discordAppId = "1508917641530708039";
-        private static SettingsService settings => SettingsService.Instance;
+        private readonly ISettingsService settings;
 
         private DiscordRpcClient client;
         private PlaybackService playback => PlaybackService.Instance;
 
-        public DiscordRpcService()
+        public DiscordRpcService(ISettingsService settingsService)
         {
+            settings = settingsService;
             client = new(discordAppId);
             client.OnReady += (sender, msg) =>
             {

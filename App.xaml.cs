@@ -34,24 +34,29 @@ namespace Moonrise
 
         protected async override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            SettingsService.Instance.Load();
-
             var services = new ServiceCollection();
 
             var dispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
+            services.AddSingleton<ISettingsService, SettingsService>();
             services.AddSingleton<IArtService, ArtService>();
             services.AddSingleton<IDiscordRpcService, DiscordRpcService>();
             services.AddSingleton<ITaskService>(_ => new TaskService(dispatcher));
             services.AddSingleton<IAudioPeakService, AudioPeakService>();
+            services.AddSingleton<ILibraryService, LibraryService>();
 
             Services = services.BuildServiceProvider();
+
+            var settings = Services.GetRequiredService<ISettingsService>();
+            settings.Load();
+
             _ = Services.GetRequiredService<ITaskService>();
             _ = Services.GetRequiredService<IDiscordRpcService>();
 
             _window = new MainWindow();
 
-            LibraryService.Instance.Initialize();
+            var library = Services.GetRequiredService<ILibraryService>();
+            library.Initialize();
 
             _window.Activate();
         }

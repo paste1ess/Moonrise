@@ -19,6 +19,7 @@ public sealed partial class AlbumItemPage : Page
 {
     private CancellationTokenSource? _artworkCts;
     private readonly IArtService art = App.Services.GetRequiredService<IArtService>();
+    private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
 
     [ObservableProperty]
     public partial ImageSource? AlbumArt { get; set; }
@@ -47,7 +48,7 @@ public sealed partial class AlbumItemPage : Page
         if (e.Parameter is Album album)
         {
             DisplayedAlbum = album;
-            Tracks = LibraryService.Instance.GetTracksByIds(album.TrackIds).OrderBy(t => t.TrackNumber ?? int.MaxValue);
+            Tracks = library.GetTracksByIds(album.TrackIds).OrderBy(t => t.TrackNumber ?? int.MaxValue);
             LoadArtworkAsync(album);
         }
     }

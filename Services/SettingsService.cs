@@ -1,16 +1,26 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-
 namespace Moonrise.Services
 {
-    public partial class SettingsService : ObservableObject
+    public interface ISettingsService : INotifyPropertyChanged
     {
-        public static readonly SettingsService Instance = new();
+        string MusicLibraryPath { get; set; }
+        bool BackgroundShadersEnabled { get; set; }
+        bool BackgroundShadersBoostFps { get; set; }
+        bool DiscordRpcEnabled { get; set; }
+        void Save();
+        void Load();
+    }
+
+    public partial class SettingsService : ObservableObject, ISettingsService
+    {
         private string _settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Moonrise", "settings.json");
         private bool _isLoading = false;
 

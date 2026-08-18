@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -11,6 +12,7 @@ namespace Moonrise.Pages
 {
     public sealed partial class TracksPage : Page
     {
+        private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
         public BulkObservableCollection<Track> Tracks { get; } = new();
 
         public TracksPage()
@@ -18,10 +20,10 @@ namespace Moonrise.Pages
             InitializeComponent();
             TrackListView.Tracks = Tracks;
 
-            LibraryService.Instance.LibraryChanged += OnLibraryChanged;
+            library.LibraryChanged += OnLibraryChanged;
             Unloaded += (s, e) =>
             {
-                LibraryService.Instance.LibraryChanged -= OnLibraryChanged;
+                library.LibraryChanged -= OnLibraryChanged;
                 Tracks.Clear();
             };
         }
@@ -33,7 +35,7 @@ namespace Moonrise.Pages
             base.OnNavigatedTo(e);
 
             var trackList = await Task.Run(() =>
-                LibraryService.Instance.GetAllTracks()
+                library.GetAllTracks()
                     .OrderBy(t => t.Album, StringComparer.OrdinalIgnoreCase)
                     .ThenBy(t => t.Title, StringComparer.OrdinalIgnoreCase)
                     .ToList());

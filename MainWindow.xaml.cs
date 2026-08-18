@@ -30,7 +30,7 @@ namespace Moonrise
     public sealed partial class MainWindow : Window
     {
         public static MainWindow? Instance { get; private set; }
-        private SettingsService _settings = SettingsService.Instance;
+        private readonly ISettingsService _settings = App.Services.GetRequiredService<ISettingsService>();
         private PixelShaderEffect<BackgroundShader>? _shaderEffect;
         private bool _isLightTheme;
         private bool _isWindowFocused;
@@ -102,7 +102,7 @@ namespace Moonrise
                 UpdateBackgroundCanvas();
             };
 
-            _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
+            _shaderTimer.Interval = _settings.BackgroundShadersBoostFps
                     ? TimeSpan.FromSeconds(1.0 / 60.0)
                     : TimeSpan.FromSeconds(1.0 / 12.0);
             _shaderTimer.Tick += (_, _) =>
@@ -116,7 +116,7 @@ namespace Moonrise
                 ShaderCanvas.Invalidate();
             };
 
-            if (SettingsService.Instance.BackgroundShadersEnabled)
+            if (_settings.BackgroundShadersEnabled)
             {
                 _shaderEffect = new PixelShaderEffect<BackgroundShader>();
                 ShaderCanvas.Draw += ShaderCanvas_Draw;
@@ -149,15 +149,15 @@ namespace Moonrise
 
             UpdateShaderSpeedMultiplier();
 
-            SettingsService.Instance.PropertyChanged += (s, e) =>
+            _settings.PropertyChanged += (s, e) =>
             {
-                if (e.PropertyName == nameof(SettingsService.BackgroundShadersEnabled))
+                if (e.PropertyName == nameof(ISettingsService.BackgroundShadersEnabled))
                 {
-                    ShaderCanvas.Visibility = SettingsService.Instance.BackgroundShadersEnabled
+                    ShaderCanvas.Visibility = _settings.BackgroundShadersEnabled
                         ? Visibility.Visible
                         : Visibility.Collapsed;
 
-                    if (SettingsService.Instance.BackgroundShadersEnabled)
+                    if (_settings.BackgroundShadersEnabled)
                     {
                         _shaderEffect = new PixelShaderEffect<BackgroundShader>();
                         ShaderCanvas.Draw += ShaderCanvas_Draw;
@@ -173,10 +173,10 @@ namespace Moonrise
                         _shaderEffect = null;
                     }
                 }
-                else if (e.PropertyName == nameof(SettingsService.BackgroundShadersBoostFps))
+                else if (e.PropertyName == nameof(ISettingsService.BackgroundShadersBoostFps))
                 {
                     if (_isWindowFocused)
-                        _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
+                        _shaderTimer.Interval = _settings.BackgroundShadersBoostFps
                             ? TimeSpan.FromSeconds(1.0 / 60.0)
                             : TimeSpan.FromSeconds(1.0 / 12.0);
                 }
@@ -215,9 +215,9 @@ namespace Moonrise
             {
                 _isWindowFocused = true;
 
-                if (SettingsService.Instance.BackgroundShadersEnabled)
+                if (_settings.BackgroundShadersEnabled)
                 {
-                    _shaderTimer.Interval = SettingsService.Instance.BackgroundShadersBoostFps
+                    _shaderTimer.Interval = _settings.BackgroundShadersBoostFps
                         ? TimeSpan.FromSeconds(1.0 / 60.0)
                         : TimeSpan.FromSeconds(1.0 / 12.0);
 

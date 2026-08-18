@@ -10,19 +10,41 @@ using System.Threading.Tasks;
 
 namespace Moonrise.Services
 {
-    public class LibraryService
+    public interface ILibraryService
     {
-        public static LibraryService Instance = new LibraryService();
-        private IArtService art => App.Services.GetRequiredService<IArtService>();
-        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
+        event Action? LibraryChanging;
+        event Action? LibraryChanged;
+        void Initialize();
+        string PathToAbsolute(string relativePath);
+        Task HardScanLibrary(string path);
+        Task OpenAndScanLibrary(string path);
+        Task ScanFolder(string folderPath);
+        Task<Track?> GetTrack(string id);
+        Task<string?> GetLyrics(string id);
+        IEnumerable<Track> GetAllTracks();
+        IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids);
+        Task<Album?> GetAlbum(string id);
+        IEnumerable<Album> GetAllAlbums();
+    }
+
+    public class LibraryService : ILibraryService
+    {
+        private readonly IArtService art;
+        private readonly ITaskService task;
+        private readonly ISettingsService settings;
         private DbService dbService;
         private string libraryPath;
 
         public event Action? LibraryChanging;
         public event Action? LibraryChanged;
-        private LibraryService()
+
+        public LibraryService(ISettingsService settingsService, IArtService artService, ITaskService taskService)
         {
-            var savedPath = SettingsService.Instance.MusicLibraryPath;
+            settings = settingsService;
+            art = artService;
+            task = taskService;
+
+            var savedPath = settings.MusicLibraryPath;
 
             if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
             {
@@ -37,7 +59,7 @@ namespace Moonrise.Services
 
         public void Initialize()
         {
-            var savedPath = SettingsService.Instance.MusicLibraryPath;
+            var savedPath = settings.MusicLibraryPath;
 
             if (!string.IsNullOrEmpty(savedPath) && Directory.Exists(savedPath))
             {

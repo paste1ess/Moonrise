@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using DiscordRPC;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -20,9 +21,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace Moonrise.Pages
 {
@@ -52,6 +50,7 @@ namespace Moonrise.Pages
     public sealed partial class SyncedLyricsPanel : Page
     {
         private static readonly Regex LrcTimestampRegex = new(@"\[(\d{2}):(\d{2}\.\d{2,3})\]", RegexOptions.Compiled);
+        private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
         public PlaybackService Playback => PlaybackService.Instance;
 
         //List<Lyric> data = [];
@@ -89,7 +88,7 @@ namespace Moonrise.Pages
             Playback.PropertyChanged += Playback_PropertyChanged;
 
             DisplayLyrics.Clear();
-            _ = GetSyncedLyrics(LibraryService.Instance.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
+            _ = GetSyncedLyrics(library.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
         }
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
@@ -155,7 +154,7 @@ namespace Moonrise.Pages
                 DispatcherQueue.TryEnqueue(() =>
                 {
                     DisplayLyrics.Clear();
-                    _ = GetSyncedLyrics(LibraryService.Instance.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
+                    _ = GetSyncedLyrics(library.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
                 });
                 
             }

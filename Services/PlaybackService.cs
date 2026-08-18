@@ -38,6 +38,7 @@ namespace Moonrise.Services
         private ITaskService task => App.Services.GetRequiredService<ITaskService>();
         private IDiscordRpcService rpc => App.Services.GetRequiredService<IDiscordRpcService>();
         private IArtService art => App.Services.GetRequiredService<IArtService>();
+        private ILibraryService library => App.Services.GetRequiredService<ILibraryService>();
         public readonly QueueService Queue = new();
 
         [ObservableProperty]
@@ -229,7 +230,7 @@ namespace Moonrise.Services
                     if (queueTrack == null) return;
                 }
 
-                var nextTrack = await LibraryService.Instance.GetTrack(queueTrack.Id);
+                var nextTrack = await library.GetTrack(queueTrack.Id);
                 if (nextTrack == null) return;
 
                 var sourceTcs = new TaskCompletionSource();
@@ -294,7 +295,7 @@ namespace Moonrise.Services
                 await dequeueTcs.Task;
                 if (queueTrack == null) return;
 
-                var prevTrack = await LibraryService.Instance.GetTrack(queueTrack.Id);
+                var prevTrack = await library.GetTrack(queueTrack.Id);
                 if (prevTrack == null) return;
 
                 var sourceTcs = new TaskCompletionSource();
@@ -531,7 +532,7 @@ namespace Moonrise.Services
 
         private MediaPlaybackItem CreatePlaybackItem(Track track)
         {
-            var path = LibraryService.Instance.PathToAbsolute(track.FilePath);
+            var path = library.PathToAbsolute(track.FilePath);
             var mediaSource = MediaSource.CreateFromUri(new Uri(path));
             var playbackItem = new MediaPlaybackItem(mediaSource);
             var props = playbackItem.GetDisplayProperties();

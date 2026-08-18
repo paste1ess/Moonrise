@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -16,25 +17,20 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace Moonrise.Pages
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class AlbumsPage : Page
     {
+        private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
         public BulkObservableCollection<Album> Albums { get; } = new();
 
         public AlbumsPage()
         {
             InitializeComponent();
-            LibraryService.Instance.LibraryChanged += OnLibraryChanged;
+            library.LibraryChanged += OnLibraryChanged;
             Unloaded += (s, e) =>
             {
-                LibraryService.Instance.LibraryChanged -= OnLibraryChanged;
+                library.LibraryChanged -= OnLibraryChanged;
                 Albums.Clear();
             };
         }
@@ -45,7 +41,7 @@ namespace Moonrise.Pages
         {
             base.OnNavigatedTo(e);
 
-            var albumList = await Task.Run(() => LibraryService.Instance.GetAllAlbums()
+            var albumList = await Task.Run(() => library.GetAllAlbums()
                     .OrderBy(t => t.Artist, StringComparer.OrdinalIgnoreCase)
                     .ThenBy(t => t.Title, StringComparer.OrdinalIgnoreCase)
                     .ToList());
