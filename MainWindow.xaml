@@ -24,7 +24,13 @@
                 </canvas:CanvasControl.OpacityTransition>
             </canvas:CanvasControl>
             <canvas:CanvasControl
-                x:Name="ShaderCanvas"/>
+                x:Name="ShaderCanvas"
+                IsHitTestVisible="False"
+                Opacity="0">
+                <canvas:CanvasControl.OpacityTransition>
+                    <ScalarTransition Duration="0:0:0.35"/>
+                </canvas:CanvasControl.OpacityTransition>
+            </canvas:CanvasControl>
         </Grid>
         <Grid>
             <Grid.RowDefinitions>

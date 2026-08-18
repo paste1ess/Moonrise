@@ -19,6 +19,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
@@ -32,6 +34,7 @@ namespace Moonrise
         public static MainWindow? Instance { get; private set; }
         private readonly ISettingsService _settings = App.Services.GetRequiredService<ISettingsService>();
         private PixelShaderEffect<BackgroundShader>? _shaderEffect;
+        private CancellationTokenSource? _shaderFadeCts;
         private bool _isLightTheme;
         private bool _isWindowFocused;
         private readonly DateTime _startTime = DateTime.UtcNow;
@@ -80,6 +83,10 @@ namespace Moonrise
             Activated += MainWindow_Activated;
             Closed += (s, e) =>
             {
+                _shaderFadeCts?.Cancel();
+                _shaderFadeCts?.Dispose();
+                _shaderFadeCts = null;
+
                 _peakService.Dispose();
 
                 BackgroundCanvas.Draw -= BackgroundCanvas_Draw;
@@ -120,7 +127,14 @@ namespace Moonrise
             {
                 _shaderEffect = new PixelShaderEffect<BackgroundShader>();
                 ShaderCanvas.Draw += ShaderCanvas_Draw;
+                ShaderCanvas.Opacity = 1;
+                ShaderCanvas.Visibility = Visibility.Visible;
                 _shaderTimer.Start();
+            }
+            else
+            {
+                ShaderCanvas.Opacity = 0;
+                ShaderCanvas.Visibility = Visibility.Collapsed;
             }
 
             BackgroundCanvas.Draw += BackgroundCanvas_Draw;
@@ -153,25 +167,30 @@ namespace Moonrise
             {
                 if (e.PropertyName == nameof(ISettingsService.BackgroundShadersEnabled))
                 {
-                    ShaderCanvas.Visibility = _settings.BackgroundShadersEnabled
-                        ? Visibility.Visible
-                        : Visibility.Collapsed;
+                    _shaderFadeCts?.Cancel();
+                    _shaderFadeCts?.Dispose();
 
                     if (_settings.BackgroundShadersEnabled)
                     {
-                        _shaderEffect = new PixelShaderEffect<BackgroundShader>();
-                        ShaderCanvas.Draw += ShaderCanvas_Draw;
-                        _lastTick = DateTime.UtcNow;
-                        _shaderTimer.Start();
+                        _shaderFadeCts = null;
+                        ShaderCanvas.Visibility = Visibility.Visible;
+                        if (_shaderEffect == null)
+                        {
+                            _shaderEffect = new PixelShaderEffect<BackgroundShader>();
+                            ShaderCanvas.Draw += ShaderCanvas_Draw;
+                            _lastTick = DateTime.UtcNow;
+                            _shaderTimer.Start();
+                        }
+                        ShaderCanvas.Opacity = 1;
                     }
                     else
                     {
-                        _shaderTimer.Stop();
-                        ShaderCanvas.Draw -= ShaderCanvas_Draw;
-                        _offscreen?.Dispose();
-                        _offscreen = null;
-                        _shaderEffect = null;
+                        _shaderFadeCts = new CancellationTokenSource();
+                        ShaderCanvas.Opacity = 0;
+                        _ = StopShaderAfterFadeAsync(_shaderFadeCts.Token);
                     }
+
+                    UpdateBackgroundCanvas();
                 }
                 else if (e.PropertyName == nameof(ISettingsService.BackgroundShadersBoostFps))
                 {
@@ -295,7 +314,8 @@ namespace Moonrise
 
         private double ComputeBackgroundOpacity()
         {
-            if (!_isWindowFocused ||
+            if (!_settings.BackgroundShadersEnabled ||
+                !_isWindowFocused ||
                 PlaybackService.Instance.CurrentPlaybackState != PlaybackState.Playing ||
                 _currentBackgroundSoftwareBitmap == null)
                 return 0.0;
@@ -346,6 +366,31 @@ namespace Moonrise
                 CanvasImageInterpolation.Linear,
                 CanvasComposite.Copy
             );
+        }
+
+        private async Task StopShaderAfterFadeAsync(CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(350, token);
+                if (token.IsCancellationRequested) return;
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (!_settings.BackgroundShadersEnabled)
+                    {
+                        ShaderCanvas.Visibility = Visibility.Collapsed;
+                        _shaderTimer.Stop();
+                        ShaderCanvas.Draw -= ShaderCanvas_Draw;
+                        _offscreen?.Dispose();
+                        _offscreen = null;
+                        _shaderEffect = null;
+                    }
+                });
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         private void TitleBar_PaneToggleRequested(TitleBar sender, object args)
