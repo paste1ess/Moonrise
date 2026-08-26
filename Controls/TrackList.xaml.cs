@@ -52,6 +52,17 @@ public sealed partial class TrackList : UserControl
     public static readonly DependencyProperty TrackViewProperty =
         DependencyProperty.Register(nameof(TrackView), typeof(bool), typeof(TrackList), new PropertyMetadata(false));
 
+
+
+    public bool DisplayAlbum
+    {
+        get { return (bool)GetValue(DisplayAlbumProperty); }
+        set { SetValue(DisplayAlbumProperty, value); }
+    }
+
+    public static readonly DependencyProperty DisplayAlbumProperty =
+        DependencyProperty.Register(nameof(DisplayAlbum), typeof(bool), typeof(TrackList), new PropertyMetadata(true));
+
     public TrackList()
     {
         InitializeComponent();

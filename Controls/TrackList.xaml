@@ -16,6 +16,7 @@
                 <local:TrackListItem Song="{x:Bind}"
                     ArtView="{Binding ArtView, ElementName=TrackListControl}"
                     TrackView="{Binding TrackView, ElementName=TrackListControl}"
+                    DisplayAlbum="{Binding DisplayAlbum, ElementName=TrackListControl}"
                     HorizontalAlignment="Stretch" Clicked="TrackListItem_Clicked"/>
             </DataTemplate>
         </ItemsRepeater.ItemTemplate>

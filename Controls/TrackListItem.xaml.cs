@@ -62,6 +62,18 @@ namespace Moonrise.Controls
 
         public Visibility TrackViewVisibility => TrackView ? Visibility.Visible : Visibility.Collapsed;
 
+        public static readonly DependencyProperty DisplayAlbumProperty =
+            DependencyProperty.Register(nameof(DisplayAlbum), typeof(bool), typeof(TrackListItem),
+                new PropertyMetadata(true, (d, _) => ((TrackListItem)d).OnPropertyChanged(nameof(DisplayAlbumVisibility))));
+
+        public bool DisplayAlbum
+        {
+            get => (bool)GetValue(DisplayAlbumProperty);
+            set => SetValue(DisplayAlbumProperty, value);
+        }
+
+        public Visibility DisplayAlbumVisibility => DisplayAlbum ? Visibility.Visible : Visibility.Collapsed;
+
         public static readonly DependencyProperty ArtViewProperty =
             DependencyProperty.Register(nameof(ArtView), typeof(bool), typeof(TrackListItem),
                 new PropertyMetadata(true, (d, _) => ((TrackListItem)d).OnPropertyChanged(nameof(ArtViewVisibility))));

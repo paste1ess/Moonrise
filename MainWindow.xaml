@@ -159,7 +159,8 @@
             </NavigationView>
         </Grid>
         <ItemsControl
-            ItemsSource="{x:Bind ToastService.ActiveToasts, Mode=OneWay}"
+            x:Name="ToastItemsControl"
+            ItemsSource="{x:Bind ToastService.ActiveToasts, Mode=OneTime}"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             Margin="0,56,0,0"

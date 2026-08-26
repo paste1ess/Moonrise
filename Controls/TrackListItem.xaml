@@ -49,7 +49,7 @@
                 <TextBlock Text="{x:Bind Song.Artist, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" TextTrimming="CharacterEllipsis"/>
             </StackPanel>
 
-            <TextBlock Grid.Column="3" Text="{x:Bind Song.Album, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Visibility="{x:Bind TrackViewVisibility, Mode=OneWay}"/>
+            <TextBlock Grid.Column="3" Text="{x:Bind Song.Album, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Visibility="{x:Bind DisplayAlbumVisibility, Mode=OneWay}"/>
 
             <TextBlock Grid.Column="4" Text="{x:Bind FormatDuration(Song.Duration), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
         </Grid>

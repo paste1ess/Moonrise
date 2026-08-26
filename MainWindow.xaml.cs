@@ -85,6 +85,10 @@ namespace Moonrise
             Activated += MainWindow_Activated;
             Closed += (s, e) =>
             {
+                this.Bindings.StopTracking();
+                ToastItemsControl.ItemsSource = null;
+                Instance = null;
+
                 _shaderFadeCts?.Cancel();
                 _shaderFadeCts?.Dispose();
                 _shaderFadeCts = null;
