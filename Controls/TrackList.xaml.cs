@@ -21,6 +21,7 @@ namespace Moonrise.Controls;
 public sealed partial class TrackList : UserControl
 {
     private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
+    private readonly IPlaybackService playback = App.Services.GetRequiredService<IPlaybackService>();
     public IEnumerable<Track> Tracks
     {
         get { return (IEnumerable<Track>)GetValue(TracksProperty); }
@@ -76,11 +77,11 @@ public sealed partial class TrackList : UserControl
             int index = list.IndexOf(selectedTrack);
             if (index < 0) return;
 
-            var queue = PlaybackService.Instance.Queue;
+            var queue = playback.Queue;
             queue.SetQueue(list);
 
             QueueTrack? qt;
-            if (PlaybackService.Instance.ShuffleState)
+            if (playback.ShuffleState)
             {
                 var selectedQueueTrack = QueueTrack.FromTrack(selectedTrack);
                 queue.ActiveQueue.ReplaceRange(queue.GetShuffledList(selectedQueueTrack));
@@ -98,7 +99,7 @@ public sealed partial class TrackList : UserControl
             var track = await Task.Run(() => library.GetTrack(qt.Id));
             if (track == null) return;
 
-            PlaybackService.Instance.PlayTrack(track);
+            playback.PlayTrack(track);
             MainWindow.Instance?.NavigateToPlayer();
         }
     }

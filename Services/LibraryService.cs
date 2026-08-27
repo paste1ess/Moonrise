@@ -20,8 +20,10 @@ namespace Moonrise.Services
         Task OpenAndScanLibrary(string path);
         Task ScanFolder(string folderPath);
         Task<Track?> GetTrack(string id);
+        Task SetTrackFavorite(string trackId, bool isFavorite);
         Task<string?> GetLyrics(string id);
         IEnumerable<Track> GetAllTracks();
+        IEnumerable<Track> GetAllFavoriteTracks();
         IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids);
         Task<Album?> GetAlbum(string id);
         IEnumerable<Album> GetAllAlbums();
@@ -33,6 +35,7 @@ namespace Moonrise.Services
         private readonly ITaskService task;
         private readonly ISettingsService settings;
         private readonly IToastService toast;
+        private IPlaybackService playback => App.Services.GetRequiredService<IPlaybackService>();
         private DbService dbService;
         private string libraryPath;
 
@@ -91,7 +94,7 @@ namespace Moonrise.Services
         public async Task HardScanLibrary(string path)
         {
             LibraryChanging?.Invoke();
-            PlaybackService.Instance.ResetForLibraryChange();
+            playback.ResetForLibraryChange();
             task.ClearAndReset();
             task.Enqueue(new RelayAppCommand(async (_) =>
             {
@@ -109,7 +112,7 @@ namespace Moonrise.Services
         public async Task OpenAndScanLibrary(string path)
         {
             LibraryChanging?.Invoke();
-            PlaybackService.Instance.ResetForLibraryChange();
+            playback.ResetForLibraryChange();
 
             var dbPath = Path.Combine(path, "moonrise.db");
             bool dbExists = File.Exists(dbPath);
@@ -335,6 +338,11 @@ namespace Moonrise.Services
             return dbService.GetTrack(id);
         }
 
+        public async Task SetTrackFavorite(string trackId, bool isFavorite)
+        {
+            dbService.SetTrackFavorite(trackId, isFavorite);
+        }
+
         public async Task<string?> GetLyrics(string id)
         {
             return dbService.GetLyrics(id);
@@ -343,6 +351,10 @@ namespace Moonrise.Services
         public IEnumerable<Track> GetAllTracks()
         {
             return dbService.GetAllTracks();
+        }
+        public IEnumerable<Track> GetAllFavoriteTracks()
+        {
+            return dbService.GetAllFavoriteTracks();
         }
 
         public IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids)

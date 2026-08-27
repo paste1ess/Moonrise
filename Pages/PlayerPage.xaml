@@ -64,10 +64,31 @@
             <Frame x:Name="ArtworkFrame" Grid.Row="0" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Image Source="{x:Bind playbackService.CurrentTrackArtwork, Mode=OneWay}" Stretch="Uniform" MaxWidth="320" MaxHeight="320"/>
             </Frame>
-            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="4">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" HorizontalAlignment="Center" TextAlignment="Center"/>
-            </StackPanel>
+            <Grid Grid.Row="1" HorizontalAlignment="Stretch">
+                <StackPanel HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                Spacing="4">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" 
+                   Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" 
+                   HorizontalAlignment="Center" 
+                   TextAlignment="Center" />
+                    <TextBlock Style="{StaticResource BodyTextBlockStyle}" 
+                   Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" 
+                   HorizontalAlignment="Center" 
+                   TextAlignment="Center" />
+                </StackPanel>
+
+                <controls:CircleIconButton HorizontalAlignment="Right"
+                    x:Name="FavoriteButton"
+                    VerticalAlignment="Center" 
+                    Margin="0,0,16,0"
+                    Size="40"
+                    IconSize="16"
+                    Glyph=""
+                    Filled="False"
+                    Click="FavoriteButton_Click"
+                />
+            </Grid>
             <Grid Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

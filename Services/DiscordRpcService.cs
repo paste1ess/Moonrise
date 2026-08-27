@@ -1,4 +1,5 @@
 using DiscordRPC;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,19 +8,19 @@ using Windows.Media.Playback;
 
 namespace Moonrise.Services
 {
-    internal interface IDiscordRpcService : IDisposable
+    public interface IDiscordRpcService : IDisposable
     {
         void SetPresence(string title, string artist);
         void ClearPresence();
     }
 
-    internal class DiscordRpcService : IDiscordRpcService, IDisposable
+    public class DiscordRpcService : IDiscordRpcService, IDisposable
     {
         private static readonly string discordAppId = "1508917641530708039";
         private readonly ISettingsService settings;
 
         private DiscordRpcClient client;
-        private PlaybackService playback => PlaybackService.Instance;
+        private IPlaybackService playback => App.Services.GetRequiredService<IPlaybackService>();
 
         public DiscordRpcService(ISettingsService settingsService)
         {

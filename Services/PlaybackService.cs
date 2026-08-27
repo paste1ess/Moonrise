@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Moonrise.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Threading;
 using Windows.Graphics.Imaging;
@@ -32,14 +33,34 @@ namespace Moonrise.Services
         RepeatAll,
         RepeatOne
     }
-    public partial class PlaybackService : ObservableObject
+
+    public interface IPlaybackService : INotifyPropertyChanged
     {
-        public static readonly PlaybackService Instance = new();
-        private ITaskService task => App.Services.GetRequiredService<ITaskService>();
-        private IDiscordRpcService rpc => App.Services.GetRequiredService<IDiscordRpcService>();
-        private IArtService art => App.Services.GetRequiredService<IArtService>();
-        private ILibraryService library => App.Services.GetRequiredService<ILibraryService>();
-        public readonly QueueService Queue = new();
+        QueueService Queue { get; }
+        PlaybackState CurrentPlaybackState { get; set; }
+        bool ShuffleState { get; set; }
+        RepeatState RepeatState { get; set; }
+        Track? CurrentTrack { get; set; }
+        ImageSource? CurrentTrackArtwork { get; set; }
+        SoftwareBitmap? CurrentTrackBackgroundBitmap { get; set; }
+        TimeSpan CurrentTrackTime { get; }
+        void Next();
+        void Back();
+        void Play();
+        void Pause();
+        void ToggleShuffle();
+        void Scrub(TimeSpan position);
+        void ResetForLibraryChange();
+        void PlayTrack(Track track);
+    }
+
+    public partial class PlaybackService : ObservableObject, IPlaybackService
+    {
+        private readonly ITaskService task;
+        private readonly IDiscordRpcService rpc;
+        private readonly IArtService art;
+        private readonly ILibraryService library;
+        public QueueService Queue { get; } = new();
 
         [ObservableProperty]
         public partial PlaybackState CurrentPlaybackState { get; set; }
@@ -108,8 +129,13 @@ namespace Moonrise.Services
 
         private MediaPlayer mediaPlayer;
 
-        PlaybackService()
+        public PlaybackService(ITaskService taskService, IDiscordRpcService rpcService, IArtService artService, ILibraryService libraryService)
         {
+            task = taskService;
+            rpc = rpcService;
+            art = artService;
+            library = libraryService;
+
             CurrentPlaybackState = PlaybackState.None;
             mediaPlayer = new();
 

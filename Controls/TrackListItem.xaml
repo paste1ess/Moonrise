@@ -15,16 +15,16 @@
             HorizontalContentAlignment="Stretch"
             Click="Button_Click">
         <Button.ContextFlyout>
-            <MenuFlyout>
+            <MenuFlyout Opening="MenuFlyout_Opening">
                 <MenuFlyoutItem Text="Play next" Icon="Import" Click="PlayNext_Click"/>
                 <MenuFlyoutItem Text="Play last" Click="PlayLast_Click">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xEA52;"/>
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
-                <MenuFlyoutItem Text="Favorite">
+                <MenuFlyoutItem x:Name="FavoriteMenuItem" Text="Favorite" Click="Favorite_Click">
                     <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xEB51;"/>
+                        <FontIcon x:Name="FavoriteIcon" Glyph="&#xEB51;"/>
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
             </MenuFlyout>
@@ -51,7 +51,14 @@
 
             <TextBlock Grid.Column="3" Text="{x:Bind Song.Album, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Visibility="{x:Bind DisplayAlbumVisibility, Mode=OneWay}"/>
 
-            <TextBlock Grid.Column="4" Text="{x:Bind FormatDuration(Song.Duration), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Spacing="16">
+                <FontIcon x:Name="FavoriteIconDisplay" Glyph="&#xEB51;" FontSize="16" VerticalAlignment="Center">
+                    <FontIcon.Foreground>
+                        <SolidColorBrush x:Name="FavoriteIconDisplayBrush" Color="{ThemeResource TextFillColorPrimary}"/>
+                    </FontIcon.Foreground>
+                </FontIcon>
+                <TextBlock Text="{x:Bind FormatDuration(Song.Duration), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            </StackPanel>
         </Grid>
     </Button>
 </UserControl>

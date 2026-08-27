@@ -20,6 +20,7 @@ public sealed partial class AlbumItemPage : Page
     private CancellationTokenSource? _artworkCts;
     private readonly IArtService art = App.Services.GetRequiredService<IArtService>();
     private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
+    private readonly IPlaybackService playback = App.Services.GetRequiredService<IPlaybackService>();
 
     [ObservableProperty]
     public partial ImageSource? AlbumArt { get; set; }
@@ -88,13 +89,13 @@ public sealed partial class AlbumItemPage : Page
 
         var selectedTrack = list.First();
 
-        PlaybackService.Instance.Queue.SetQueue(list);
-        PlaybackService.Instance.Queue.PassQueue();
-        PlaybackService.Instance.Queue.SkipAndTake(0);
+        playback.Queue.SetQueue(list);
+        playback.Queue.PassQueue();
+        playback.Queue.SkipAndTake(0);
 
-        PlaybackService.Instance.ShuffleState = false;
+        playback.ShuffleState = false;
 
-        PlaybackService.Instance.PlayTrack(selectedTrack);
+        playback.PlayTrack(selectedTrack);
         MainWindow.Instance?.NavigateToPlayer();
     }
 
@@ -104,9 +105,9 @@ public sealed partial class AlbumItemPage : Page
         var list = Tracks.ToList();
         if (list.Count == 0) return;
 
-        PlaybackService.Instance.Queue.SetQueue(list);
+        playback.Queue.SetQueue(list);
 
-        var shuffledQueueTracks = PlaybackService.Instance.Queue.GetShuffledList();
+        var shuffledQueueTracks = playback.Queue.GetShuffledList();
         if (shuffledQueueTracks.Count == 0) return;
 
         var firstQueueTrack = shuffledQueueTracks[0];
@@ -114,12 +115,12 @@ public sealed partial class AlbumItemPage : Page
         if (firstTrack == null) return;
 
         var remainingShuffled = shuffledQueueTracks.Skip(1).ToList();
-        PlaybackService.Instance.Queue.ActiveQueue.ReplaceRange(remainingShuffled);
-        PlaybackService.Instance.Queue.History.Clear();
+        playback.Queue.ActiveQueue.ReplaceRange(remainingShuffled);
+        playback.Queue.History.Clear();
 
-        PlaybackService.Instance.ShuffleState = true;
+        playback.ShuffleState = true;
 
-        PlaybackService.Instance.PlayTrack(firstTrack);
+        playback.PlayTrack(firstTrack);
         MainWindow.Instance?.NavigateToPlayer();
     }
 }

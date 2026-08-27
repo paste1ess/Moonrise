@@ -29,6 +29,7 @@
     <None Remove="Controls\TrackListItem.xaml" />
     <None Remove="Pages\AlbumItemPage.xaml" />
     <None Remove="Pages\AlbumsPage.xaml" />
+    <None Remove="Pages\FavoritesPage.xaml" />
     <None Remove="Pages\LyricsPanel.xaml" />
     <None Remove="Pages\PlayerPage.xaml" />
     <None Remove="Pages\QueuePanel.xaml" />
@@ -177,6 +178,11 @@
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\FavoritesPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\TrackList.xaml">

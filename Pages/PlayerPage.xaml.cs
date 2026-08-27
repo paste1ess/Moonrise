@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -8,21 +9,25 @@ using Moonrise.Models;
 using Moonrise.Services;
 using System;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace Moonrise.Pages
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class PlayerPage : Page
     {
-        private PlaybackService playbackService = PlaybackService.Instance;
+        private readonly IPlaybackService playbackService = App.Services.GetRequiredService<IPlaybackService>();
+        private readonly ILibraryService libraryService = App.Services.GetRequiredService<ILibraryService>();
         public PlayerPage()
         {
             InitializeComponent();
             //Unloaded += (s, e) => this.Bindings.StopTracking();
+            Loaded += (s, e) =>
+            {
+                playbackService.PropertyChanged += PlaybackService_PropertyChanged;
+                UpdateFavoriteButtonVisuals();
+            };
+            Unloaded += (s, e) =>
+            {
+                playbackService.PropertyChanged -= PlaybackService_PropertyChanged;
+            };
         }
         private int previousSelectedIndex;
 
@@ -133,6 +138,32 @@ namespace Moonrise.Pages
             {
                 playbackService.RepeatState = RepeatState.Off;
             }
+        }
+
+        private void PlaybackService_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IPlaybackService.CurrentTrack))
+            {
+                UpdateFavoriteButtonVisuals();
+            }
+        }
+
+        private void UpdateFavoriteButtonVisuals()
+        {
+            bool isFav = playbackService.CurrentTrack?.IsFavorite ?? false;
+            FavoriteButton.Glyph = isFav ? "\uEB52" : "\uEB51";
+            FavoriteButton.Active = isFav;
+        }
+
+        private async void FavoriteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var track = playbackService.CurrentTrack;
+            if (track == null) return;
+
+            track.IsFavorite = !track.IsFavorite;
+            UpdateFavoriteButtonVisuals();
+
+            await libraryService.SetTrackFavorite(track.Id, track.IsFavorite);
         }
     }
 }

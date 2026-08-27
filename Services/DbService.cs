@@ -136,6 +136,17 @@ namespace Moonrise.Services
             }
         }
 
+        public void SetTrackFavorite(string id, bool isFavorite)
+        {
+            lock (_dbLock)
+            {
+                using var command = new SqliteCommand("UPDATE tracks SET is_favorite = @is_favorite WHERE id = @id;", _connection);
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@is_favorite", isFavorite ? 1 : 0);
+                command.ExecuteNonQuery();
+            }
+        }
+
         public void UpsertTracksBatch(IEnumerable<Track> tracks)
         {
             lock (_dbLock)
@@ -401,6 +412,56 @@ namespace Moonrise.Services
             using var connection = new SqliteConnection("Data Source=" + DbPath);
             connection.Open();
             using var command = new SqliteCommand("SELECT * FROM tracks", connection);
+            using var reader = command.ExecuteReader();
+            var idOrd = reader.GetOrdinal("id");
+            var albumIdOrd = reader.GetOrdinal("album_id");
+            var artistIdOrd = reader.GetOrdinal("artist_id");
+            var titleOrd = reader.GetOrdinal("title");
+            var albumOrd = reader.GetOrdinal("album");
+            var artistOrd = reader.GetOrdinal("artist");
+            var trackNumberOrd = reader.GetOrdinal("track_number");
+            var yearOrd = reader.GetOrdinal("year");
+            var genreOrd = reader.GetOrdinal("genre");
+            var bpmOrd = reader.GetOrdinal("bpm");
+            var isFavoriteOrd = reader.GetOrdinal("is_favorite");
+            var filePathOrd = reader.GetOrdinal("file_path");
+            var fileSizeOrd = reader.GetOrdinal("file_size");
+            var bitrateOrd = reader.GetOrdinal("bitrate");
+            var durationOrd = reader.GetOrdinal("duration");
+            var dateAddedOrd = reader.GetOrdinal("date_added");
+            var lastModifiedOrd = reader.GetOrdinal("last_modified");
+            var isPresentOrd = reader.GetOrdinal("is_present");
+            while (reader.Read())
+            {
+                yield return new Track
+                {
+                    Id = reader.GetString(idOrd),
+                    AlbumId = reader.GetString(albumIdOrd),
+                    ArtistId = reader.GetString(artistIdOrd),
+                    Title = reader.GetString(titleOrd),
+                    Album = reader.GetString(albumOrd),
+                    Artist = reader.GetString(artistOrd),
+                    TrackNumber = reader.IsDBNull(trackNumberOrd) ? null : reader.GetInt32(trackNumberOrd),
+                    Year = reader.IsDBNull(yearOrd) ? null : reader.GetInt32(yearOrd),
+                    Genre = reader.IsDBNull(genreOrd) ? null : reader.GetString(genreOrd),
+                    Bpm = reader.IsDBNull(bpmOrd) ? null : reader.GetInt32(bpmOrd),
+                    IsFavorite = reader.GetBoolean(isFavoriteOrd),
+                    FilePath = reader.GetString(filePathOrd),
+                    FileSize = reader.GetInt64(fileSizeOrd),
+                    Bitrate = reader.GetInt32(bitrateOrd),
+                    Duration = TimeSpan.FromSeconds(reader.GetInt64(durationOrd)),
+                    DateAdded = DateTime.Parse(reader.GetString(dateAddedOrd)),
+                    LastModified = reader.GetString(lastModifiedOrd),
+                    IsPresent = reader.GetBoolean(isPresentOrd)
+                };
+            }
+        }
+
+        public IEnumerable<Track> GetAllFavoriteTracks()
+        {
+            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            connection.Open();
+            using var command = new SqliteCommand("SELECT * FROM tracks WHERE is_favorite", connection);
             using var reader = command.ExecuteReader();
             var idOrd = reader.GetOrdinal("id");
             var albumIdOrd = reader.GetOrdinal("album_id");

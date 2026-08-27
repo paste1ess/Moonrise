@@ -77,9 +77,20 @@ namespace Moonrise.Controls
         private static void OnActiveChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var control = (CircleIconButton)d;
-            control.GlyphIcon.Style = (bool)e.NewValue
-                ? (Style)control.Resources["ActiveIcon"]
-                : (Style)control.Resources["InactiveIcon"];
+            if (Application.Current.Resources.TryGetValue((bool)e.NewValue ? "AccentFillColorDefaultBrush" : "TextFillColorPrimaryBrush", out var brushObj) && brushObj is SolidColorBrush targetBrush)
+            {
+                var anim = new Microsoft.UI.Xaml.Media.Animation.ColorAnimation
+                {
+                    To = targetBrush.Color,
+                    Duration = TimeSpan.FromMilliseconds(200),
+                    EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut }
+                };
+                var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, control.GlyphBrush);
+                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Color");
+                sb.Children.Add(anim);
+                sb.Begin();
+            }
         }
 
         public CircleIconButton()

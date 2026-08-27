@@ -45,6 +45,7 @@ namespace Moonrise
             services.AddSingleton<IToastService>(_ => new ToastService(dispatcher));
             services.AddSingleton<IAudioPeakService, AudioPeakService>();
             services.AddSingleton<ILibraryService, LibraryService>();
+            services.AddSingleton<IPlaybackService, PlaybackService>();
 
             Services = services.BuildServiceProvider();
 
@@ -53,6 +54,7 @@ namespace Moonrise
 
             _ = Services.GetRequiredService<ITaskService>();
             _ = Services.GetRequiredService<IDiscordRpcService>();
+            _ = Services.GetRequiredService<IPlaybackService>();
 
             _window = new MainWindow();
 

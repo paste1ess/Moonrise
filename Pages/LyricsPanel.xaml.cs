@@ -10,7 +10,7 @@ namespace Moonrise.Pages
     public sealed partial class LyricsPanel : Page
     {
         private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
-        private readonly PlaybackService playback = PlaybackService.Instance;
+        private readonly IPlaybackService playback = App.Services.GetRequiredService<IPlaybackService>();
 
         public LyricsPanel()
         {
@@ -23,7 +23,7 @@ namespace Moonrise.Pages
 
         private void Playback_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(PlaybackService.CurrentTrack))
+            if (e.PropertyName == nameof(IPlaybackService.CurrentTrack))
             {
                 DispatcherQueue.TryEnqueue(() => UpdateLyricsSelection(true));
             }

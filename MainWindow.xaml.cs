@@ -50,7 +50,7 @@ namespace Moonrise
         private SoftwareBitmap? _lastRenderedBitmap;
         private CanvasBitmap? _backgroundCanvasBitmap;
 
-        public PlaybackService PlaybackService => PlaybackService.Instance;
+        public IPlaybackService PlaybackService { get; } = App.Services.GetRequiredService<IPlaybackService>();
         public IToastService ToastService => App.Services.GetRequiredService<IToastService>();
 
 
@@ -152,15 +152,15 @@ namespace Moonrise
                 BackgroundCanvas.Invalidate();
             };
 
-            PlaybackService.Instance.PropertyChanged += (s, e) =>
+            PlaybackService.PropertyChanged += (s, e) =>
             {
-                if (e.PropertyName == nameof(PlaybackService.CurrentTrackBackgroundBitmap))
+                if (e.PropertyName == nameof(IPlaybackService.CurrentTrackBackgroundBitmap))
                 {
-                    _currentBackgroundSoftwareBitmap = PlaybackService.Instance.CurrentTrackBackgroundBitmap;
+                    _currentBackgroundSoftwareBitmap = PlaybackService.CurrentTrackBackgroundBitmap;
                     DispatcherQueue.TryEnqueue(UpdateBackgroundCanvas);
                 }
-                if (e.PropertyName == nameof(PlaybackService.CurrentTrack) ||
-                    e.PropertyName == nameof(PlaybackService.CurrentPlaybackState))
+                if (e.PropertyName == nameof(IPlaybackService.CurrentTrack) ||
+                    e.PropertyName == nameof(IPlaybackService.CurrentPlaybackState))
                 {
                     DispatcherQueue.TryEnqueue(UpdateShaderSpeedMultiplier);
                     DispatcherQueue.TryEnqueue(UpdateBackgroundCanvas);
@@ -212,8 +212,8 @@ namespace Moonrise
 
         private void UpdateShaderSpeedMultiplier()
         {
-            var state = PlaybackService.Instance.CurrentPlaybackState;
-            var track = PlaybackService.Instance.CurrentTrack;
+            var state = PlaybackService.CurrentPlaybackState;
+            var track = PlaybackService.CurrentTrack;
 
             if (state != PlaybackState.Playing || track == null)
             {
@@ -322,7 +322,7 @@ namespace Moonrise
         {
             if (!_settings.BackgroundShadersEnabled ||
                 !_isWindowFocused ||
-                PlaybackService.Instance.CurrentPlaybackState != PlaybackState.Playing ||
+                PlaybackService.CurrentPlaybackState != PlaybackState.Playing ||
                 _currentBackgroundSoftwareBitmap == null)
                 return 0.0;
             return _isLightTheme ? 0.25 : 0.45;
@@ -430,7 +430,7 @@ namespace Moonrise
                         NavFrame.Navigate(typeof(TracksPage));
                         break;
                     case "favorites":
-                        NavFrame.Navigate(typeof(TracksPage));
+                        NavFrame.Navigate(typeof(FavoritesPage));
                         break;
                     case "playlists":
                         NavFrame.Navigate(typeof(TracksPage));

@@ -14,15 +14,12 @@
         <Style x:Key="TransparentIconButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
         </Style>
-
-        <Style x:Key="ActiveIcon" TargetType="FontIcon">
-            <Setter Property="Foreground" Value="{ThemeResource AccentFillColorDefaultBrush}"/>
-        </Style>
-        <Style x:Key="InactiveIcon" TargetType="FontIcon">
-            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
-        </Style>
     </UserControl.Resources>
     <Button x:Name="CircleIconButtonObject" CornerRadius="64" Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}" BorderThickness="1" BorderBrush="{ThemeResource ControlStrokeColorSecondary}">
-        <FontIcon x:Name="GlyphIcon" Glyph="{x:Bind Glyph, Mode=OneWay}" FontSize="{x:Bind IconSize, Mode=OneWay}"/>
+        <FontIcon x:Name="GlyphIcon" Glyph="{x:Bind Glyph, Mode=OneWay}" FontSize="{x:Bind IconSize, Mode=OneWay}">
+            <FontIcon.Foreground>
+                <SolidColorBrush x:Name="GlyphBrush" Color="{ThemeResource TextFillColorPrimary}"/>
+            </FontIcon.Foreground>
+        </FontIcon>
     </Button>
 </UserControl>

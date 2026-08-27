@@ -39,7 +39,7 @@ namespace Moonrise.Pages
     {
         private static readonly Regex LrcTimestampRegex = new(@"\[(\d{2}):(\d{2}\.\d{2,3})\]", RegexOptions.Compiled);
         private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
-        public PlaybackService Playback => PlaybackService.Instance;
+        public IPlaybackService Playback { get; } = App.Services.GetRequiredService<IPlaybackService>();
 
         public ObservableCollection<EvaluatedLyric> DisplayLyrics { get; } = new();
 
@@ -135,7 +135,7 @@ namespace Moonrise.Pages
 
         private void Playback_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(PlaybackService.CurrentTrackTime))
+            if (e.PropertyName == nameof(IPlaybackService.CurrentTrackTime))
             {
                 var currentTime = Playback.CurrentTrackTime + TimeSpan.FromSeconds(0.35);
                 var activeChanged = false;
@@ -186,7 +186,7 @@ namespace Moonrise.Pages
                     }));
                 }
             }
-            else if (e.PropertyName == nameof(PlaybackService.CurrentTrack))
+            else if (e.PropertyName == nameof(IPlaybackService.CurrentTrack))
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {

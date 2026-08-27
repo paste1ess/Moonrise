@@ -20,6 +20,7 @@ namespace Moonrise.Controls
         private CancellationTokenSource? _artworkCts;
         private readonly IArtService art = App.Services.GetRequiredService<IArtService>();
         private readonly ITaskService task = App.Services.GetRequiredService<ITaskService>();
+        private readonly IPlaybackService playback = App.Services.GetRequiredService<IPlaybackService>();
 
         private void ReleaseCurrentArt()
         {
@@ -141,7 +142,7 @@ namespace Moonrise.Controls
 
         private void RemoveFromQueue_Click(object sender, RoutedEventArgs e)
         {
-            PlaybackService.Instance.Queue.ActiveQueue.Remove(Item);
+            playback.Queue.ActiveQueue.Remove(Item);
         }
     }
 }

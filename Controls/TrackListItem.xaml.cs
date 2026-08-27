@@ -21,6 +21,8 @@ namespace Moonrise.Controls
         private CancellationTokenSource? _artworkCts;
         private readonly IArtService art = App.Services.GetRequiredService<IArtService>();
         private readonly ITaskService task = App.Services.GetRequiredService<ITaskService>();
+        private readonly IPlaybackService playback = App.Services.GetRequiredService<IPlaybackService>();
+        private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
 
         private void ReleaseCurrentArt()
         {
@@ -47,6 +49,7 @@ namespace Moonrise.Controls
             if (d is TrackListItem control)
             {
                 control.UpdateArtworkAsync();
+                control.UpdateFavoriteMenuItemVisuals();
             }
         }
 
@@ -94,6 +97,7 @@ namespace Moonrise.Controls
         public TrackListItem()
         {
             InitializeComponent();
+            Loaded += (s, e) => UpdateFavoriteMenuItemVisuals();
             Unloaded += (s, e) =>
             {
                 _updateCount++;
@@ -183,12 +187,50 @@ namespace Moonrise.Controls
 
         private void PlayNext_Click(object sender, RoutedEventArgs e)
         {
-            PlaybackService.Instance.Queue.AddToStart(Song);
+            playback.Queue.AddToStart(Song);
         }
 
         private void PlayLast_Click(object sender, RoutedEventArgs e)
         {
-            PlaybackService.Instance.Queue.AddToEnd(Song);
+            playback.Queue.AddToEnd(Song);
+        }
+
+        private void MenuFlyout_Opening(object? sender, object e)
+        {
+            UpdateFavoriteMenuItemVisuals();
+        }
+
+        private void UpdateFavoriteMenuItemVisuals()
+        {
+            bool isFav = Song?.IsFavorite ?? false;
+            FavoriteMenuItem.Text = isFav ? "Remove from favorites" : "Favorite";
+            FavoriteIcon.Glyph = isFav ? "\uEB52" : "\uEB51";
+            FavoriteIconDisplay.Glyph = isFav ? "\uEB52" : "\uEB51";
+
+            if (Application.Current.Resources.TryGetValue(isFav ? "AccentFillColorDefaultBrush" : "TextFillColorPrimaryBrush", out var brushObj) && brushObj is SolidColorBrush targetBrush)
+            {
+                var anim = new Microsoft.UI.Xaml.Media.Animation.ColorAnimation
+                {
+                    To = targetBrush.Color,
+                    Duration = TimeSpan.FromMilliseconds(200),
+                    EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut }
+                };
+                var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, FavoriteIconDisplayBrush);
+                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Color");
+                sb.Children.Add(anim);
+                sb.Begin();
+            }
+        }
+
+        private async void Favorite_Click(object sender, RoutedEventArgs e)
+        {
+            if (Song == null) return;
+
+            Song.IsFavorite = !Song.IsFavorite;
+            UpdateFavoriteMenuItemVisuals();
+
+            await library.SetTrackFavorite(Song.Id, Song.IsFavorite);
         }
     }
 }

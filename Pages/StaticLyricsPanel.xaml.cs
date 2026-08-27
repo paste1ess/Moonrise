@@ -20,7 +20,7 @@ namespace Moonrise.Pages
 {
     public sealed partial class StaticLyricsPanel : Page, INotifyPropertyChanged
     {
-        private PlaybackService playbackService = PlaybackService.Instance;
+        private readonly IPlaybackService playbackService = App.Services.GetRequiredService<IPlaybackService>();
         private readonly ILibraryService libService = App.Services.GetRequiredService<ILibraryService>();
 
         private string? _lyrics;
@@ -49,7 +49,7 @@ namespace Moonrise.Pages
 
         private void OnPlaybackPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(PlaybackService.CurrentTrack))
+            if (e.PropertyName == nameof(IPlaybackService.CurrentTrack))
                 _ = UpdateLyrics(playbackService.CurrentTrack?.Id);
         }
 
