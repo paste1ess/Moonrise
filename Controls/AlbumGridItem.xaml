@@ -11,7 +11,7 @@
     <Button Width="200" Padding="12" Background="Transparent" BorderThickness="0" Click="OnClick">
         <StackPanel HorizontalAlignment="Center" Padding="0" Spacing="2">
             <Grid Grid.Column="0" CornerRadius="4" Width="174" Height="174" Margin="0,0,0,4">
-                <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>
+                <Image x:Name="CoverImage" Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>
             </Grid>
             <TextBlock Text="{x:Bind Album.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="NoWrap" MaxLines="1" TextTrimming="CharacterEllipsis"/>
             <TextBlock Text="{x:Bind Album.Artist, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="NoWrap" MaxLines="1" TextTrimming="CharacterEllipsis"/>

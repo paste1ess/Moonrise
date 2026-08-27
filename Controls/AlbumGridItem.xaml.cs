@@ -32,6 +32,8 @@ namespace Moonrise.Controls
         private readonly IArtService art = App.Services.GetRequiredService<IArtService>();
         private readonly ITaskService task = App.Services.GetRequiredService<ITaskService>();
 
+        public Image CoverImageControl => CoverImage;
+
         public event RoutedEventHandler? Click;
         private void OnClick(object sender, RoutedEventArgs e) => Click?.Invoke(this, e);
 

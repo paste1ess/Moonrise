@@ -8,6 +8,7 @@ using Moonrise.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Windows.Graphics.Imaging;
@@ -74,8 +75,12 @@ namespace Moonrise.Services
         public partial ImageSource? CurrentTrackArtwork { get; set; }
         [ObservableProperty]
         public partial SoftwareBitmap? CurrentTrackBackgroundBitmap { get; set; }
-        
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern uint SetThreadExecutionState(uint esFlags);
+
+        private const uint ES_CONTINUOUS = 0x80000000;
+        private const uint ES_SYSTEM_REQUIRED = 0x00000001;
 
         private CancellationTokenSource? _artworkCts;
         private SoftwareBitmap? _previousBackgroundBitmap;
@@ -139,10 +144,9 @@ namespace Moonrise.Services
             CurrentPlaybackState = PlaybackState.None;
             mediaPlayer = new();
 
-            _positionTimer.Interval = TimeSpan.FromMilliseconds(500);
+            _positionTimer.Interval = TimeSpan.FromMilliseconds(100);
             _positionTimer.Tick += (_, _) => { 
                 OnPropertyChanged(nameof(CurrentTrackTime));
-                //if (CurrentTrack != null) rpc.SetPresence(CurrentTrack.Title, CurrentTrack.Artist);
             };
 
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
@@ -355,6 +359,7 @@ namespace Moonrise.Services
 
         private async Task playBase()
         {
+            SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
             mediaPlayer.Play();
             if (CurrentTrack != null) rpc.SetPresence(CurrentTrack.Title, CurrentTrack.Artist);
             task.Dispatcher.TryEnqueue(() => {
@@ -365,6 +370,7 @@ namespace Moonrise.Services
 
         private async Task pauseBase()
         {
+            SetThreadExecutionState(ES_CONTINUOUS);
             mediaPlayer.Pause();
             rpc.ClearPresence();
             task.Dispatcher.TryEnqueue(() => {
@@ -375,6 +381,7 @@ namespace Moonrise.Services
 
         private async Task stopBase()
         {
+            SetThreadExecutionState(ES_CONTINUOUS);
             mediaPlayer.Pause();
             rpc.ClearPresence();
             task.Dispatcher.TryEnqueue(() => {
@@ -389,6 +396,7 @@ namespace Moonrise.Services
 
         private async Task errorActionBase()
         {
+            SetThreadExecutionState(ES_CONTINUOUS);
             task.Dispatcher.TryEnqueue(() => {
                 CurrentPlaybackState = PlaybackState.Error;
                 _positionTimer.Stop();
@@ -455,6 +463,7 @@ namespace Moonrise.Services
 
         public void ResetForLibraryChange()
         {
+            SetThreadExecutionState(ES_CONTINUOUS);
             mediaPlayer.Pause();
 
             task.Dispatcher.TryEnqueue(() =>

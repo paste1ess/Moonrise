@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using Moonrise.Models;
 using Moonrise.Services;
@@ -56,6 +57,7 @@ namespace Moonrise.Pages
         {
             if (sender is Controls.AlbumGridItem item && item.Album is Album selectedAlbum)
             {
+                ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ForwardAlbumCover", item.CoverImageControl);
                 Frame.Navigate(typeof(AlbumItemPage), selectedAlbum);
             }
         }

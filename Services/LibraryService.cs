@@ -305,13 +305,14 @@ namespace Moonrise.Services
             if (!file.Properties.MediaTypes.HasFlag(TagLib.MediaTypes.Audio)) return (null, null);
 
             var artist = (file.Tag.Performers.FirstOrDefault() ?? "Unknown Artist").Trim();
+            var albumArtist = (file.Tag.FirstAlbumArtist ?? artist).Trim();
             var album = (file.Tag.Album ?? "Unknown Album").Trim();
             var title = (file.Tag.Title ?? Path.GetFileNameWithoutExtension(absolutePath)).Trim();
 
             var track = new Track
             {
                 Id = trackId,
-                AlbumId = IdGenerator.GetAlbumId(album, artist),
+                AlbumId = IdGenerator.GetAlbumId(album, albumArtist),
                 ArtistId = IdGenerator.GetArtistId(artist),
                 Title = title,
                 Album = album,

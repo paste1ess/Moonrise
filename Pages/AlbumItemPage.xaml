@@ -13,7 +13,7 @@
         <StackPanel Margin="0,0,0,16" Spacing="32">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" Spacing="24">
                 <Grid CornerRadius="4" Width="320" Height="320">
-                    <Image Source="{x:Bind AlbumArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
+                    <Image x:Name="AlbumCoverImage" Source="{x:Bind AlbumArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
                 </Grid>
                 <StackPanel VerticalAlignment="Bottom" Spacing="24">
                     <StackPanel VerticalAlignment="Center">

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
@@ -31,6 +32,15 @@ namespace Moonrise.Pages
                 Playback.PropertyChanged -= Playback_PropertyChanged;
             };
             Playback.PropertyChanged += Playback_PropertyChanged;
+        }
+
+        private void QueueListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+        {
+            if (e.Items.FirstOrDefault() is QueueTrack track)
+            {
+                e.Data.SetText($"{track.Title} - {track.Artist}");
+                e.Data.RequestedOperation = DataPackageOperation.Copy;
+            }
         }
 
         private void Playback_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using Moonrise.Models;
 using Moonrise.Services;
@@ -51,6 +52,9 @@ public sealed partial class AlbumItemPage : Page
             DisplayedAlbum = album;
             Tracks = library.GetTracksByIds(album.TrackIds).OrderBy(t => t.TrackNumber ?? int.MaxValue);
             LoadArtworkAsync(album);
+
+            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("ForwardAlbumCover");
+            animation?.TryStart(AlbumCoverImage);
         }
     }
 
@@ -69,7 +73,8 @@ public sealed partial class AlbumItemPage : Page
         _artworkCts = new CancellationTokenSource();
         var token = _artworkCts.Token;
 
-        AlbumArt = null;
+        var cached = art.GetCachedArtwork(album.Id, 320) ?? art.GetCachedArtwork(album.Id, 174);
+        AlbumArt = cached;
 
         try
         {
