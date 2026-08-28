@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Moonrise.Pages.FavoritesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Moonrise.Pages"
+    xmlns:controls="using:Moonrise.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24,16,24,0" RowSpacing="24" MaxWidth="1400" HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Favorites" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Style="{ThemeResource AccentButtonStyle}" Click="PlayButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                        <FontIcon Glyph="&#xE768;"/>
+                        <TextBlock Text="Play"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="ShuffleButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                        <FontIcon Glyph="&#xE8B1;"/>
+                        <TextBlock Text="Shuffle"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer
+        Grid.Row="1"
+        Background="Transparent"
+        Padding="0,0,16,16">
+            <controls:TrackList x:Name="TrackListView"/>
+        </ScrollViewer>
+    </Grid>
+</Page>
