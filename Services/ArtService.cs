@@ -27,6 +27,7 @@ namespace Moonrise.Services
         Task<ImageSource?> GetArtwork(Track track, int size, CancellationToken token = default);
         Task<ImageSource?> GetArtwork(QueueTrack track, int size, CancellationToken token = default);
         Task<ImageSource?> GetArtwork(Album album, int size, CancellationToken token = default);
+        Task<ImageSource?> GetArtwork(Playlist playlist, int size, CancellationToken token = default);
         Task<RandomAccessStreamReference?> GetArtworkStreamReference(Track track, CancellationToken token = default);
         Task<SoftwareBitmap?> GetArtworkBitmap(Track track, int size, CancellationToken token = default);
         ImageSource? GetCachedArtwork(string id, int size);
@@ -144,6 +145,199 @@ namespace Moonrise.Services
                         addToCache(key, new(album.Id, size, embeddedImage));
                         return embeddedImage;
                     }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                _ioSemaphore.Release();
+            }
+
+            lock (cache)
+            {
+                placeholderItems.Add(key);
+            }
+            return null;
+        }
+
+        public async Task<ImageSource?> GetArtwork(Playlist playlist, int size, CancellationToken token = default)
+        {
+            ArtKey key = new(playlist.Id, size);
+            lock (cache)
+            {
+                if (placeholderItems.Contains(key)) return null;
+
+                if (cache.TryGetValue(key, out var cachedItem))
+                {
+                    lruList.Remove(key);
+                    lruList.AddLast(key);
+                    return cachedItem.Data;
+                }
+            }
+
+            if (playlist.TrackIds == null || playlist.TrackIds.Length == 0)
+                return null;
+
+            if (playlist.TrackIds.Length == 1)
+            {
+                var track = await library.GetTrack(playlist.TrackIds[0]);
+                if (track == null || token.IsCancellationRequested) return null;
+                var singleArt = await GetArtwork(track, size, token);
+                if (singleArt != null)
+                {
+                    addToCache(key, new(playlist.Id, size, singleArt));
+                }
+                return singleArt;
+            }
+
+            try
+            {
+                await _ioSemaphore.WaitAsync(token);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            try
+            {
+                if (token.IsCancellationRequested) return null;
+
+                var trackIdsToLoad = playlist.TrackIds.Take(4).ToList();
+                var tracks = new List<Track>();
+                foreach (var tid in trackIdsToLoad)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    var t = await library.GetTrack(tid);
+                    if (t != null) tracks.Add(t);
+                }
+
+                if (tracks.Count == 0 || token.IsCancellationRequested) return null;
+
+                if (tracks.Count == 1)
+                {
+                    var singleArt = await GetArtwork(tracks[0], size, token);
+                    if (singleArt != null)
+                    {
+                        addToCache(key, new(playlist.Id, size, singleArt));
+                    }
+                    return singleArt;
+                }
+
+                int halfSize = size / 2;
+                var bitmaps = new List<SoftwareBitmap?>();
+
+                for (int i = 0; i < 4; i++)
+                {
+                    if (i < tracks.Count)
+                    {
+                        if (token.IsCancellationRequested) break;
+                        var bmp = await GetArtworkBitmap(tracks[i], halfSize, token);
+                        bitmaps.Add(bmp);
+                    }
+                    else
+                    {
+                        bitmaps.Add(null);
+                    }
+                }
+
+                if (token.IsCancellationRequested)
+                {
+                    foreach (var b in bitmaps) b?.Dispose();
+                    return null;
+                }
+
+                bool hasAnyArt = bitmaps.Any(b => b != null);
+                if (!hasAnyArt)
+                {
+                    foreach (var b in bitmaps) b?.Dispose();
+                    lock (cache)
+                    {
+                        placeholderItems.Add(key);
+                    }
+                    return null;
+                }
+
+                byte[] compositePixels = new byte[size * size * 4];
+                int halfW = size / 2;
+                int halfH = size / 2;
+
+                (int startX, int startY, int w, int h)[] quadrants = new[]
+                {
+                    (0, 0, halfW, halfH),
+                    (halfW, 0, size - halfW, halfH),
+                    (0, halfH, halfW, size - halfH),
+                    (halfW, halfH, size - halfW, size - halfH)
+                };
+
+                for (int i = 0; i < 4; i++)
+                {
+                    var bmp = bitmaps[i];
+                    if (bmp != null)
+                    {
+                        try
+                        {
+                            int bmpW = bmp.PixelWidth;
+                            int bmpH = bmp.PixelHeight;
+                            byte[] srcPixels = new byte[bmpW * bmpH * 4];
+                            bmp.CopyToBuffer(srcPixels.AsBuffer());
+
+                            var (startX, startY, qW, qH) = quadrants[i];
+                            int copyH = Math.Min(qH, bmpH);
+                            int copyW = Math.Min(qW, bmpW);
+
+                            for (int y = 0; y < copyH; y++)
+                            {
+                                int srcRowOffset = y * bmpW * 4;
+                                int dstRowOffset = ((startY + y) * size + startX) * 4;
+                                System.Buffer.BlockCopy(srcPixels, srcRowOffset, compositePixels, dstRowOffset, copyW * 4);
+                            }
+                        }
+                        finally
+                        {
+                            bmp.Dispose();
+                        }
+                    }
+                }
+
+                if (token.IsCancellationRequested) return null;
+
+                var softwareBitmap = new SoftwareBitmap(BitmapPixelFormat.Bgra8, size, size, BitmapAlphaMode.Premultiplied);
+                softwareBitmap.CopyFromBuffer(compositePixels.AsBuffer());
+
+                var tcs = new TaskCompletionSource<ImageSource?>();
+                _taskService.Dispatcher.TryEnqueue(async () =>
+                {
+                    try
+                    {
+                        if (token.IsCancellationRequested)
+                        {
+                            softwareBitmap.Dispose();
+                            tcs.SetResult(null);
+                            return;
+                        }
+                        var source = new SoftwareBitmapSource();
+                        await source.SetBitmapAsync(softwareBitmap);
+                        tcs.SetResult(source);
+                    }
+                    catch (Exception ex)
+                    {
+                        softwareBitmap.Dispose();
+                        tcs.SetException(ex);
+                    }
+                });
+
+                var image = await tcs.Task;
+                if (image != null)
+                {
+                    addToCache(key, new(playlist.Id, size, image));
+                    return image;
                 }
             }
             catch (OperationCanceledException)

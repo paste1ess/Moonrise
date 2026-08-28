@@ -492,7 +492,7 @@ namespace Moonrise
                         NavFrame.Navigate(typeof(FavoritesPage));
                         break;
                     case "playlists":
-                        NavFrame.Navigate(typeof(TracksPage));
+                        NavFrame.Navigate(typeof(PlaylistsPage));
                         break;
                     default:
                         throw new InvalidOperationException($"Unknown navigation item tag: {item.Tag}");

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Moonrise.Services
@@ -27,6 +28,11 @@ namespace Moonrise.Services
         IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids);
         Task<Album?> GetAlbum(string id);
         IEnumerable<Album> GetAllAlbums();
+
+        IEnumerable<Playlist> GetAllPlaylists();
+        Task<Playlist?> GetPlaylist(string id);
+        //Task UpsertPlaylist(Playlist playlist);
+
     }
 
     public class LibraryService : ILibraryService
@@ -296,6 +302,72 @@ namespace Moonrise.Services
                 dbService.UpsertArtistsBatch(artistsToSave);
             }
 
+            var playlistExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".m3u8", ".m3u", ".m3a8", ".m3a"
+            };
+
+            var playlistFiles = dirInfo.EnumerateFiles("*.*", SearchOption.AllDirectories)
+                                       .Where(f => playlistExtensions.Contains(f.Extension));
+
+            var trackPathLookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var track in allPresentTracks)
+            {
+                trackPathLookup[track.FilePath] = track.Id;
+                trackPathLookup[track.FilePath.Replace('/', '\\')] = track.Id;
+                trackPathLookup[track.FilePath.Replace('\\', '/')] = track.Id;
+
+                var fullPath = Path.GetFullPath(Path.Combine(folderPath, track.FilePath));
+                trackPathLookup[fullPath] = track.Id;
+
+                var relPath = Path.GetRelativePath(folderPath, fullPath);
+                trackPathLookup[relPath] = track.Id;
+                trackPathLookup[relPath.Replace('/', '\\')] = track.Id;
+                trackPathLookup[relPath.Replace('\\', '/')] = track.Id;
+            }
+
+            var playlistsToSave = new List<Playlist>();
+            foreach (var playlistFile in playlistFiles)
+            {
+                try
+                {
+                    var playlistRelPath = Path.GetRelativePath(folderPath, playlistFile.FullName);
+                    var title = Path.GetFileNameWithoutExtension(playlistFile.Name);
+                    var playlistId = IdGenerator.GetPlaylistId(title, playlistRelPath);
+                    var trackIds = new List<string>();
+                    foreach (var rawPath in ExtractPaths(playlistFile.FullName))
+                    {
+                        if (trackPathLookup.TryGetValue(rawPath, out var trackId))
+                        {
+                            trackIds.Add(trackId);
+                        }
+                        else
+                        {
+                            var rel = Path.GetRelativePath(folderPath, rawPath);
+                            if (trackPathLookup.TryGetValue(rel, out trackId))
+                            {
+                                trackIds.Add(trackId);
+                            }
+                        }
+                    }
+                    playlistsToSave.Add(new Playlist
+                    {
+                        Id = playlistId,
+                        Title = title,
+                        TrackIds = trackIds.ToArray()
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+            }
+
+            if (playlistsToSave.Count > 0)
+            {
+                dbService.UpsertPlaylistsBatch(playlistsToSave);
+            }
+
             toastHandle.Complete($"Finished scanning {scannedCount} songs.");
         }
 
@@ -372,5 +444,65 @@ namespace Moonrise.Services
         {
             return dbService.GetAllAlbums();
         }
+
+        public IEnumerable<Playlist> GetAllPlaylists()
+        {
+            return dbService.GetAllPlaylists();
+        }
+
+        public async Task<Playlist?> GetPlaylist(string id)
+        {
+            return dbService.GetPlaylistFromId(id);
+        }
+
+        static IEnumerable<string> ExtractPaths(string m3u8Path)
+        {
+            var playlistDir = Path.GetDirectoryName(m3u8Path) ?? string.Empty;
+
+            foreach (var rawLine in File.ReadLines(m3u8Path, Encoding.UTF8))
+            {
+                var line = rawLine.Trim();
+
+                if (string.IsNullOrEmpty(line) || line.StartsWith('#'))
+                    continue;
+
+                string pathStr = line;
+                if (pathStr.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (Uri.TryCreate(pathStr, UriKind.Absolute, out var fileUri) && fileUri.IsFile)
+                    {
+                        pathStr = fileUri.LocalPath;
+                    }
+                    else
+                    {
+                        pathStr = pathStr.Substring(7).TrimStart('/');
+                    }
+                }
+
+                try
+                {
+                    pathStr = Uri.UnescapeDataString(pathStr);
+                }
+                catch { }
+
+                var normalized = pathStr.Replace('/', Path.DirectorySeparatorChar);
+
+                if (!Path.IsPathRooted(normalized))
+                {
+                    normalized = Path.GetFullPath(Path.Combine(playlistDir, normalized));
+                }
+                else
+                {
+                    try
+                    {
+                        normalized = Path.GetFullPath(normalized);
+                    }
+                    catch { }
+                }
+
+                yield return normalized;
+            }
+        }
+
     }
 }

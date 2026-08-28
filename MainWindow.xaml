@@ -149,7 +149,7 @@
                             <FontIcon Glyph="&#xE728;" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="Playlists" Tag="artists">
+                    <NavigationViewItem Content="Playlists" Tag="playlists">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xF168;" />
                         </NavigationViewItem.Icon>

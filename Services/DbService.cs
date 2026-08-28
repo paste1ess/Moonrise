@@ -85,6 +85,13 @@ namespace Moonrise.Services
                     lyrics      TEXT
                 );", _connection);
                 lyricTableCommand.ExecuteNonQuery();
+
+                using var playlistTableCommand = new SqliteCommand(@"CREATE TABLE IF NOT EXISTS playlists (
+                    id        TEXT PRIMARY KEY,
+                    title     TEXT NOT NULL,
+                    track_ids TEXT NOT NULL
+                );", _connection);
+                playlistTableCommand.ExecuteNonQuery();
             }
         }
 
@@ -97,6 +104,7 @@ namespace Moonrise.Services
                     DROP TABLE IF EXISTS albums;
                     DROP TABLE IF EXISTS artists;
                     DROP TABLE IF EXISTS lyrics;
+                    DROP TABLE IF EXISTS playlists;
                 ", _connection);
                 cmd.ExecuteNonQuery();
 
@@ -759,6 +767,104 @@ namespace Moonrise.Services
             }
         }
 
+        public void UpsertPlaylist(Playlist playlist)
+        {
+            lock (_dbLock)
+            {
+                using var command = new SqliteCommand(@"INSERT INTO playlists 
+                    (id, title, track_ids) VALUES 
+                    (@id, @title, @track_ids)
+                    ON CONFLICT(id) DO UPDATE SET
+                        title = excluded.title,
+                        track_ids = excluded.track_ids;",
+                _connection);
+
+                string jsonTracks = JsonSerializer.Serialize(new List<string>(playlist.TrackIds), DbJsonContext.Default.ListString);
+
+                command.Parameters.AddWithValue("@id", playlist.Id);
+                command.Parameters.AddWithValue("@title", playlist.Title);
+                command.Parameters.AddWithValue("@track_ids", jsonTracks);
+
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public void UpsertPlaylistsBatch(IEnumerable<Playlist> playlists)
+        {
+            lock (_dbLock)
+            {
+                using var transaction = _connection.BeginTransaction();
+                using var command = new SqliteCommand(@"INSERT INTO playlists 
+                    (id, title, track_ids) VALUES 
+                    (@id, @title, @track_ids)
+                    ON CONFLICT(id) DO UPDATE SET
+                        title = excluded.title,
+                        track_ids = excluded.track_ids;",
+                _connection, transaction);
+
+                var idParam = command.Parameters.Add("@id", SqliteType.Text);
+                var titleParam = command.Parameters.Add("@title", SqliteType.Text);
+                var trackIdsParam = command.Parameters.Add("@track_ids", SqliteType.Text);
+
+                foreach (var playlist in playlists)
+                {
+                    idParam.Value = playlist.Id;
+                    titleParam.Value = playlist.Title ?? "Unknown Playlist";
+                    trackIdsParam.Value = JsonSerializer.Serialize(new List<string>(playlist.TrackIds), DbJsonContext.Default.ListString);
+
+                    command.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+            }
+        }
+
+        public Playlist? GetPlaylistFromId(string id)
+        {
+            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            connection.Open();
+            using var command = new SqliteCommand("SELECT * FROM playlists WHERE id = @id", connection);
+            command.Parameters.AddWithValue("@id", id);
+            using var reader = command.ExecuteReader();
+            var idOrd = reader.GetOrdinal("id");
+            var titleOrd = reader.GetOrdinal("title");
+            var trackIdsOrd = reader.GetOrdinal("track_ids");
+            if (reader.Read())
+            {
+                var jsonTracks = reader.GetString(trackIdsOrd);
+                var trackIds = JsonSerializer.Deserialize(jsonTracks, DbJsonContext.Default.ListString)?.ToArray() ?? Array.Empty<string>();
+                return new Playlist
+                {
+                    Id = reader.GetString(idOrd),
+                    Title = reader.GetString(titleOrd),
+                    TrackIds = trackIds
+                };
+            }
+            return null;
+        }
+
+        public IEnumerable<Playlist> GetAllPlaylists()
+        {
+            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            connection.Open();
+            using var command = new SqliteCommand("SELECT * FROM playlists", connection);
+            using var reader = command.ExecuteReader();
+            var idOrd = reader.GetOrdinal("id");
+            var titleOrd = reader.GetOrdinal("title");
+            var trackIdsOrd = reader.GetOrdinal("track_ids");
+            while (reader.Read())
+            {
+                var jsonTracks = reader.GetString(trackIdsOrd);
+                var trackIds = JsonSerializer.Deserialize(jsonTracks, DbJsonContext.Default.ListString)?.ToArray() ?? Array.Empty<string>();
+                yield return new Playlist
+                {
+                    Id = reader.GetString(idOrd),
+                    Title = reader.GetString(titleOrd),
+                    TrackIds = trackIds
+                };
+            }
+        }
+
         public void Dispose()
         {
             lock (_dbLock)
@@ -780,6 +886,11 @@ namespace Moonrise.Services
         public static string GetAlbumId(string albumTitle, string artistName)
         {
             return $"alb_{HashString((artistName.Trim() + "_" + albumTitle.Trim()).ToLowerInvariant())}";
+        }
+
+        public static string GetPlaylistId(string title, string relativePath)
+        {
+            return $"pls_{HashString((title.Trim() + "_" + relativePath.Trim()).ToLowerInvariant())}";
         }
 
         private static string HashString(string input)
