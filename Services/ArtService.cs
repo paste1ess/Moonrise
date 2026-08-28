@@ -198,15 +198,6 @@ namespace Moonrise.Services
 
             try
             {
-                await _ioSemaphore.WaitAsync(token);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-
-            try
-            {
                 if (token.IsCancellationRequested) return null;
 
                 var trackIdsToLoad = playlist.TrackIds.Take(4).ToList();
@@ -346,10 +337,6 @@ namespace Moonrise.Services
             }
             catch (Exception)
             {
-            }
-            finally
-            {
-                _ioSemaphore.Release();
             }
 
             lock (cache)
