@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\AlbumGridItem.xaml" />
+    <None Remove="Controls\ArtistItemControl.xaml" />
     <None Remove="Controls\CircleIconButton.xaml" />
     <None Remove="Controls\LyricItem.xaml" />
     <None Remove="Controls\QueueListItem.xaml" />
@@ -178,6 +179,11 @@
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\ArtistItemControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\FavoritesPage.xaml">

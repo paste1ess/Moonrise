@@ -29,6 +29,13 @@ namespace Moonrise.Pages
                 _settings.PropertyChanged -= Settings_PropertyChanged;
             };
             UpdateScanButtonState();
+            ThemeComboBox.SelectedIndex = _settings.Theme switch
+            {
+                ElementTheme.Default => 0,
+                ElementTheme.Light => 1,
+                ElementTheme.Dark => 2,
+                _ => 0
+            };
             _settings.PropertyChanged += Settings_PropertyChanged;
         }
 
@@ -37,6 +44,27 @@ namespace Moonrise.Pages
             if (e.PropertyName == nameof(ISettingsService.MusicLibraryPath))
             {
                 DispatcherQueue.TryEnqueue(UpdateScanButtonState);
+            }
+            else if (e.PropertyName == nameof(ISettingsService.Theme))
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    ThemeComboBox.SelectedIndex = _settings.Theme switch
+                    {
+                        ElementTheme.Default => 0,
+                        ElementTheme.Light => 1,
+                        ElementTheme.Dark => 2,
+                        _ => 0
+                    };
+                });
+            }
+        }
+
+        private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ThemeComboBox.SelectedItem is ComboBoxItem item && Enum.TryParse<ElementTheme>(item.Tag?.ToString(), out var theme))
+            {
+                _settings.Theme = theme;
             }
         }
 

@@ -9,7 +9,7 @@ namespace Moonrise.Services
         float GetVolumePeak();
     }
 
-    public sealed class AudioPeakService : IAudioPeakService, IDisposable
+    public sealed class AudioPeakService : IAudioPeakService
     {
         private MMDeviceEnumerator? _enumerator;
         private MMDevice? _device;

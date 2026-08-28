@@ -108,10 +108,20 @@ namespace Moonrise
                 _shaderEffect = null;
             };
 
-            _isLightTheme = Application.Current.RequestedTheme == ApplicationTheme.Light;
+            if (Content is FrameworkElement rootElement)
+            {
+                rootElement.RequestedTheme = _settings.Theme;
+            }
+
+            UpdateTitleBarTheme(_settings.Theme);
+
+            _isLightTheme = (Content is FrameworkElement root)
+                ? root.ActualTheme == ElementTheme.Light
+                : Application.Current.RequestedTheme == ApplicationTheme.Light;
             ((FrameworkElement)Content).ActualThemeChanged += (s, _) =>
             {
                 _isLightTheme = s.ActualTheme == ElementTheme.Light;
+                UpdateTitleBarTheme(s.ActualTheme);
                 UpdateBackgroundCanvas();
             };
 
@@ -205,9 +215,58 @@ namespace Moonrise
                             ? TimeSpan.FromSeconds(1.0 / 60.0)
                             : TimeSpan.FromSeconds(1.0 / 12.0);
                 }
+                else if (e.PropertyName == nameof(ISettingsService.Theme))
+                {
+                    if (Content is FrameworkElement rootElem)
+                    {
+                        rootElem.RequestedTheme = _settings.Theme;
+                    }
+                    UpdateTitleBarTheme(_settings.Theme);
+                }
             };
 
             NavView.SelectedItem = NavView.MenuItems[0];
+        }
+
+        private void UpdateTitleBarTheme(ElementTheme theme)
+        {
+            var isLight = theme switch
+            {
+                ElementTheme.Light => true,
+                ElementTheme.Dark => false,
+                _ => (Content is FrameworkElement root) ? root.ActualTheme == ElementTheme.Light : Application.Current.RequestedTheme == ApplicationTheme.Light
+            };
+
+            if (AppTitleBar != null)
+            {
+                AppTitleBar.RequestedTheme = theme;
+            }
+
+            var titleBar = AppWindow?.TitleBar;
+            if (titleBar != null)
+            {
+                titleBar.ButtonBackgroundColor = Colors.Transparent;
+                titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+
+                if (isLight)
+                {
+                    titleBar.ButtonForegroundColor = Colors.Black;
+                    titleBar.ButtonHoverForegroundColor = Colors.Black;
+                    titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(25, 0, 0, 0);
+                    titleBar.ButtonPressedForegroundColor = Colors.Black;
+                    titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(50, 0, 0, 0);
+                    titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(100, 0, 0, 0);
+                }
+                else
+                {
+                    titleBar.ButtonForegroundColor = Colors.White;
+                    titleBar.ButtonHoverForegroundColor = Colors.White;
+                    titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(25, 255, 255, 255);
+                    titleBar.ButtonPressedForegroundColor = Colors.White;
+                    titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(50, 255, 255, 255);
+                    titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(100, 255, 255, 255);
+                }
+            }
         }
 
         private void UpdateShaderSpeedMultiplier()

@@ -39,7 +39,7 @@ namespace Moonrise.Pages
             if (e.Items.FirstOrDefault() is QueueTrack track)
             {
                 e.Data.SetText($"{track.Title} - {track.Artist}");
-                e.Data.RequestedOperation = DataPackageOperation.Copy;
+                e.Data.RequestedOperation = DataPackageOperation.Copy | DataPackageOperation.Move;
             }
         }
 

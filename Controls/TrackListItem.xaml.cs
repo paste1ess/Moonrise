@@ -207,20 +207,7 @@ namespace Moonrise.Controls
             FavoriteIcon.Glyph = isFav ? "\uEB52" : "\uEB51";
             FavoriteIconDisplay.Glyph = isFav ? "\uEB52" : "\uEB51";
 
-            if (Application.Current.Resources.TryGetValue(isFav ? "AccentFillColorDefaultBrush" : "TextFillColorPrimaryBrush", out var brushObj) && brushObj is SolidColorBrush targetBrush)
-            {
-                var anim = new Microsoft.UI.Xaml.Media.Animation.ColorAnimation
-                {
-                    To = targetBrush.Color,
-                    Duration = TimeSpan.FromMilliseconds(200),
-                    EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut }
-                };
-                var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
-                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, FavoriteIconDisplayBrush);
-                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Color");
-                sb.Children.Add(anim);
-                sb.Begin();
-            }
+            VisualStateManager.GoToState(this, isFav ? "Favorite" : "NotFavorite", true);
         }
 
         private async void Favorite_Click(object sender, RoutedEventArgs e)

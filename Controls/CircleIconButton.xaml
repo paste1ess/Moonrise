@@ -15,11 +15,23 @@
             <Setter Property="Background" Value="Transparent" />
         </Style>
     </UserControl.Resources>
-    <Button x:Name="CircleIconButtonObject" CornerRadius="64" Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}" BorderThickness="1" BorderBrush="{ThemeResource ControlStrokeColorSecondary}">
-        <FontIcon x:Name="GlyphIcon" Glyph="{x:Bind Glyph, Mode=OneWay}" FontSize="{x:Bind IconSize, Mode=OneWay}">
-            <FontIcon.Foreground>
-                <SolidColorBrush x:Name="GlyphBrush" Color="{ThemeResource TextFillColorPrimary}"/>
-            </FontIcon.Foreground>
-        </FontIcon>
-    </Button>
+    <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ActiveStates">
+                <VisualState x:Name="Inactive">
+                    <VisualState.Setters>
+                        <Setter Target="GlyphIcon.Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ActiveState">
+                    <VisualState.Setters>
+                        <Setter Target="GlyphIcon.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        <Button x:Name="CircleIconButtonObject" CornerRadius="64" Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}" BorderThickness="1" BorderBrush="{ThemeResource ControlStrokeColorSecondary}">
+            <FontIcon x:Name="GlyphIcon" Glyph="{x:Bind Glyph, Mode=OneWay}" FontSize="{x:Bind IconSize, Mode=OneWay}" Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+        </Button>
+    </Grid>
 </UserControl>

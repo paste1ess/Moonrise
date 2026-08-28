@@ -1,19 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using CommunityToolkit.Mvvm.ComponentModel;
-using System.ComponentModel;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -77,26 +64,19 @@ namespace Moonrise.Controls
         private static void OnActiveChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var control = (CircleIconButton)d;
-            if (Application.Current.Resources.TryGetValue((bool)e.NewValue ? "AccentFillColorDefaultBrush" : "TextFillColorPrimaryBrush", out var brushObj) && brushObj is SolidColorBrush targetBrush)
-            {
-                var anim = new Microsoft.UI.Xaml.Media.Animation.ColorAnimation
-                {
-                    To = targetBrush.Color,
-                    Duration = TimeSpan.FromMilliseconds(200),
-                    EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase { EasingMode = Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut }
-                };
-                var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
-                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, control.GlyphBrush);
-                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Color");
-                sb.Children.Add(anim);
-                sb.Begin();
-            }
+            control.UpdateVisualState((bool)e.NewValue);
+        }
+
+        private void UpdateVisualState(bool isActive)
+        {
+            VisualStateManager.GoToState(this, isActive ? "ActiveState" : "Inactive", true);
         }
 
         public CircleIconButton()
         {
             this.InitializeComponent();
             CircleIconButtonObject.Click += (s, e) => Click?.Invoke(this, e);
+            Loaded += (s, e) => UpdateVisualState(Active);
         }
     }
 }

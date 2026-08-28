@@ -8,57 +8,70 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Button Background="#00000000"
-            BorderThickness="0"
-            Padding="6"
-            HorizontalAlignment="Stretch"
-            HorizontalContentAlignment="Stretch"
-            Click="Button_Click">
-        <Button.ContextFlyout>
-            <MenuFlyout Opening="MenuFlyout_Opening">
-                <MenuFlyoutItem Text="Play next" Icon="Import" Click="PlayNext_Click"/>
-                <MenuFlyoutItem Text="Play last" Click="PlayLast_Click">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="&#xEA52;"/>
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-                <MenuFlyoutItem x:Name="FavoriteMenuItem" Text="Favorite" Click="Favorite_Click">
-                    <MenuFlyoutItem.Icon>
-                        <FontIcon x:Name="FavoriteIcon" Glyph="&#xEB51;"/>
-                    </MenuFlyoutItem.Icon>
-                </MenuFlyoutItem>
-            </MenuFlyout>
-        </Button.ContextFlyout>
-        <Grid Padding="6,6,12,6" HorizontalAlignment="Stretch" ColumnSpacing="24" VerticalAlignment="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+    <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="FavoriteStates">
+                <VisualState x:Name="NotFavorite">
+                    <VisualState.Setters>
+                        <Setter Target="FavoriteIconDisplay.Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Favorite">
+                    <VisualState.Setters>
+                        <Setter Target="FavoriteIconDisplay.Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
 
-            <TextBlock Grid.Column="0" Text="{x:Bind FormatTrackNumber(Song.TrackNumber), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" Visibility="{x:Bind TrackViewVisibility, Mode=OneWay}" VerticalAlignment="Center" MinWidth="24" Margin="6,0,0,0"/>
+        <Button Background="Transparent"
+                BorderThickness="0"
+                Padding="6"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                Click="Button_Click">
+            <Button.ContextFlyout>
+                <MenuFlyout Opening="MenuFlyout_Opening">
+                    <MenuFlyoutItem Text="Play next" Icon="Import" Click="PlayNext_Click"/>
+                    <MenuFlyoutItem Text="Play last" Click="PlayLast_Click">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xEA52;"/>
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem x:Name="FavoriteMenuItem" Text="Favorite" Click="Favorite_Click">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon x:Name="FavoriteIcon" Glyph="&#xEB51;"/>
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                </MenuFlyout>
+            </Button.ContextFlyout>
+            <Grid Padding="6,6,12,6" HorizontalAlignment="Stretch" ColumnSpacing="24" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="1" CornerRadius="4" Height="40" MaxWidth="40" Visibility="{x:Bind ArtViewVisibility, Mode=OneWay}">
-                <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>
+                <TextBlock Grid.Column="0" Text="{x:Bind FormatTrackNumber(Song.TrackNumber), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" Visibility="{x:Bind TrackViewVisibility, Mode=OneWay}" VerticalAlignment="Center" MinWidth="24" Margin="6,0,0,0"/>
+
+                <Grid Grid.Column="1" CornerRadius="4" Height="40" MaxWidth="40" Visibility="{x:Bind ArtViewVisibility, Mode=OneWay}">
+                    <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>
+                </Grid>
+
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="{x:Bind Song.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{x:Bind Song.Artist, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="3" Text="{x:Bind Song.Album, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Visibility="{x:Bind DisplayAlbumVisibility, Mode=OneWay}"/>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Spacing="16">
+                    <FontIcon x:Name="FavoriteIconDisplay" Glyph="&#xEB51;" FontSize="16" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
+                    <TextBlock Text="{x:Bind FormatDuration(Song.Duration), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                </StackPanel>
             </Grid>
-
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="{x:Bind Song.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" TextTrimming="CharacterEllipsis"/>
-                <TextBlock Text="{x:Bind Song.Artist, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" TextTrimming="CharacterEllipsis"/>
-            </StackPanel>
-
-            <TextBlock Grid.Column="3" Text="{x:Bind Song.Album, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Visibility="{x:Bind DisplayAlbumVisibility, Mode=OneWay}"/>
-
-            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Spacing="16">
-                <FontIcon x:Name="FavoriteIconDisplay" Glyph="&#xEB51;" FontSize="16" VerticalAlignment="Center">
-                    <FontIcon.Foreground>
-                        <SolidColorBrush x:Name="FavoriteIconDisplayBrush" Color="{ThemeResource TextFillColorPrimary}"/>
-                    </FontIcon.Foreground>
-                </FontIcon>
-                <TextBlock Text="{x:Bind FormatDuration(Song.Duration), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-            </StackPanel>
-        </Grid>
-    </Button>
+        </Button>
+    </Grid>
 </UserControl>

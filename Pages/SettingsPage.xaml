@@ -57,6 +57,19 @@
 
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual"/>
                 <StackPanel Spacing="4">
+                    <controls:SettingsCard
+                        Header="Theme"
+                        Description="Select which app theme to display">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE790;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ComboBox x:Name="ThemeComboBox" SelectionChanged="ThemeComboBox_SelectionChanged" MinWidth="150">
+                            <ComboBoxItem Content="Auto" Tag="Default" />
+                            <ComboBoxItem Content="Light" Tag="Light" />
+                            <ComboBoxItem Content="Dark" Tag="Dark" />
+                        </ComboBox>
+                    </controls:SettingsCard>
+
                     <controls:SettingsExpander
                         Header="Mica+"
                         Description="Enables a custom shader that efficiently takes advantage of Mica to create a more dynamic background"

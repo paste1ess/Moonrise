@@ -46,7 +46,7 @@
                 IsPaneToggleButtonVisible="True"
                 PaneToggleRequested="TitleBar_PaneToggleRequested">
                 <TitleBar.IconSource>
-                    <FontIconSource Glyph="&#xEC4F;" Foreground="{StaticResource AccentTextFillColorPrimaryBrush}"/>
+                    <FontIconSource Glyph="&#xEC4F;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
                 </TitleBar.IconSource>
                 <TitleBar.RightHeader>
                     <StackPanel Orientation="Horizontal" Spacing="8">
