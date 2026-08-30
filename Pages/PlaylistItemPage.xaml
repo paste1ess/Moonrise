@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Moonrise.Pages.PlaylistItemPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Moonrise.Pages"
+    xmlns:controls="using:Moonrise.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="24,16,24,0" MaxWidth="1400">
+        <StackPanel Margin="0,0,0,16" Spacing="32">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" Spacing="24">
+                <Grid x:Name="PlaylistCoverContainer" CornerRadius="4" Width="320" Height="320" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                    <Image x:Name="PlaylistCoverImage" Source="{x:Bind PlaylistArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
+                </Grid>
+                <StackPanel VerticalAlignment="Bottom" Spacing="24">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind DisplayedPlaylist.Title}" Style="{StaticResource TitleTextBlockStyle}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Style="{ThemeResource AccentButtonStyle}" Click="PlayButton_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                                <FontIcon Glyph="&#xE768;"/>
+                                <TextBlock Text="Play"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Click="ShuffleButton_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                                <FontIcon Glyph="&#xE8B1;"/>
+                                <TextBlock Text="Shuffle"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            <controls:TrackList Tracks="{x:Bind Tracks, Mode=OneWay}" ArtView="True" TrackView="False" DisplayAlbum="True"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
