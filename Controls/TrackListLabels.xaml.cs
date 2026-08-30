@@ -18,9 +18,9 @@ using Windows.Foundation.Collections;
 
 namespace Moonrise.Controls
 {
-    public sealed partial class ArtistItemControl : UserControl
+    public sealed partial class TrackListLabels : UserControl
     {
-        public ArtistItemControl()
+        public TrackListLabels()
         {
             InitializeComponent();
         }

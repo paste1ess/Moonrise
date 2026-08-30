@@ -486,7 +486,7 @@ namespace Moonrise
                         NavFrame.Navigate(typeof(AlbumsPage));
                         break;
                     case "artists":
-                        NavFrame.Navigate(typeof(TracksPage));
+                        NavFrame.Navigate(typeof(ArtistsPage));
                         break;
                     case "favorites":
                         NavFrame.Navigate(typeof(FavoritesPage));

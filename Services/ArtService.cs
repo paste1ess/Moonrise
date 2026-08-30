@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
@@ -27,6 +31,7 @@ namespace Moonrise.Services
         Task<ImageSource?> GetArtwork(Track track, int size, CancellationToken token = default);
         Task<ImageSource?> GetArtwork(QueueTrack track, int size, CancellationToken token = default);
         Task<ImageSource?> GetArtwork(Album album, int size, CancellationToken token = default);
+        Task<ImageSource?> GetArtwork(Artist artist, int size, CancellationToken token = default);
         Task<ImageSource?> GetArtwork(Playlist playlist, int size, CancellationToken token = default);
         Task<RandomAccessStreamReference?> GetArtworkStreamReference(Track track, CancellationToken token = default);
         Task<SoftwareBitmap?> GetArtworkBitmap(Track track, int size, CancellationToken token = default);
@@ -38,6 +43,16 @@ namespace Moonrise.Services
 
     public class ArtService : IArtService
     {
+        private static readonly HttpClient _httpClient = new()
+        {
+            Timeout = TimeSpan.FromSeconds(15)
+        };
+
+        static ArtService()
+        {
+            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Moonrise/1.0");
+        }
+
         public static readonly int CacheMemoryLimit = 50 * 1024 * 1024; // 50 mb
         public static readonly int CacheItemLimit = 2000; // 2000 items
 
@@ -163,6 +178,235 @@ namespace Moonrise.Services
             {
                 placeholderItems.Add(key);
             }
+            return null;
+        }
+
+        public async Task<ImageSource?> GetArtwork(Artist artist, int size, CancellationToken token = default)
+        {
+            if (artist == null) return null;
+
+            ArtKey key = new(artist.Id, size);
+            lock (cache)
+            {
+                if (placeholderItems.Contains(key)) return null;
+
+                if (cache.TryGetValue(key, out var cachedItem))
+                {
+                    lruList.Remove(key);
+                    lruList.AddLast(key);
+                    return cachedItem.Data;
+                }
+            }
+
+            try
+            {
+                await _ioSemaphore.WaitAsync(token);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            try
+            {
+                if (token.IsCancellationRequested) return null;
+
+                var artistCacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Moonrise", "Cache", "Artists");
+                var diskPath = Path.Combine(artistCacheDir, $"{artist.Id}.jpg");
+
+                if (File.Exists(diskPath))
+                {
+                    var cachedImage = await loadAndDecodeFile(diskPath, size, token);
+                    if (cachedImage != null)
+                    {
+                        addToCache(key, new(artist.Id, size, cachedImage));
+                        return cachedImage;
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(artist.Name) && !artist.Name.Equals("Unknown Artist", StringComparison.OrdinalIgnoreCase))
+                {
+                    var artworkUrl = await fetchArtistImageUrl(artist.Name, token);
+
+                    if (!string.IsNullOrEmpty(artworkUrl))
+                    {
+                        int targetDim = Math.Max(size, 600);
+                        artworkUrl = Regex.Replace(artworkUrl, @"/\d+x\d+[^/?#]*", $"/{targetDim}x{targetDim}bb.jpg");
+
+                        var imageBytes = await _httpClient.GetByteArrayAsync(artworkUrl, token);
+                        if (imageBytes != null && imageBytes.Length > 0)
+                        {
+                            try
+                            {
+                                Directory.CreateDirectory(artistCacheDir);
+                                await File.WriteAllBytesAsync(diskPath, imageBytes, token);
+                            }
+                            catch { }
+
+                            if (token.IsCancellationRequested) return null;
+
+                            var image = await decodeToSoftwareBitmapSource(imageBytes, size, token);
+                            if (image != null)
+                            {
+                                addToCache(key, new(artist.Id, size, image));
+                                return image;
+                            }
+                        }
+                    }
+                }
+
+                var localImage = await getLocalArtistArtwork(artist, size, token);
+                if (localImage != null)
+                {
+                    addToCache(key, new(artist.Id, size, localImage));
+                    return localImage;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                _ioSemaphore.Release();
+            }
+
+            lock (cache)
+            {
+                placeholderItems.Add(key);
+            }
+            return null;
+        }
+
+        private async Task<ImageSource?> getLocalArtistArtwork(Artist artist, int size, CancellationToken token)
+        {
+            if (artist.AlbumIds == null || artist.AlbumIds.Length == 0) return null;
+
+            foreach (var albumId in artist.AlbumIds)
+            {
+                if (token.IsCancellationRequested) return null;
+                var album = await library.GetAlbum(albumId);
+                if (album == null || album.TrackIds == null || album.TrackIds.Length == 0) continue;
+
+                Track? firstTrack = null;
+                foreach (var trackId in album.TrackIds)
+                {
+                    if (token.IsCancellationRequested) return null;
+                    firstTrack = await library.GetTrack(trackId);
+                    if (firstTrack != null) break;
+                }
+
+                if (firstTrack != null)
+                {
+                    var absolutePath = library.PathToAbsolute(firstTrack.FilePath);
+                    var dir = Path.GetDirectoryName(absolutePath);
+
+                    if (!string.IsNullOrEmpty(dir))
+                    {
+                        string? foundCoverPath = null;
+                        await Task.Run(() =>
+                        {
+                            foreach (var name in new[] { "cover.avif", "cover.png", "cover.jpg", "cover.jpeg" })
+                            {
+                                if (token.IsCancellationRequested) return;
+                                var path = Path.Combine(dir, name);
+                                if (File.Exists(path))
+                                {
+                                    foundCoverPath = path;
+                                    return;
+                                }
+                            }
+                        });
+
+                        if (token.IsCancellationRequested) return null;
+
+                        if (foundCoverPath != null)
+                        {
+                            var image = await loadAndDecodeFile(foundCoverPath, size, token);
+                            if (image != null) return image;
+                        }
+                    }
+
+                    foreach (var trackId in album.TrackIds)
+                    {
+                        if (token.IsCancellationRequested) return null;
+                        var track = await library.GetTrack(trackId);
+                        if (track == null) continue;
+                        var path = library.PathToAbsolute(track.FilePath);
+                        var embeddedImage = await getEmbeddedArtwork(path, size, token);
+                        if (embeddedImage != null) return embeddedImage;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<string?> fetchArtistImageUrl(string artistName, CancellationToken token)
+        {
+            try
+            {
+                var artistSearchUrl = $"https://itunes.apple.com/search?term={Uri.EscapeDataString(artistName)}&entity=musicArtist&limit=1";
+                using var response = await _httpClient.GetAsync(artistSearchUrl, token);
+                string? artistPageUrl = null;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    using var stream = await response.Content.ReadAsStreamAsync(token);
+                    using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: token);
+                    if (doc.RootElement.TryGetProperty("results", out var results) && results.GetArrayLength() > 0)
+                    {
+                        var first = results[0];
+                        if (first.TryGetProperty("artistLinkUrl", out var linkUrl))
+                        {
+                            artistPageUrl = linkUrl.GetString();
+                        }
+                        else if (first.TryGetProperty("artistViewUrl", out var viewUrl))
+                        {
+                            artistPageUrl = viewUrl.GetString();
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(artistPageUrl))
+                {
+                    try
+                    {
+                        using var pageResponse = await _httpClient.GetAsync(artistPageUrl, token);
+                        if (pageResponse.IsSuccessStatusCode)
+                        {
+                            var html = await pageResponse.Content.ReadAsStringAsync(token);
+                            var match = Regex.Match(html, @"<meta\s+[^>]*property=[""']og:image[""'][^>]*content=[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+                            if (!match.Success)
+                            {
+                                match = Regex.Match(html, @"<meta\s+[^>]*content=[""']([^""']+)[""'][^>]*property=[""']og:image[""']", RegexOptions.IgnoreCase);
+                            }
+
+                            if (match.Success)
+                            {
+                                var imgUrl = WebUtility.HtmlDecode(match.Groups[1].Value);
+                                if (!string.IsNullOrEmpty(imgUrl))
+                                {
+                                    return imgUrl;
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to fetch artist image URL: {ex.Message}");
+            }
+
             return null;
         }
 

@@ -9,34 +9,77 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="24,16,24,0" MaxWidth="1400">
-        <StackPanel Margin="0,0,0,16" Spacing="32">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" Spacing="24">
-                <Grid CornerRadius="4" Width="320" Height="320">
-                    <Image x:Name="AlbumCoverImage" Source="{x:Bind AlbumArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
-                </Grid>
-                <StackPanel VerticalAlignment="Bottom" Spacing="24">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="{x:Bind DisplayedAlbum.Title}" Style="{StaticResource TitleTextBlockStyle}"/>
-                        <TextBlock Text="{x:Bind DisplayedAlbum.Artist}" Style="{StaticResource BodyLargeTextBlockStyle}"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Style="{ThemeResource AccentButtonStyle}" Click="PlayButton_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
-                                <FontIcon Glyph="&#xE768;"/>
-                                <TextBlock Text="Play"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Click="ShuffleButton_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
-                                <FontIcon Glyph="&#xE8B1;"/>
-                                <TextBlock Text="Shuffle"/>
-                            </StackPanel>
-                        </Button>
+    <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="600" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="HeaderPanel.Orientation" Value="Horizontal" />
+                        <Setter Target="HeaderPanel.HorizontalAlignment" Value="Left" />
+                        <Setter Target="AlbumCoverContainer.HorizontalAlignment" Value="Left" />
+                        <Setter Target="AlbumInfoPanel.VerticalAlignment" Value="Bottom" />
+                        <Setter Target="AlbumInfoPanel.HorizontalAlignment" Value="Left" />
+                        <Setter Target="AlbumTextPanel.HorizontalAlignment" Value="Left" />
+                        <Setter Target="TitleTextBlock.TextAlignment" Value="Left" />
+                        <Setter Target="TitleTextBlock.HorizontalAlignment" Value="Left" />
+                        <Setter Target="ArtistTextBlock.TextAlignment" Value="Left" />
+                        <Setter Target="ArtistTextBlock.HorizontalAlignment" Value="Left" />
+                        <Setter Target="ButtonsPanel.HorizontalAlignment" Value="Left" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="NarrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="HeaderPanel.Orientation" Value="Vertical" />
+                        <Setter Target="HeaderPanel.HorizontalAlignment" Value="Center" />
+                        <Setter Target="AlbumCoverContainer.HorizontalAlignment" Value="Center" />
+                        <Setter Target="AlbumInfoPanel.VerticalAlignment" Value="Center" />
+                        <Setter Target="AlbumInfoPanel.HorizontalAlignment" Value="Center" />
+                        <Setter Target="AlbumTextPanel.HorizontalAlignment" Value="Center" />
+                        <Setter Target="TitleTextBlock.TextAlignment" Value="Center" />
+                        <Setter Target="TitleTextBlock.HorizontalAlignment" Value="Center" />
+                        <Setter Target="ArtistTextBlock.TextAlignment" Value="Center" />
+                        <Setter Target="ArtistTextBlock.HorizontalAlignment" Value="Center" />
+                        <Setter Target="ButtonsPanel.HorizontalAlignment" Value="Center" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <ScrollViewer Padding="24,16,24,0" MaxWidth="1400">
+            <StackPanel Margin="0,0,0,16" Spacing="32">
+                <StackPanel x:Name="HeaderPanel" Orientation="Horizontal" VerticalAlignment="Stretch" Spacing="24">
+                    <Grid x:Name="AlbumCoverContainer" CornerRadius="4" Width="320" Height="320">
+                        <Image x:Name="AlbumCoverImage" Source="{x:Bind AlbumArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
+                    </Grid>
+                    <StackPanel x:Name="AlbumInfoPanel" VerticalAlignment="Bottom" Spacing="24">
+                        <StackPanel x:Name="AlbumTextPanel" VerticalAlignment="Center">
+                            <TextBlock x:Name="TitleTextBlock" Text="{x:Bind DisplayedAlbum.Title}" Style="{StaticResource TitleTextBlockStyle}"/>
+                            <TextBlock x:Name="ArtistTextBlock" Text="{x:Bind DisplayedAlbum.Artist}" Style="{StaticResource BodyLargeTextBlockStyle}"/>
+                        </StackPanel>
+                        <StackPanel x:Name="ButtonsPanel" Orientation="Horizontal" Spacing="8">
+                            <Button Style="{ThemeResource AccentButtonStyle}" Click="PlayButton_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                                    <FontIcon Glyph="&#xE768;"/>
+                                    <TextBlock Text="Play"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Click="ShuffleButton_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                                    <FontIcon Glyph="&#xE8B1;"/>
+                                    <TextBlock Text="Shuffle"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
+                <controls:TrackList Tracks="{x:Bind Tracks, Mode=OneWay}" ArtView="False" TrackView="True" DisplayAlbum="False"/>
             </StackPanel>
-            <controls:TrackList Tracks="{x:Bind Tracks, Mode=OneWay}" ArtView="False" TrackView="True" DisplayAlbum="False"/>
-        </StackPanel>
-    </ScrollViewer>
+        </ScrollViewer>
+    </Grid>
 </Page>

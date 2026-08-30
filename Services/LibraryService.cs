@@ -20,14 +20,21 @@ namespace Moonrise.Services
         Task HardScanLibrary(string path);
         Task OpenAndScanLibrary(string path);
         Task ScanFolder(string folderPath);
-        Task<Track?> GetTrack(string id);
-        Task SetTrackFavorite(string trackId, bool isFavorite);
         Task<string?> GetLyrics(string id);
+
+        Task<Track?> GetTrack(string id);
         IEnumerable<Track> GetAllTracks();
         IEnumerable<Track> GetAllFavoriteTracks();
         IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids);
+        Task SetTrackFavorite(string trackId, bool isFavorite);
+
         Task<Album?> GetAlbum(string id);
         IEnumerable<Album> GetAllAlbums();
+        IEnumerable<Album> GetAlbumsByIds(IEnumerable<string> ids);
+
+        Task<Artist?> GetArtist(string id);
+        IEnumerable<Artist> GetAllArtists();
+        IEnumerable<Album> GetArtistsAlbums(string artistId);
 
         IEnumerable<Playlist> GetAllPlaylists();
         Task<Playlist?> GetPlaylist(string id);
@@ -443,6 +450,30 @@ namespace Moonrise.Services
         public IEnumerable<Album> GetAllAlbums()
         {
             return dbService.GetAllAlbums();
+        }
+
+        public IEnumerable<Album> GetAlbumsByIds(IEnumerable<string> ids)
+        {
+            return dbService.GetAlbumsByIds(ids);
+        }
+
+        public async Task<Artist?> GetArtist(string id)
+        {
+            return dbService.GetArtist(id);
+        }
+        public IEnumerable<Artist> GetAllArtists()
+        {
+            return dbService.GetAllArtists();
+        }
+        public IEnumerable<Album> GetArtistsAlbums(string artistId)
+        {
+            var artist = dbService.GetArtist(artistId);
+            if (artist == null || artist.AlbumIds == null || artist.AlbumIds.Length == 0)
+            {
+                return Enumerable.Empty<Album>();
+            }
+
+            return dbService.GetAlbumsByIds(artist.AlbumIds);
         }
 
         public IEnumerable<Playlist> GetAllPlaylists()

@@ -15,23 +15,26 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid>
-            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Favorites" VerticalAlignment="Center"/>
-            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                <Button Style="{ThemeResource AccentButtonStyle}" Click="PlayButton_Click">
-                    <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
-                        <FontIcon Glyph="&#xE768;"/>
-                        <TextBlock Text="Play"/>
-                    </StackPanel>
-                </Button>
-                <Button Click="ShuffleButton_Click">
-                    <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
-                        <FontIcon Glyph="&#xE8B1;"/>
-                        <TextBlock Text="Shuffle"/>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Grid>
+        <StackPanel Spacing="16">
+            <Grid>
+                <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Favorites" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Style="{ThemeResource AccentButtonStyle}" Click="PlayButton_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                            <FontIcon Glyph="&#xE768;"/>
+                            <TextBlock Text="Play"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Click="ShuffleButton_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
+                            <FontIcon Glyph="&#xE8B1;"/>
+                            <TextBlock Text="Shuffle"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <controls:TrackListLabels/>
+        </StackPanel>
 
         <ScrollViewer
         Grid.Row="1"

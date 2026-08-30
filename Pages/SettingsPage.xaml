@@ -43,7 +43,7 @@
                         <controls:SettingsExpander.Items>
                             <controls:SettingsCard
                                 Header="Hard Reset Library"
-                                Description="Rebuilds the database and re-scan the entire library folder. WILL cause loss of favorites and play counts!">
+                                Description="Resets the database and re-scans the entire library folder. WILL cause loss of favorites and play counts!">
                                 <controls:SettingsCard.HeaderIcon>
                                     <FontIcon Glyph="&#xE7BA;" />
                                 </controls:SettingsCard.HeaderIcon>
@@ -72,7 +72,7 @@
 
                     <controls:SettingsExpander
                         Header="Mica+"
-                        Description="Enables a custom shader that efficiently takes advantage of Mica to create a more dynamic background"
+                        Description="Enables a custom background effect that efficiently takes advantage of your system to create more dynamic visuals"
                         IsExpanded="{x:Bind _settings.BackgroundShadersEnabled, Mode=OneWay}">
 
                         <controls:SettingsExpander.HeaderIcon>
@@ -110,7 +110,7 @@
                 </StackPanel>
 
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="About"/>
-                <controls:SettingsExpander Header="Moonrise (beta) 🌙" Description="Waxing v0.1.0">
+                <controls:SettingsExpander Header="Moonrise (beta) 🌙" Description="v0.1.0">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xEC4F;" />
                     </controls:SettingsExpander.HeaderIcon>

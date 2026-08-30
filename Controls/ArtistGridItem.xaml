@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Moonrise.Controls.ArtistGridItem"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Moonrise.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Button Width="172" Padding="12" Background="Transparent" BorderThickness="0" Click="OnClick">
+        <StackPanel HorizontalAlignment="Center" Padding="0" Spacing="2">
+            <Grid x:Name="CoverContainer" Grid.Column="0" CornerRadius="148" Width="148" Height="148" Margin="0,0,0,4">
+                <Image x:Name="CoverImage" Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>
+            </Grid>
+            <TextBlock Text="{x:Bind Artist.Name, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="NoWrap" MaxLines="1" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+    </Button>
+</UserControl>

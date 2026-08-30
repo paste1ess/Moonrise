@@ -679,6 +679,55 @@ namespace Moonrise.Services
             return null;
         }
 
+        public IEnumerable<Album> GetAlbumsByIds(IEnumerable<string> ids)
+        {
+            var idList = ids.ToList();
+            if (idList.Count == 0) yield break;
+
+            var paramNames = idList.Select((_, i) => $"@id{i}");
+            var sql = $"SELECT * FROM albums WHERE id IN ({string.Join(", ", paramNames)})";
+
+            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            connection.Open();
+            using var command = new SqliteCommand(sql, connection);
+            for (int i = 0; i < idList.Count; i++)
+                command.Parameters.AddWithValue($"@id{i}", idList[i]);
+
+            using var reader = command.ExecuteReader();
+            var idOrd = reader.GetOrdinal("id");
+            var trackIdsOrd = reader.GetOrdinal("track_ids");
+            var artistIdOrd = reader.GetOrdinal("artist_id");
+            var titleOrd = reader.GetOrdinal("title");
+            var artistOrd = reader.GetOrdinal("artist");
+            var yearOrd = reader.GetOrdinal("year");
+            var genreOrd = reader.GetOrdinal("genre");
+            var isFavoriteOrd = reader.GetOrdinal("is_favorite");
+            var dateAddedOrd = reader.GetOrdinal("date_added");
+
+            var fetched = new Dictionary<string, Album>(idList.Count);
+            while (reader.Read())
+            {
+                var jsonTracks = reader.GetString(trackIdsOrd);
+                var trackIds = JsonSerializer.Deserialize(jsonTracks, DbJsonContext.Default.ListString)?.ToArray() ?? Array.Empty<string>();
+                var album = new Album
+                {
+                    Id = reader.GetString(idOrd),
+                    TrackIds = trackIds,
+                    ArtistId = reader.GetString(artistIdOrd),
+                    Title = reader.GetString(titleOrd),
+                    Artist = reader.GetString(artistOrd),
+                    Year = reader.IsDBNull(yearOrd) ? null : reader.GetInt32(yearOrd),
+                    Genre = reader.IsDBNull(genreOrd) ? null : reader.GetString(genreOrd),
+                    IsFavorite = reader.GetBoolean(isFavoriteOrd),
+                    DateAdded = DateTime.Parse(reader.GetString(dateAddedOrd))
+                };
+                fetched[album.Id] = album;
+            }
+
+            foreach (var id in idList)
+                if (fetched.TryGetValue(id, out var a)) yield return a;
+        }
+
         public IEnumerable<Album> GetAllAlbums()
         {
             using var connection = new SqliteConnection("Data Source=" + DbPath);

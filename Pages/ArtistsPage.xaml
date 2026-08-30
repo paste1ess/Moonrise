@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Moonrise.Pages.ArtistsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Moonrise.Pages"
+    xmlns:models="using:Moonrise.Models"
+    xmlns:controls="using:Moonrise.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24,16,24,0" RowSpacing="24" HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Artists" />
+
+        <GridView x:Name="ArtistGridView"
+          Grid.Row="1"
+          Padding="0,0,16,16"
+          Background="Transparent"
+          ItemsSource="{x:Bind Artists, Mode=OneWay}"
+          SelectionMode="None">
+            <GridView.ItemTemplate>
+                <DataTemplate x:DataType="models:Artist">
+                    <controls:ArtistGridItem Artist="{x:Bind}" Click="ArtistGridItem_Clicked"/>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+    </Grid>
+</Page>
