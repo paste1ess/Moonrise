@@ -572,9 +572,8 @@ namespace Moonrise.Services
             MediaSource mediaSource;
             try
             {
-                var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                var ras = fs.AsRandomAccessStream();
-                mediaSource = MediaSource.CreateFromStream(ras, GetMimeType(path));
+                var file = StorageFile.GetFileFromPathAsync(path).AsTask().GetAwaiter().GetResult();
+                mediaSource = MediaSource.CreateFromStorageFile(file);
             }
             catch
             {
@@ -589,23 +588,6 @@ namespace Moonrise.Services
             props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
             playbackItem.ApplyDisplayProperties(props);
             return playbackItem;
-        }
-
-        private static string GetMimeType(string path)
-        {
-            var ext = Path.GetExtension(path).ToLowerInvariant();
-            return ext switch
-            {
-                ".flac" => "audio/flac",
-                ".mp3" => "audio/mpeg",
-                ".m4a" => "audio/mp4",
-                ".aac" => "audio/aac",
-                ".ogg" => "audio/ogg",
-                ".opus" => "audio/opus",
-                ".wav" => "audio/wav",
-                ".wma" => "audio/x-ms-wma",
-                _ => "audio/mpeg"
-            };
         }
     }
 }

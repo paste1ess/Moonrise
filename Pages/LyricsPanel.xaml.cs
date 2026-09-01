@@ -64,7 +64,7 @@ namespace Moonrise.Pages
             {
                 if (animate)
                 {
-                    ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromBottom });
+                    ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo());
                 }
                 else
                 {

@@ -455,64 +455,69 @@ namespace Moonrise.Services
                 }
             }
 
+            LyricsChanged?.Invoke(this, new LyricsChangedEventArgs(trackId, lyrics, isSynced, saveToDisk));
+
             if (saveToDisk)
             {
-                var track = dbService.GetTrack(trackId);
-                if (track != null)
+                await Task.Run(async () =>
                 {
-                    var absPath = PathToAbsolute(track.FilePath);
-                    if (File.Exists(absPath))
+                    var track = dbService.GetTrack(trackId);
+                    if (track != null)
                     {
-                        if (!isSynced)
+                        var absPath = PathToAbsolute(track.FilePath);
+                        if (File.Exists(absPath))
                         {
-                            try
+                            if (!isSynced)
                             {
-                                var abstraction = new SafeFileAbstraction(absPath);
-                                using var file = TagLib.File.Create(abstraction);
-                                file.Tag.Lyrics = lyrics;
-                                file.Save();
+                                try
+                                {
+                                    var abstraction = new SafeFileAbstraction(absPath);
+                                    using var file = TagLib.File.Create(abstraction);
+                                    file.Tag.Lyrics = lyrics;
+                                    file.Save();
 
-                                var fileInfo = new FileInfo(absPath);
-                                var updatedTrack = track with
+                                    var fileInfo = new FileInfo(absPath);
+                                    var updatedTrack = track with
+                                    {
+                                        LastModified = fileInfo.LastWriteTimeUtc.ToString("O"),
+                                        FileSize = fileInfo.Length
+                                    };
+                                    dbService.UpsertTrack(updatedTrack);
+                                }
+                                catch (Exception ex)
                                 {
-                                    LastModified = fileInfo.LastWriteTimeUtc.ToString("O"),
-                                    FileSize = fileInfo.Length
-                                };
-                                dbService.UpsertTrack(updatedTrack);
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine(ex.Message);
-                                toast.Show("Save error", $"Failed to update file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
-                            }
+                                    Debug.WriteLine(ex.Message);
+                                    task.Dispatcher.TryEnqueue(() =>
+                                        toast.Show("Save error", $"Failed to update file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                }
 
-                            dbService.UpsertLyricsBatch([(trackId, lyrics ?? string.Empty)]);
-                        }
-                        else
-                        {
-                            try
-                            {
-                                string lrcPath = Path.ChangeExtension(absPath, ".lrc");
-                                if (!string.IsNullOrEmpty(lyrics))
-                                {
-                                    await File.WriteAllTextAsync(lrcPath, lyrics);
-                                }
-                                else if (File.Exists(lrcPath))
-                                {
-                                    File.Delete(lrcPath);
-                                }
+                                dbService.UpsertLyricsBatch([(trackId, lyrics ?? string.Empty)]);
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                Debug.WriteLine(ex.Message);
-                                toast.Show("Save error", $"Failed to save .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
+                                try
+                                {
+                                    string lrcPath = Path.ChangeExtension(absPath, ".lrc");
+                                    if (!string.IsNullOrEmpty(lyrics))
+                                    {
+                                        await File.WriteAllTextAsync(lrcPath, lyrics);
+                                    }
+                                    else if (File.Exists(lrcPath))
+                                    {
+                                        File.Delete(lrcPath);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine(ex.Message);
+                                    task.Dispatcher.TryEnqueue(() =>
+                                        toast.Show("Save error", $"Failed to save .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                }
                             }
                         }
                     }
-                }
+                });
             }
-
-            LyricsChanged?.Invoke(this, new LyricsChangedEventArgs(trackId, lyrics, isSynced, saveToDisk));
         }
 
         public async Task ClearLyrics(string trackId, bool isSynced = false, bool saveToDisk = true)
@@ -522,60 +527,65 @@ namespace Moonrise.Services
                 _sessionLyrics.TryRemove(trackId, out _);
             }
 
+            LyricsChanged?.Invoke(this, new LyricsChangedEventArgs(trackId, null, isSynced, saveToDisk));
+
             if (saveToDisk)
             {
-                var track = dbService.GetTrack(trackId);
-                if (track != null)
+                await Task.Run(() =>
                 {
-                    var absPath = PathToAbsolute(track.FilePath);
-                    if (File.Exists(absPath))
+                    var track = dbService.GetTrack(trackId);
+                    if (track != null)
                     {
-                        if (!isSynced)
+                        var absPath = PathToAbsolute(track.FilePath);
+                        if (File.Exists(absPath))
                         {
-                            try
+                            if (!isSynced)
                             {
-                                var abstraction = new SafeFileAbstraction(absPath);
-                                using var file = TagLib.File.Create(abstraction);
-                                file.Tag.Lyrics = null;
-                                file.Save();
-
-                                var fileInfo = new FileInfo(absPath);
-                                var updatedTrack = track with
+                                try
                                 {
-                                    LastModified = fileInfo.LastWriteTimeUtc.ToString("O"),
-                                    FileSize = fileInfo.Length
-                                };
-                                dbService.UpsertTrack(updatedTrack);
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine(ex.Message);
-                                toast.Show("Delete error", $"Failed to clear file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
-                            }
+                                    var abstraction = new SafeFileAbstraction(absPath);
+                                    using var file = TagLib.File.Create(abstraction);
+                                    file.Tag.Lyrics = null;
+                                    file.Save();
 
-                            dbService.UpsertLyricsBatch([(trackId, string.Empty)]);
-                        }
-                        else
-                        {
-                            try
-                            {
-                                string lrcPath = Path.ChangeExtension(absPath, ".lrc");
-                                if (File.Exists(lrcPath))
-                                {
-                                    File.Delete(lrcPath);
+                                    var fileInfo = new FileInfo(absPath);
+                                    var updatedTrack = track with
+                                    {
+                                        LastModified = fileInfo.LastWriteTimeUtc.ToString("O"),
+                                        FileSize = fileInfo.Length
+                                    };
+                                    dbService.UpsertTrack(updatedTrack);
                                 }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine(ex.Message);
+                                    task.Dispatcher.TryEnqueue(() =>
+                                        toast.Show("Delete error", $"Failed to clear file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                }
+
+                                dbService.UpsertLyricsBatch([(trackId, string.Empty)]);
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                Debug.WriteLine(ex.Message);
-                                toast.Show("Delete error", $"Failed to delete .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
+                                try
+                                {
+                                    string lrcPath = Path.ChangeExtension(absPath, ".lrc");
+                                    if (File.Exists(lrcPath))
+                                    {
+                                        File.Delete(lrcPath);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine(ex.Message);
+                                    task.Dispatcher.TryEnqueue(() =>
+                                        toast.Show("Delete error", $"Failed to delete .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                }
                             }
                         }
                     }
-                }
+                });
             }
-
-            LyricsChanged?.Invoke(this, new LyricsChangedEventArgs(trackId, null, isSynced, saveToDisk));
         }
 
         public IEnumerable<Track> GetAllTracks()
