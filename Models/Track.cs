@@ -24,5 +24,6 @@ namespace Moonrise.Models
         public DateTime DateAdded { get; set; }
         public string LastModified { get; set; } = string.Empty;
         public bool IsPresent { get; set; }
+        public int PlayCount { get; set; }
     }
 }

@@ -156,7 +156,7 @@ namespace Moonrise.Services
                 ".mp3", ".flac", ".m4a", ".wav", ".wma", ".ogg"
             };
 
-            var filesToParse = new ConcurrentBag<(string AbsolutePath, string RelativePath, string LastModified, long FileSize, string TrackId, bool IsFavorite, DateTime DateAdded)>();
+            var filesToParse = new ConcurrentBag<(string AbsolutePath, string RelativePath, string LastModified, long FileSize, string TrackId, bool IsFavorite, DateTime DateAdded, int PlayCount)>();
             var unchangedTracks = new List<Track>();
             var seenRelativePaths = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
 
@@ -195,8 +195,9 @@ namespace Moonrise.Services
                 string trackId = cachedTrack?.Id ?? IdGenerator.NewTrackId();
                 bool isFavorite = cachedTrack?.IsFavorite ?? false;
                 DateTime dateAdded = cachedTrack?.DateAdded ?? DateTime.UtcNow;
+                int playCount = cachedTrack?.PlayCount ?? 0;
 
-                filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, trackId, isFavorite, dateAdded));
+                filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, trackId, isFavorite, dateAdded, playCount));
             }
 
             toastHandle.Update(message: $"Scanning {scannedCount} songs");
@@ -214,7 +215,7 @@ namespace Moonrise.Services
             {
                 try
                 {
-                    var result = ParseTrackMetadata(file.AbsolutePath, file.RelativePath, file.LastModified, file.FileSize, file.TrackId, file.IsFavorite, file.DateAdded);
+                    var result = ParseTrackMetadata(file.AbsolutePath, file.RelativePath, file.LastModified, file.FileSize, file.TrackId, file.IsFavorite, file.DateAdded, file.PlayCount);
                     if (result.Item1 != null)
                     {
                         tracksToSave.Add(result.Item1);
@@ -378,7 +379,7 @@ namespace Moonrise.Services
             toastHandle.Complete($"Finished scanning {scannedCount} songs.");
         }
 
-        private (Track?, string?) ParseTrackMetadata(string absolutePath, string relativePath, string lastModified, long fileSize, string trackId, bool isFavorite, DateTime dateAdded)
+        private (Track?, string?) ParseTrackMetadata(string absolutePath, string relativePath, string lastModified, long fileSize, string trackId, bool isFavorite, DateTime dateAdded, int playCount)
         {
             using var file = TagLib.File.Create(absolutePath);
             if (!file.Properties.MediaTypes.HasFlag(TagLib.MediaTypes.Audio)) return (null, null);
@@ -407,7 +408,8 @@ namespace Moonrise.Services
                 DateAdded = dateAdded,
                 LastModified = lastModified,
                 IsPresent = true,
-                IsFavorite = isFavorite
+                IsFavorite = isFavorite,
+                PlayCount = playCount
             };
 
             return (track, file.Tag.Lyrics);

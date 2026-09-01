@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
         <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
         <ScrollViewer Grid.Row="1">
-            <StackPanel Spacing="16">
+            <StackPanel Spacing="16" Padding="0,0,0,16">
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Library"/>
                 <StackPanel Spacing="4">
                     <controls:SettingsCard

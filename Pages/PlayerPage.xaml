@@ -81,7 +81,7 @@
                 <controls:CircleIconButton HorizontalAlignment="Right"
                     x:Name="FavoriteButton"
                     VerticalAlignment="Center" 
-                    Margin="0,0,16,0"
+                    Margin="0,0,-40,0"
                     Size="40"
                     IconSize="16"
                     Glyph=""

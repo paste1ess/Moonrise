@@ -54,9 +54,30 @@ namespace Moonrise.Services
                     duration      INTEGER NOT NULL,
                     date_added    TEXT NOT NULL,
                     last_modified TEXT NOT NULL DEFAULT '',
-                    is_present    INTEGER NOT NULL DEFAULT 1
+                    is_present    INTEGER NOT NULL DEFAULT 1,
+                    play_count    INTEGER NOT NULL DEFAULT 0
                 );", _connection);
                 songTableCommand.ExecuteNonQuery();
+
+                bool hasPlayCount = false;
+                using (var checkColCmd = new SqliteCommand("PRAGMA table_info(tracks);", _connection))
+                using (var reader = checkColCmd.ExecuteReader())
+                {
+                    var nameOrd = reader.GetOrdinal("name");
+                    while (reader.Read())
+                    {
+                        if (string.Equals(reader.GetString(nameOrd), "play_count", StringComparison.OrdinalIgnoreCase))
+                        {
+                            hasPlayCount = true;
+                            break;
+                        }
+                    }
+                }
+                if (!hasPlayCount)
+                {
+                    using var alterCmd = new SqliteCommand("ALTER TABLE tracks ADD COLUMN play_count INTEGER NOT NULL DEFAULT 0;", _connection);
+                    alterCmd.ExecuteNonQuery();
+                }
 
                 using var albumTableCommand = new SqliteCommand(@"CREATE TABLE IF NOT EXISTS albums (
                     id          TEXT PRIMARY KEY,
@@ -117,8 +138,8 @@ namespace Moonrise.Services
             lock (_dbLock)
             {
                 using var command = new SqliteCommand(@"INSERT OR REPLACE INTO tracks 
-                    (id, album_id, artist_id, title, album, artist, track_number, year, genre, bpm, is_favorite, file_path, file_size, bitrate, duration, date_added, last_modified, is_present) VALUES 
-                    (@id, @album_id, @artist_id, @title, @album, @artist, @track_number, @year, @genre, @bpm, @is_favorite, @file_path, @file_size, @bitrate, @duration, @date_added, @last_modified, @is_present);",
+                    (id, album_id, artist_id, title, album, artist, track_number, year, genre, bpm, is_favorite, file_path, file_size, bitrate, duration, date_added, last_modified, is_present, play_count) VALUES 
+                    (@id, @album_id, @artist_id, @title, @album, @artist, @track_number, @year, @genre, @bpm, @is_favorite, @file_path, @file_size, @bitrate, @duration, @date_added, @last_modified, @is_present, @play_count);",
                 _connection);
 
                 command.Parameters.AddWithValue("@id", track.Id);
@@ -139,6 +160,7 @@ namespace Moonrise.Services
                 command.Parameters.AddWithValue("@date_added", track.DateAdded.ToString("O"));
                 command.Parameters.AddWithValue("@last_modified", track.LastModified);
                 command.Parameters.AddWithValue("@is_present", track.IsPresent ? 1 : 0);
+                command.Parameters.AddWithValue("@play_count", track.PlayCount);
 
                 command.ExecuteNonQuery();
             }
@@ -161,8 +183,8 @@ namespace Moonrise.Services
             {
                 using var transaction = _connection.BeginTransaction();
                 using var command = new SqliteCommand(@"INSERT OR REPLACE INTO tracks 
-            (id, album_id, artist_id, title, album, artist, track_number, year, genre, bpm, is_favorite, file_path, file_size, bitrate, duration, date_added, last_modified, is_present) VALUES 
-            (@id, @album_id, @artist_id, @title, @album, @artist, @track_number, @year, @genre, @bpm, @is_favorite, @file_path, @file_size, @bitrate, @duration, @date_added, @last_modified, @is_present);",
+            (id, album_id, artist_id, title, album, artist, track_number, year, genre, bpm, is_favorite, file_path, file_size, bitrate, duration, date_added, last_modified, is_present, play_count) VALUES 
+            (@id, @album_id, @artist_id, @title, @album, @artist, @track_number, @year, @genre, @bpm, @is_favorite, @file_path, @file_size, @bitrate, @duration, @date_added, @last_modified, @is_present, @play_count);",
                 _connection, transaction);
 
                 var idParam = command.Parameters.Add("@id", SqliteType.Text);
@@ -183,6 +205,7 @@ namespace Moonrise.Services
                 var dateAddedParam = command.Parameters.Add("@date_added", SqliteType.Text);
                 var lastModifiedParam = command.Parameters.Add("@last_modified", SqliteType.Text);
                 var isPresentParam = command.Parameters.Add("@is_present", SqliteType.Integer);
+                var playCountParam = command.Parameters.Add("@play_count", SqliteType.Integer);
 
                 foreach (var track in tracks)
                 {
@@ -204,6 +227,7 @@ namespace Moonrise.Services
                     dateAddedParam.Value = track.DateAdded.ToString("O");
                     lastModifiedParam.Value = track.LastModified;
                     isPresentParam.Value = track.IsPresent ? 1 : 0;
+                    playCountParam.Value = track.PlayCount;
 
                     command.ExecuteNonQuery();
                 }
@@ -271,6 +295,7 @@ namespace Moonrise.Services
             var dateAddedOrd = reader.GetOrdinal("date_added");
             var lastModifiedOrd = reader.GetOrdinal("last_modified");
             var isPresentOrd = reader.GetOrdinal("is_present");
+            var playCountOrd = reader.GetOrdinal("play_count");
             if (reader.Read())
             {
                 return new Track
@@ -292,7 +317,8 @@ namespace Moonrise.Services
                     Duration = TimeSpan.FromSeconds(reader.GetInt64(durationOrd)),
                     DateAdded = DateTime.Parse(reader.GetString(dateAddedOrd)),
                     LastModified = reader.GetString(lastModifiedOrd),
-                    IsPresent = reader.GetBoolean(isPresentOrd)
+                    IsPresent = reader.GetBoolean(isPresentOrd),
+                    PlayCount = reader.GetInt32(playCountOrd)
                 };
             }
             return null;
@@ -331,6 +357,7 @@ namespace Moonrise.Services
             var dateAddedOrd = reader.GetOrdinal("date_added");
             var lastModifiedOrd = reader.GetOrdinal("last_modified");
             var isPresentOrd = reader.GetOrdinal("is_present");
+            var playCountOrd = reader.GetOrdinal("play_count");
 
             var fetched = new Dictionary<string, Track>(idList.Count);
             while (reader.Read())
@@ -354,7 +381,8 @@ namespace Moonrise.Services
                     Duration = TimeSpan.FromSeconds(reader.GetInt64(durationOrd)),
                     DateAdded = DateTime.Parse(reader.GetString(dateAddedOrd)),
                     LastModified = reader.GetString(lastModifiedOrd),
-                    IsPresent = reader.GetBoolean(isPresentOrd)
+                    IsPresent = reader.GetBoolean(isPresentOrd),
+                    PlayCount = reader.GetInt32(playCountOrd)
                 };
                 fetched[track.Id] = track;
             }
@@ -388,6 +416,7 @@ namespace Moonrise.Services
             var dateAddedOrd = reader.GetOrdinal("date_added");
             var lastModifiedOrd = reader.GetOrdinal("last_modified");
             var isPresentOrd = reader.GetOrdinal("is_present");
+            var playCountOrd = reader.GetOrdinal("play_count");
             if (reader.Read())
             {
                 return new Track
@@ -409,7 +438,8 @@ namespace Moonrise.Services
                     Duration = TimeSpan.FromSeconds(reader.GetInt64(durationOrd)),
                     DateAdded = DateTime.Parse(reader.GetString(dateAddedOrd)),
                     LastModified = reader.GetString(lastModifiedOrd),
-                    IsPresent = reader.GetBoolean(isPresentOrd)
+                    IsPresent = reader.GetBoolean(isPresentOrd),
+                    PlayCount = reader.GetInt32(playCountOrd)
                 };
             }
             return null;
@@ -439,6 +469,7 @@ namespace Moonrise.Services
             var dateAddedOrd = reader.GetOrdinal("date_added");
             var lastModifiedOrd = reader.GetOrdinal("last_modified");
             var isPresentOrd = reader.GetOrdinal("is_present");
+            var playCountOrd = reader.GetOrdinal("play_count");
             while (reader.Read())
             {
                 yield return new Track
@@ -460,7 +491,8 @@ namespace Moonrise.Services
                     Duration = TimeSpan.FromSeconds(reader.GetInt64(durationOrd)),
                     DateAdded = DateTime.Parse(reader.GetString(dateAddedOrd)),
                     LastModified = reader.GetString(lastModifiedOrd),
-                    IsPresent = reader.GetBoolean(isPresentOrd)
+                    IsPresent = reader.GetBoolean(isPresentOrd),
+                    PlayCount = reader.GetInt32(playCountOrd)
                 };
             }
         }
@@ -489,6 +521,7 @@ namespace Moonrise.Services
             var dateAddedOrd = reader.GetOrdinal("date_added");
             var lastModifiedOrd = reader.GetOrdinal("last_modified");
             var isPresentOrd = reader.GetOrdinal("is_present");
+            var playCountOrd = reader.GetOrdinal("play_count");
             while (reader.Read())
             {
                 yield return new Track
@@ -510,7 +543,8 @@ namespace Moonrise.Services
                     Duration = TimeSpan.FromSeconds(reader.GetInt64(durationOrd)),
                     DateAdded = DateTime.Parse(reader.GetString(dateAddedOrd)),
                     LastModified = reader.GetString(lastModifiedOrd),
-                    IsPresent = reader.GetBoolean(isPresentOrd)
+                    IsPresent = reader.GetBoolean(isPresentOrd),
+                    PlayCount = reader.GetInt32(playCountOrd)
                 };
             }
         }
