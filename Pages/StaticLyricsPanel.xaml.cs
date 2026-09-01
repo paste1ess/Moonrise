@@ -22,13 +22,24 @@ namespace Moonrise.Pages
     {
         private readonly IPlaybackService playbackService = App.Services.GetRequiredService<IPlaybackService>();
         private readonly ILibraryService libService = App.Services.GetRequiredService<ILibraryService>();
+        private readonly IWebLyricService webLyrics = App.Services.GetRequiredService<IWebLyricService>();
+        private readonly IToastService toast = App.Services.GetRequiredService<IToastService>();
 
         private string? _lyrics;
         public string? Lyrics
         {
             get => _lyrics;
-            private set { _lyrics = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Lyrics))); }
+            private set
+            {
+                _lyrics = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Lyrics)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NoLyricsVisibility)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LyricsVisibility)));
+            }
         }
+
+        public Visibility NoLyricsVisibility => Lyrics == "No lyrics found" ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility LyricsVisibility => Lyrics != "No lyrics found" ? Visibility.Visible : Visibility.Collapsed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -81,6 +92,28 @@ namespace Moonrise.Pages
             if (string.IsNullOrEmpty(lyrics)) return "No lyrics found";
             if (lyrics == "[INSTRUMENTAL]") return "This is an instrumental track, no lyrics here";
             return lyrics;
+        }
+
+        private async void AddLyrics_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTrack = playbackService.CurrentTrack;
+            if (currentTrack == null) return;
+
+            var root = this.XamlRoot ?? this.Content?.XamlRoot ?? MainWindow.Instance?.Content?.XamlRoot;
+            if (root == null) return;
+
+            await LyricsDialogHelper.ShowEditLyricsDialogAsync(currentTrack, isInitiallySynced: false, root, libService, webLyrics, toast);
+        }
+
+        private async void MarkInstrumental_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTrack = playbackService.CurrentTrack;
+            if (currentTrack == null) return;
+
+            var root = this.XamlRoot ?? this.Content?.XamlRoot ?? MainWindow.Instance?.Content?.XamlRoot;
+            if (root == null) return;
+
+            await LyricsDialogHelper.ShowMarkInstrumentalDialogAsync(currentTrack, root, libService, toast);
         }
     }
 }

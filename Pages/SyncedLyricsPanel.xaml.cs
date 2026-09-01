@@ -39,6 +39,8 @@ namespace Moonrise.Pages
     {
         private static readonly Regex LrcTimestampRegex = new(@"\[(\d{2}):(\d{2}\.\d{2,3})\]", RegexOptions.Compiled);
         private readonly ILibraryService library = App.Services.GetRequiredService<ILibraryService>();
+        private readonly IWebLyricService webLyrics = App.Services.GetRequiredService<IWebLyricService>();
+        private readonly IToastService toast = App.Services.GetRequiredService<IToastService>();
         public IPlaybackService Playback { get; } = App.Services.GetRequiredService<IPlaybackService>();
 
         public ObservableCollection<EvaluatedLyric> DisplayLyrics { get; } = new();
@@ -304,6 +306,28 @@ namespace Moonrise.Pages
             foreach (var l in lyrics)
                 DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp));
             HasSyncedLyrics = lyrics.Count > 0;
+        }
+
+        private async void AddLyrics_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTrack = Playback.CurrentTrack;
+            if (currentTrack == null) return;
+
+            var root = this.XamlRoot ?? this.Content?.XamlRoot ?? MainWindow.Instance?.Content?.XamlRoot;
+            if (root == null) return;
+
+            await LyricsDialogHelper.ShowEditLyricsDialogAsync(currentTrack, isInitiallySynced: true, root, library, webLyrics, toast);
+        }
+
+        private async void MarkInstrumental_Click(object sender, RoutedEventArgs e)
+        {
+            var currentTrack = Playback.CurrentTrack;
+            if (currentTrack == null) return;
+
+            var root = this.XamlRoot ?? this.Content?.XamlRoot ?? MainWindow.Instance?.Content?.XamlRoot;
+            if (root == null) return;
+
+            await LyricsDialogHelper.ShowMarkInstrumentalDialogAsync(currentTrack, root, library, toast);
         }
     }
 }

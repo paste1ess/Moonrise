@@ -8,7 +8,35 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="16, 12" HorizontalAlignment="Stretch">
-        <TextBlock Text="{x:Bind Lyrics, Mode=OneWay}" Style="{StaticResource BodyLargeTextBlockStyle}" Margin="0,44" HorizontalAlignment="Stretch" HorizontalTextAlignment="Center"/>
-    </ScrollViewer>
+    <Grid>
+        <ScrollViewer Padding="16, 12" HorizontalAlignment="Stretch" Visibility="{x:Bind LyricsVisibility, Mode=OneWay}">
+            <TextBlock Text="{x:Bind Lyrics, Mode=OneWay}" Style="{StaticResource BodyLargeTextBlockStyle}" Margin="0,44" HorizontalAlignment="Stretch" HorizontalTextAlignment="Center"/>
+        </ScrollViewer>
+
+        <StackPanel 
+            VerticalAlignment="Center" 
+            HorizontalAlignment="Center" 
+            Spacing="16" 
+            Visibility="{x:Bind NoLyricsVisibility, Mode=OneWay}">
+            <TextBlock 
+                Text="No lyrics found" 
+                Style="{StaticResource BodyLargeTextBlockStyle}" 
+                HorizontalTextAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <Button Click="AddLyrics_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE70F;" FontSize="14"/>
+                        <TextBlock Text="Add Lyrics"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="MarkInstrumental_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xEC54;" FontSize="14"/>
+                        <TextBlock Text="Mark as Instrumental"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
 </Page>

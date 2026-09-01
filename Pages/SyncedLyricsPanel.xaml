@@ -10,13 +10,32 @@
     mc:Ignorable="d">
 
     <Grid>
-        <TextBlock 
-            Text="No synced lyrics found" 
-            Style="{StaticResource BodyLargeTextBlockStyle}" 
-            Margin="0,44" 
-            HorizontalAlignment="Stretch" 
-            HorizontalTextAlignment="Center" 
-            Visibility="{x:Bind NoLyricsVisibility, Mode=OneWay}" />
+        <StackPanel 
+            VerticalAlignment="Center" 
+            HorizontalAlignment="Center" 
+            Spacing="16" 
+            Visibility="{x:Bind NoLyricsVisibility, Mode=OneWay}">
+            <TextBlock 
+                Text="No synced lyrics found" 
+                Style="{StaticResource BodyLargeTextBlockStyle}" 
+                HorizontalAlignment="Stretch" 
+                HorizontalTextAlignment="Center" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <Button Click="AddLyrics_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE70F;" FontSize="14"/>
+                        <TextBlock Text="Add Lyrics"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="MarkInstrumental_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xEC54;" FontSize="14"/>
+                        <TextBlock Text="Mark as Instrumental"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </StackPanel>
 
         <ScrollViewer x:Name="LyricScroller" VerticalScrollBarVisibility="Hidden" SizeChanged="LyricScroller_SizeChanged" Visibility="{x:Bind LyricsVisibility, Mode=OneWay}">
             <ItemsRepeater x:Name="LyricRepeater" ItemsSource="{x:Bind DisplayLyrics, Mode=OneWay}" HorizontalAlignment="Left">
