@@ -23,6 +23,7 @@ namespace Moonrise.Services
         Task OpenAndScanLibrary(string path);
         Task ScanFolder(string folderPath);
         Task<string?> GetLyrics(string id);
+        Task<string?> GetSyncedLyrics(string id);
         Task SetLyrics(string trackId, string? lyrics, bool isSynced = false, bool saveToDisk = false);
         Task ClearLyrics(string trackId, bool isSynced = false, bool saveToDisk = true);
         event EventHandler<LyricsChangedEventArgs>? LyricsChanged;
@@ -57,6 +58,7 @@ namespace Moonrise.Services
         private DbService dbService;
         private string libraryPath;
         private readonly ConcurrentDictionary<string, string> _sessionLyrics = new();
+        private readonly ConcurrentDictionary<string, string> _sessionSyncedLyrics = new();
 
         public event Action? LibraryChanging;
         public event Action? LibraryChanged;
@@ -441,6 +443,15 @@ namespace Moonrise.Services
             return dbService.GetLyrics(id);
         }
 
+        public async Task<string?> GetSyncedLyrics(string id)
+        {
+            if (_sessionSyncedLyrics.TryGetValue(id, out var sessionSynced))
+            {
+                return sessionSynced;
+            }
+            return null;
+        }
+
         public async Task SetLyrics(string trackId, string? lyrics, bool isSynced = false, bool saveToDisk = false)
         {
             if (!isSynced)
@@ -452,6 +463,17 @@ namespace Moonrise.Services
                 else
                 {
                     _sessionLyrics.TryRemove(trackId, out _);
+                }
+            }
+            else
+            {
+                if (!saveToDisk)
+                {
+                    _sessionSyncedLyrics[trackId] = lyrics ?? string.Empty;
+                }
+                else
+                {
+                    _sessionSyncedLyrics.TryRemove(trackId, out _);
                 }
             }
 
@@ -525,6 +547,10 @@ namespace Moonrise.Services
             if (!isSynced)
             {
                 _sessionLyrics.TryRemove(trackId, out _);
+            }
+            else
+            {
+                _sessionSyncedLyrics.TryRemove(trackId, out _);
             }
 
             LyricsChanged?.Invoke(this, new LyricsChangedEventArgs(trackId, null, isSynced, saveToDisk));

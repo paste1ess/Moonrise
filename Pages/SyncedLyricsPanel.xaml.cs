@@ -81,6 +81,9 @@ namespace Moonrise.Pages
             if (track == null || string.IsNullOrEmpty(track.FilePath)) return false;
             if (CheckIsInstrumental(track, library)) return false;
 
+            var sessionLyrics = library.GetSyncedLyrics(track.Id).GetAwaiter().GetResult();
+            if (!string.IsNullOrEmpty(sessionLyrics)) return true;
+
             string path = library.PathToAbsolute(track.FilePath);
             if (string.IsNullOrEmpty(path)) return false;
 
@@ -144,9 +147,17 @@ namespace Moonrise.Pages
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if (e.IsSynced && !e.SaveToDisk && !string.IsNullOrEmpty(e.Lyrics))
+                    if (e.IsSynced)
                     {
-                        ParseAndSetLyrics(e.Lyrics);
+                        if (!string.IsNullOrEmpty(e.Lyrics))
+                        {
+                            ParseAndSetLyrics(e.Lyrics);
+                        }
+                        else
+                        {
+                            DisplayLyrics.Clear();
+                            HasSyncedLyrics = false;
+                        }
                     }
                     else
                     {
@@ -224,6 +235,17 @@ namespace Moonrise.Pages
 
         private async Task GetSyncedLyrics(string? path)
         {
+            var currentTrack = Playback.CurrentTrack;
+            if (currentTrack != null)
+            {
+                var sessionLyrics = await library.GetSyncedLyrics(currentTrack.Id);
+                if (!string.IsNullOrEmpty(sessionLyrics))
+                {
+                    DispatcherQueue.TryEnqueue(() => ParseAndSetLyrics(sessionLyrics));
+                    return;
+                }
+            }
+
             if (string.IsNullOrEmpty(path))
             {
                 DispatcherQueue.TryEnqueue(() =>
