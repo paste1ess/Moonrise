@@ -8,6 +8,7 @@ using Moonrise.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -568,7 +569,18 @@ namespace Moonrise.Services
         private MediaPlaybackItem CreatePlaybackItem(Track track)
         {
             var path = library.PathToAbsolute(track.FilePath);
-            var mediaSource = MediaSource.CreateFromUri(new Uri(path));
+            MediaSource mediaSource;
+            try
+            {
+                var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                var ras = fs.AsRandomAccessStream();
+                mediaSource = MediaSource.CreateFromStream(ras, GetMimeType(path));
+            }
+            catch
+            {
+                mediaSource = MediaSource.CreateFromUri(new Uri(path));
+            }
+
             var playbackItem = new MediaPlaybackItem(mediaSource);
             var props = playbackItem.GetDisplayProperties();
             props.Type = MediaPlaybackType.Music;
@@ -577,6 +589,23 @@ namespace Moonrise.Services
             props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
             playbackItem.ApplyDisplayProperties(props);
             return playbackItem;
+        }
+
+        private static string GetMimeType(string path)
+        {
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            return ext switch
+            {
+                ".flac" => "audio/flac",
+                ".mp3" => "audio/mpeg",
+                ".m4a" => "audio/mp4",
+                ".aac" => "audio/aac",
+                ".ogg" => "audio/ogg",
+                ".opus" => "audio/opus",
+                ".wav" => "audio/wav",
+                ".wma" => "audio/x-ms-wma",
+                _ => "audio/mpeg"
+            };
         }
     }
 }

@@ -87,7 +87,8 @@ namespace Moonrise.Pages
 
             try
             {
-                using var reader = new StreamReader(lrcPath);
+                using var fs = new FileStream(lrcPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(fs);
                 string? line;
                 while ((line = reader.ReadLine()) != null)
                 {
@@ -121,6 +122,7 @@ namespace Moonrise.Pages
         {
             base.OnNavigatedTo(e);
             Playback.PropertyChanged += Playback_PropertyChanged;
+            library.LyricsChanged += Library_LyricsChanged;
 
             DisplayLyrics.Clear();
             HasSyncedLyrics = CheckHasSyncedLyrics(Playback.CurrentTrack, library);
@@ -131,6 +133,27 @@ namespace Moonrise.Pages
         {
             base.OnNavigatedFrom(e);
             Playback.PropertyChanged -= Playback_PropertyChanged;
+            library.LyricsChanged -= Library_LyricsChanged;
+        }
+
+        private void Library_LyricsChanged(object? sender, LyricsChangedEventArgs e)
+        {
+            if (e.TrackId == Playback.CurrentTrack?.Id)
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (e.IsSynced && !e.SaveToDisk && !string.IsNullOrEmpty(e.Lyrics))
+                    {
+                        ParseAndSetLyrics(e.Lyrics);
+                    }
+                    else
+                    {
+                        DisplayLyrics.Clear();
+                        HasSyncedLyrics = CheckHasSyncedLyrics(Playback.CurrentTrack, library);
+                        _ = GetSyncedLyrics(library.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
+                    }
+                });
+            }
         }
 
         private void Playback_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -224,7 +247,8 @@ namespace Moonrise.Pages
 
             try
             {
-                using var reader = new StreamReader(lrcPath);
+                using var fs = new FileStream(lrcPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(fs);
                 string? line;
                 while ((line = await reader.ReadLineAsync()) != null)
                 {
@@ -256,6 +280,30 @@ namespace Moonrise.Pages
                     DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp));
                 HasSyncedLyrics = lyrics.Count > 0;
             });
+        }
+
+        private void ParseAndSetLyrics(string lrcContent)
+        {
+            List<Lyric> lyrics = new();
+            using var reader = new StringReader(lrcContent);
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                var match = LrcTimestampRegex.Match(line);
+                if (match.Success)
+                {
+                    int minutes = int.Parse(match.Groups[1].Value);
+                    double seconds = double.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+                    var timestamp = TimeSpan.FromSeconds(minutes * 60 + seconds);
+                    string lyric = line.Substring(match.Index + match.Length).Trim();
+                    lyrics.Add(new(lyric, timestamp));
+                }
+            }
+
+            DisplayLyrics.Clear();
+            foreach (var l in lyrics)
+                DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp));
+            HasSyncedLyrics = lyrics.Count > 0;
         }
     }
 }

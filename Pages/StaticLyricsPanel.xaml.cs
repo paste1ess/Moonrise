@@ -38,13 +38,23 @@ namespace Moonrise.Pages
         {
             InitializeComponent();
             playbackService.PropertyChanged += OnPlaybackPropertyChanged;
+            libService.LyricsChanged += OnLyricsChanged;
             Unloaded += (s, e) =>
             {
                 playbackService.PropertyChanged -= OnPlaybackPropertyChanged;
+                libService.LyricsChanged -= OnLyricsChanged;
                 _lyricsCts?.Cancel();
                 _lyricsCts?.Dispose();
             };
             _ = UpdateLyrics(playbackService.CurrentTrack?.Id);
+        }
+
+        private void OnLyricsChanged(object? sender, LyricsChangedEventArgs e)
+        {
+            if (!e.IsSynced && e.TrackId == playbackService.CurrentTrack?.Id)
+            {
+                DispatcherQueue.TryEnqueue(() => Lyrics = ParseLyrics(e.Lyrics));
+            }
         }
 
         private void OnPlaybackPropertyChanged(object? sender, PropertyChangedEventArgs e)

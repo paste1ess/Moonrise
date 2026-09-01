@@ -46,6 +46,7 @@ namespace Moonrise
             services.AddSingleton<IAudioPeakService, AudioPeakService>();
             services.AddSingleton<ILibraryService, LibraryService>();
             services.AddSingleton<IPlaybackService, PlaybackService>();
+            services.AddSingleton<IWebLyricService, WebLyricService>();
 
             Services = services.BuildServiceProvider();
 

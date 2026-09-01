@@ -9,18 +9,40 @@
     mc:Ignorable="d">
 
     <Grid>
-        <DropDownButton x:Name="DropDown" 
-            HorizontalAlignment="Right" 
-            VerticalAlignment="Top"
-            Canvas.ZIndex="2"
-            Margin="0, 16, 16, 0">
-            <DropDownButton.Flyout>
-                <MenuFlyout Placement="Bottom">
-                    <MenuFlyoutItem Text="Static" Click="Static_Click"/>
-                    <MenuFlyoutItem Text="Synced (line by line)" Click="Synced_Click"/>
-                </MenuFlyout>
-            </DropDownButton.Flyout>
-        </DropDownButton>
+        <StackPanel Margin="0, 16, 16, 0" Spacing="8" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Canvas.ZIndex="2">
+            <DropDownButton x:Name="DropDown">
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="Bottom">
+                        <MenuFlyoutItem Text="Static" Click="Static_Click"/>
+                        <MenuFlyoutItem Text="Synced (line by line)" Click="Synced_Click"/>
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+            <Button Width="32" Height="32" Padding="0">
+                <Button.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuFlyoutItem Text="Edit Lyrics" Click="EditLyrics_Click">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="Edit" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem Text="Mark as Instrumental" Click="MarkInstrumental_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xEC54;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator/>
+                        <MenuFlyoutItem Text="Clear Lyrics" Click="ClearLyrics_Click">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="Clear" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </Button.Flyout>
+
+                <FontIcon Glyph="&#xE712;" />
+            </Button>
+        </StackPanel>
 
         <Frame x:Name="ContentFrame" IsNavigationStackEnabled="False" Background="Transparent" BorderThickness="0"/>
     </Grid>

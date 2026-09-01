@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 
 namespace Moonrise.Services
 {
+    public record LyricsChangedEventArgs(string TrackId, string? Lyrics, bool IsSynced = false, bool SaveToDisk = false);
+
     public interface ILibraryService
     {
         event Action? LibraryChanging;
@@ -21,6 +23,9 @@ namespace Moonrise.Services
         Task OpenAndScanLibrary(string path);
         Task ScanFolder(string folderPath);
         Task<string?> GetLyrics(string id);
+        Task SetLyrics(string trackId, string? lyrics, bool isSynced = false, bool saveToDisk = false);
+        Task ClearLyrics(string trackId, bool isSynced = false, bool saveToDisk = true);
+        event EventHandler<LyricsChangedEventArgs>? LyricsChanged;
 
         Task<Track?> GetTrack(string id);
         IEnumerable<Track> GetAllTracks();
@@ -51,9 +56,11 @@ namespace Moonrise.Services
         private IPlaybackService playback => App.Services.GetRequiredService<IPlaybackService>();
         private DbService dbService;
         private string libraryPath;
+        private readonly ConcurrentDictionary<string, string> _sessionLyrics = new();
 
         public event Action? LibraryChanging;
         public event Action? LibraryChanged;
+        public event EventHandler<LyricsChangedEventArgs>? LyricsChanged;
 
         public LibraryService(ISettingsService settingsService, IArtService artService, ITaskService taskService, IToastService toastService)
         {
@@ -427,7 +434,148 @@ namespace Moonrise.Services
 
         public async Task<string?> GetLyrics(string id)
         {
+            if (_sessionLyrics.TryGetValue(id, out var sessionLyric))
+            {
+                return sessionLyric;
+            }
             return dbService.GetLyrics(id);
+        }
+
+        public async Task SetLyrics(string trackId, string? lyrics, bool isSynced = false, bool saveToDisk = false)
+        {
+            if (!isSynced)
+            {
+                if (!saveToDisk)
+                {
+                    _sessionLyrics[trackId] = lyrics ?? string.Empty;
+                }
+                else
+                {
+                    _sessionLyrics.TryRemove(trackId, out _);
+                }
+            }
+
+            if (saveToDisk)
+            {
+                var track = dbService.GetTrack(trackId);
+                if (track != null)
+                {
+                    var absPath = PathToAbsolute(track.FilePath);
+                    if (File.Exists(absPath))
+                    {
+                        if (!isSynced)
+                        {
+                            try
+                            {
+                                var abstraction = new SafeFileAbstraction(absPath);
+                                using var file = TagLib.File.Create(abstraction);
+                                file.Tag.Lyrics = lyrics;
+                                file.Save();
+
+                                var fileInfo = new FileInfo(absPath);
+                                var updatedTrack = track with
+                                {
+                                    LastModified = fileInfo.LastWriteTimeUtc.ToString("O"),
+                                    FileSize = fileInfo.Length
+                                };
+                                dbService.UpsertTrack(updatedTrack);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                                toast.Show("Save error", $"Failed to update file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
+                            }
+
+                            dbService.UpsertLyricsBatch([(trackId, lyrics ?? string.Empty)]);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                string lrcPath = Path.ChangeExtension(absPath, ".lrc");
+                                if (!string.IsNullOrEmpty(lyrics))
+                                {
+                                    await File.WriteAllTextAsync(lrcPath, lyrics);
+                                }
+                                else if (File.Exists(lrcPath))
+                                {
+                                    File.Delete(lrcPath);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                                toast.Show("Save error", $"Failed to save .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
+                            }
+                        }
+                    }
+                }
+            }
+
+            LyricsChanged?.Invoke(this, new LyricsChangedEventArgs(trackId, lyrics, isSynced, saveToDisk));
+        }
+
+        public async Task ClearLyrics(string trackId, bool isSynced = false, bool saveToDisk = true)
+        {
+            if (!isSynced)
+            {
+                _sessionLyrics.TryRemove(trackId, out _);
+            }
+
+            if (saveToDisk)
+            {
+                var track = dbService.GetTrack(trackId);
+                if (track != null)
+                {
+                    var absPath = PathToAbsolute(track.FilePath);
+                    if (File.Exists(absPath))
+                    {
+                        if (!isSynced)
+                        {
+                            try
+                            {
+                                var abstraction = new SafeFileAbstraction(absPath);
+                                using var file = TagLib.File.Create(abstraction);
+                                file.Tag.Lyrics = null;
+                                file.Save();
+
+                                var fileInfo = new FileInfo(absPath);
+                                var updatedTrack = track with
+                                {
+                                    LastModified = fileInfo.LastWriteTimeUtc.ToString("O"),
+                                    FileSize = fileInfo.Length
+                                };
+                                dbService.UpsertTrack(updatedTrack);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                                toast.Show("Delete error", $"Failed to clear file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
+                            }
+
+                            dbService.UpsertLyricsBatch([(trackId, string.Empty)]);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                string lrcPath = Path.ChangeExtension(absPath, ".lrc");
+                                if (File.Exists(lrcPath))
+                                {
+                                    File.Delete(lrcPath);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                                toast.Show("Delete error", $"Failed to delete .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
+                            }
+                        }
+                    }
+                }
+            }
+
+            LyricsChanged?.Invoke(this, new LyricsChangedEventArgs(trackId, null, isSynced, saveToDisk));
         }
 
         public IEnumerable<Track> GetAllTracks()
@@ -536,6 +684,40 @@ namespace Moonrise.Services
                 yield return normalized;
             }
         }
+    }
 
+    public class SafeFileAbstraction : TagLib.File.IFileAbstraction
+    {
+        private Stream? _readStream;
+        private Stream? _writeStream;
+
+        public string Name { get; }
+
+        public SafeFileAbstraction(string name)
+        {
+            Name = name;
+        }
+
+        public Stream ReadStream => _readStream ??= new FileStream(Name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+        public Stream WriteStream => _writeStream ??= new FileStream(Name, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete);
+
+        public void CloseStream(Stream stream)
+        {
+            if (stream == _readStream)
+            {
+                _readStream?.Dispose();
+                _readStream = null;
+            }
+            else if (stream == _writeStream)
+            {
+                _writeStream?.Dispose();
+                _writeStream = null;
+            }
+            else
+            {
+                stream?.Dispose();
+            }
+        }
     }
 }
