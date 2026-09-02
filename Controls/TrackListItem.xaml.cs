@@ -67,7 +67,11 @@ namespace Moonrise.Controls
 
         public static readonly DependencyProperty DisplayAlbumProperty =
             DependencyProperty.Register(nameof(DisplayAlbum), typeof(bool), typeof(TrackListItem),
-                new PropertyMetadata(true, (d, _) => ((TrackListItem)d).OnPropertyChanged(nameof(DisplayAlbumVisibility))));
+                new PropertyMetadata(true, (d, _) => {
+                    var item = (TrackListItem)d;
+                    item.OnPropertyChanged(nameof(DisplayAlbumVisibility));
+                    item.OnPropertyChanged(nameof(AlbumColumnSpan));
+                }));
 
         public bool DisplayAlbum
         {
@@ -76,6 +80,32 @@ namespace Moonrise.Controls
         }
 
         public Visibility DisplayAlbumVisibility => DisplayAlbum ? Visibility.Visible : Visibility.Collapsed;
+
+        public int AlbumColumnSpan => DisplayAlbum ? 1 : 2;
+
+        public static readonly DependencyProperty DisplayDurationProperty =
+            DependencyProperty.Register(nameof(DisplayDuration), typeof(bool), typeof(TrackListItem),
+                new PropertyMetadata(true, (d, _) => ((TrackListItem)d).OnPropertyChanged(nameof(DisplayDurationVisibility))));
+
+        public bool DisplayDuration
+        {
+            get => (bool)GetValue(DisplayDurationProperty);
+            set => SetValue(DisplayDurationProperty, value);
+        }
+
+        public Visibility DisplayDurationVisibility => DisplayDuration ? Visibility.Visible : Visibility.Collapsed;
+
+        public static readonly DependencyProperty DisplayPlayCountProperty =
+            DependencyProperty.Register(nameof(DisplayPlayCount), typeof(bool), typeof(TrackListItem),
+                new PropertyMetadata(false, (d, _) => ((TrackListItem)d).OnPropertyChanged(nameof(DisplayPlayCountVisibility))));
+
+        public bool DisplayPlayCount
+        {
+            get => (bool)GetValue(DisplayPlayCountProperty);
+            set => SetValue(DisplayPlayCountProperty, value);
+        }
+
+        public Visibility DisplayPlayCountVisibility => DisplayPlayCount ? Visibility.Visible : Visibility.Collapsed;
 
         public static readonly DependencyProperty ArtViewProperty =
             DependencyProperty.Register(nameof(ArtView), typeof(bool), typeof(TrackListItem),
@@ -179,6 +209,8 @@ namespace Moonrise.Controls
         {
             return $"{(int)duration.TotalMinutes}:{duration.Seconds:D2}";
         }
+
+        public string FormatPlayCount(int playCount) => playCount == 1 ? "1 play" : $"{playCount} plays";
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {

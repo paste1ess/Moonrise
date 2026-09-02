@@ -33,6 +33,7 @@ namespace Moonrise.Services
         IEnumerable<Track> GetAllFavoriteTracks();
         IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids);
         Task SetTrackFavorite(string trackId, bool isFavorite);
+        Task IncrementPlayCount(string trackId);
 
         Task<Album?> GetAlbum(string id);
         IEnumerable<Album> GetAllAlbums();
@@ -432,6 +433,11 @@ namespace Moonrise.Services
         public async Task SetTrackFavorite(string trackId, bool isFavorite)
         {
             dbService.SetTrackFavorite(trackId, isFavorite);
+        }
+
+        public async Task IncrementPlayCount(string trackId)
+        {
+            dbService.IncrementPlayCount(trackId);
         }
 
         public async Task<string?> GetLyrics(string id)

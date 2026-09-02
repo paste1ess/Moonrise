@@ -52,7 +52,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="60"/>
-                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="Auto" MinWidth="60"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="{x:Bind FormatTrackNumber(Song.TrackNumber), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" Visibility="{x:Bind TrackViewVisibility, Mode=OneWay}" VerticalAlignment="Center" MinWidth="24" Margin="6,0,0,0"/>
@@ -61,7 +61,7 @@
                     <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}" Stretch="UniformToFill"/>
                 </Grid>
 
-                <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                <StackPanel Grid.Column="2" Grid.ColumnSpan="{x:Bind AlbumColumnSpan, Mode=OneWay}" VerticalAlignment="Center" Spacing="2">
                     <TextBlock Text="{x:Bind Song.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="{x:Bind Song.Artist, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
@@ -70,7 +70,8 @@
 
                 <FontIcon x:Name="FavoriteIconDisplay" Grid.Column="4" Glyph="&#xEB51;" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}"/>
 
-                <TextBlock Grid.Column="5" Text="{x:Bind FormatDuration(Song.Duration), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                <TextBlock Grid.Column="5" Text="{x:Bind FormatDuration(Song.Duration), Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right" Visibility="{x:Bind DisplayDurationVisibility, Mode=OneWay}"/>
+                <TextBlock Grid.Column="5" Text="{x:Bind FormatPlayCount(Song.PlayCount), Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" HorizontalAlignment="Right" Visibility="{x:Bind DisplayPlayCountVisibility, Mode=OneWay}"/>
             </Grid>
         </Button>
     </Grid>

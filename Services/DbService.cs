@@ -177,6 +177,16 @@ namespace Moonrise.Services
             }
         }
 
+        public void IncrementPlayCount(string id)
+        {
+            lock (_dbLock)
+            {
+                using var command = new SqliteCommand("UPDATE tracks SET play_count = play_count + 1 WHERE id = @id;", _connection);
+                command.Parameters.AddWithValue("@id", id);
+                command.ExecuteNonQuery();
+            }
+        }
+
         public void UpsertTracksBatch(IEnumerable<Track> tracks)
         {
             lock (_dbLock)

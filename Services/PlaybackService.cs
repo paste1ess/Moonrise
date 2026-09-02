@@ -85,6 +85,7 @@ namespace Moonrise.Services
 
         private CancellationTokenSource? _artworkCts;
         private SoftwareBitmap? _previousBackgroundBitmap;
+        private bool _playCountIncremented;
 
         partial void OnCurrentTrackBackgroundBitmapChanging(SoftwareBitmap? value)
         {
@@ -102,6 +103,7 @@ namespace Moonrise.Services
 
         partial void OnCurrentTrackChanged(Track? value)
         {
+            _playCountIncremented = false;
             if (_artworkCts != null)
             {
                 _artworkCts.Cancel();
@@ -148,6 +150,23 @@ namespace Moonrise.Services
             _positionTimer.Interval = TimeSpan.FromMilliseconds(100);
             _positionTimer.Tick += (_, _) => { 
                 OnPropertyChanged(nameof(CurrentTrackTime));
+
+                if (!_playCountIncremented && CurrentTrack != null && CurrentPlaybackState == PlaybackState.Playing)
+                {
+                    var duration = CurrentTrack.Duration;
+                    if (duration <= TimeSpan.Zero && mediaPlayer.PlaybackSession != null)
+                    {
+                        duration = mediaPlayer.PlaybackSession.NaturalDuration;
+                    }
+
+                    if (duration > TimeSpan.Zero && CurrentTrackTime >= TimeSpan.FromTicks(duration.Ticks / 2))
+                    {
+                        _playCountIncremented = true;
+                        var trackId = CurrentTrack.Id;
+                        _ = library.IncrementPlayCount(trackId);
+                        CurrentTrack.PlayCount++;
+                    }
+                }
             };
 
             CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
@@ -201,6 +220,7 @@ namespace Moonrise.Services
                     {
                         try
                         {
+                            _playCountIncremented = false;
                             mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
                             _ = playBase();
                         }
@@ -299,6 +319,7 @@ namespace Moonrise.Services
 
                 if (mediaPlayer.PlaybackSession != null && mediaPlayer.Position.TotalSeconds > 3)
                 {
+                    _playCountIncremented = false;
                     mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
                     return;
                 }
@@ -470,6 +491,7 @@ namespace Moonrise.Services
             task.Dispatcher.TryEnqueue(() =>
             {
                 _positionTimer.Stop();
+                _playCountIncremented = false;
                 CurrentPlaybackState = PlaybackState.Stopped;
                 CurrentTrack = null;
                 Queue.ClearAll();
