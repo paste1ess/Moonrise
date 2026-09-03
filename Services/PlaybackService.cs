@@ -569,7 +569,7 @@ namespace Moonrise.Services
                         if (mediaPlayer.Source is MediaPlaybackItem playbackItem)
                         {
                             var props = playbackItem.GetDisplayProperties();
-                            props.Thumbnail = smtcRef ?? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
+                            props.Thumbnail = smtcRef ?? GetDefaultThumbnail();
                             playbackItem.ApplyDisplayProperties(props);
                         }
                     }
@@ -585,6 +585,24 @@ namespace Moonrise.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load playback artwork: {ex.Message}");
+            }
+        }
+
+        private static RandomAccessStreamReference? GetDefaultThumbnail()
+        {
+            try
+            {
+                var localPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Placeholder.png");
+                if (File.Exists(localPath))
+                {
+                    var file = StorageFile.GetFileFromPathAsync(localPath).AsTask().GetAwaiter().GetResult();
+                    return RandomAccessStreamReference.CreateFromFile(file);
+                }
+                return RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -607,7 +625,7 @@ namespace Moonrise.Services
             props.Type = MediaPlaybackType.Music;
             props.MusicProperties.Title = track.Title;
             props.MusicProperties.Artist = track.Artist;
-            props.Thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/Placeholder.png"));
+            props.Thumbnail = GetDefaultThumbnail();
             playbackItem.ApplyDisplayProperties(props);
             return playbackItem;
         }

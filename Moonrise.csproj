@@ -12,10 +12,11 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
-    <WindowsPackageType>MSIX</WindowsPackageType>
+    <WindowsPackageType Condition="'$(WindowsPackageType)' == ''">MSIX</WindowsPackageType>
+    <WindowsAppSDKSelfContained Condition="'$(WindowsPackageType)' == 'None'">true</WindowsAppSDKSelfContained>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-	<SelfContained>false</SelfContained>
+	<SelfContained Condition="'$(SelfContained)' == ''">false</SelfContained>
 	<ServerGarbageCollection>false</ServerGarbageCollection>
 	<RetainVM>false</RetainVM>
 	<GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
@@ -27,8 +28,13 @@
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-48_altform-lightunplated.png" />
-    <Content Include="Assets\AppIcon.ico" />
+    <Content Include="Assets\AppIcon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="Assets\Placeholder.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,7 +46,7 @@
     Tools extension to be activated for this project even if the Windows App SDK Nuget
     package has not yet been restored.
   -->
-  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true' and '$(WindowsPackageType)'!='None'">
     <ProjectCapability Include="Msix" />
   </ItemGroup>
 
@@ -49,7 +55,7 @@
     Explorer "Package and Publish" context menu entry to be enabled for this project even if
     the Windows App SDK Nuget package has not yet been restored.
   -->
-  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true' and '$(WindowsPackageType)'!='None'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
 
@@ -69,7 +75,7 @@
   </ItemGroup>
 
   <!-- Publish Properties -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(WindowsPackageType)' != 'None'">
     <PublishReadyToRun>False</PublishReadyToRun>
     <PublishTrimmed>False</PublishTrimmed>
     <PublishSingleFile>False</PublishSingleFile>
@@ -89,7 +95,7 @@
     <PackageCertificatePassword></PackageCertificatePassword>
     <AppxPackageDir>R:\Moonrise\bin\publish-packaged\MSIX\</AppxPackageDir>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(WindowsPackageType)' != 'None'">
     <AppxManifest Include="Package.appxmanifest" />
   </ItemGroup>
 </Project>
