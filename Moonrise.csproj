@@ -16,6 +16,7 @@
     <WindowsAppSDKSelfContained Condition="'$(WindowsPackageType)' == 'None'">true</WindowsAppSDKSelfContained>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Version>0.2.0</Version>
 	<SelfContained Condition="'$(SelfContained)' == ''">false</SelfContained>
 	<ServerGarbageCollection>false</ServerGarbageCollection>
 	<RetainVM>false</RetainVM>

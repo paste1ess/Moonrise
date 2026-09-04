@@ -110,7 +110,7 @@
                 </StackPanel>
 
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="About"/>
-                <controls:SettingsExpander Header="Moonrise (beta) 🌙" Description="v0.1.0">
+                <controls:SettingsExpander Header="Moonrise (beta) 🌙" Description="v0.2.0">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xEC4F;" />
                     </controls:SettingsExpander.HeaderIcon>

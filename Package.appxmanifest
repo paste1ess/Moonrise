@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -10,7 +10,7 @@
   <Identity
     Name="jamiw.Moonrise"
     Publisher="CN=96AC7234-4E41-4805-93EE-FF8709DB991D"
-    Version="0.1.0.0" />
+    Version="0.2.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="a2d6b280-e8f5-465e-a637-3727dad92c5a" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
