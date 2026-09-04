@@ -271,53 +271,59 @@ namespace Moonrise.Services
                 dbService.UpsertTracksBatch(missingTracks);
             }
 
-            var allPresentTracks = dbService.GetAllTracks().Where(t => t.IsPresent).ToList();
+            bool hasTrackChanges = allTracksToSave.Count > 0 || missingTracks.Count > 0;
+            List<Track>? allPresentTracks = null;
 
-            var existingAlbums = dbService.GetAllAlbums().ToDictionary(a => a.Id);
-            var existingArtists = dbService.GetAllArtists().ToDictionary(a => a.Id);
-
-            var albumsToSave = allPresentTracks
-                .GroupBy(t => t.AlbumId)
-                .Select(g => {
-                    var first = g.First();
-                    var trackIds = g.Select(t => t.Id).ToArray();
-                    return new Album
-                    {
-                        Id = g.Key,
-                        ArtistId = first.ArtistId,
-                        Title = first.Album,
-                        Artist = first.Artist,
-                        TrackIds = trackIds,
-                        Year = g.Where(t => t.Year.HasValue).Select(t => t.Year!.Value).FirstOrDefault(),
-                        Genre = g.Where(t => t.Genre != null).Select(t => t.Genre).FirstOrDefault(),
-                        DateAdded = g.Min(t => t.DateAdded),
-                        IsFavorite = existingAlbums.TryGetValue(g.Key, out var existingAlbum) ? existingAlbum.IsFavorite : false
-                    };
-                }).ToList();
-
-            var artistsToSave = allPresentTracks
-                .GroupBy(t => t.ArtistId)
-                .Select(g => {
-                    var first = g.First();
-                    var albumIds = g.Select(t => t.AlbumId).Distinct().ToArray();
-                    return new Artist
-                    {
-                        Id = g.Key,
-                        AlbumIds = albumIds,
-                        Name = first.Artist,
-                        DateAdded = g.Min(t => t.DateAdded),
-                        IsFavorite = existingArtists.TryGetValue(g.Key, out var existingArtist) ? existingArtist.IsFavorite : false
-                    };
-                }).ToList();
-
-            if (albumsToSave.Count > 0)
+            if (hasTrackChanges)
             {
-                dbService.UpsertAlbumsBatch(albumsToSave);
-            }
+                allPresentTracks = dbService.GetAllTracks().Where(t => t.IsPresent).ToList();
 
-            if (artistsToSave.Count > 0)
-            {
-                dbService.UpsertArtistsBatch(artistsToSave);
+                var existingAlbums = dbService.GetAllAlbums().ToDictionary(a => a.Id);
+                var existingArtists = dbService.GetAllArtists().ToDictionary(a => a.Id);
+
+                var albumsToSave = allPresentTracks
+                    .GroupBy(t => t.AlbumId)
+                    .Select(g => {
+                        var first = g.First();
+                        var trackIds = g.Select(t => t.Id).ToArray();
+                        return new Album
+                        {
+                            Id = g.Key,
+                            ArtistId = first.ArtistId,
+                            Title = first.Album,
+                            Artist = first.Artist,
+                            TrackIds = trackIds,
+                            Year = g.Where(t => t.Year.HasValue).Select(t => t.Year!.Value).FirstOrDefault(),
+                            Genre = g.Where(t => t.Genre != null).Select(t => t.Genre).FirstOrDefault(),
+                            DateAdded = g.Min(t => t.DateAdded),
+                            IsFavorite = existingAlbums.TryGetValue(g.Key, out var existingAlbum) ? existingAlbum.IsFavorite : false
+                        };
+                    }).ToList();
+
+                var artistsToSave = allPresentTracks
+                    .GroupBy(t => t.ArtistId)
+                    .Select(g => {
+                        var first = g.First();
+                        var albumIds = g.Select(t => t.AlbumId).Distinct().ToArray();
+                        return new Artist
+                        {
+                            Id = g.Key,
+                            AlbumIds = albumIds,
+                            Name = first.Artist,
+                            DateAdded = g.Min(t => t.DateAdded),
+                            IsFavorite = existingArtists.TryGetValue(g.Key, out var existingArtist) ? existingArtist.IsFavorite : false
+                        };
+                    }).ToList();
+
+                if (albumsToSave.Count > 0)
+                {
+                    dbService.UpsertAlbumsBatch(albumsToSave);
+                }
+
+                if (artistsToSave.Count > 0)
+                {
+                    dbService.UpsertArtistsBatch(artistsToSave);
+                }
             }
 
             var playlistExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -326,64 +332,70 @@ namespace Moonrise.Services
             };
 
             var playlistFiles = dirInfo.EnumerateFiles("*.*", SearchOption.AllDirectories)
-                                       .Where(f => playlistExtensions.Contains(f.Extension));
+                                       .Where(f => playlistExtensions.Contains(f.Extension))
+                                       .ToList();
 
-            var trackPathLookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var track in allPresentTracks)
+            if (playlistFiles.Count > 0)
             {
-                trackPathLookup[track.FilePath] = track.Id;
-                trackPathLookup[track.FilePath.Replace('/', '\\')] = track.Id;
-                trackPathLookup[track.FilePath.Replace('\\', '/')] = track.Id;
+                allPresentTracks ??= dbService.GetAllTracks().Where(t => t.IsPresent).ToList();
 
-                var fullPath = Path.GetFullPath(Path.Combine(folderPath, track.FilePath));
-                trackPathLookup[fullPath] = track.Id;
-
-                var relPath = Path.GetRelativePath(folderPath, fullPath);
-                trackPathLookup[relPath] = track.Id;
-                trackPathLookup[relPath.Replace('/', '\\')] = track.Id;
-                trackPathLookup[relPath.Replace('\\', '/')] = track.Id;
-            }
-
-            var playlistsToSave = new List<Playlist>();
-            foreach (var playlistFile in playlistFiles)
-            {
-                try
+                var trackPathLookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var track in allPresentTracks)
                 {
-                    var playlistRelPath = Path.GetRelativePath(folderPath, playlistFile.FullName);
-                    var title = Path.GetFileNameWithoutExtension(playlistFile.Name);
-                    var playlistId = IdGenerator.GetPlaylistId(title, playlistRelPath);
-                    var trackIds = new List<string>();
-                    foreach (var rawPath in ExtractPaths(playlistFile.FullName))
+                    trackPathLookup[track.FilePath] = track.Id;
+                    trackPathLookup[track.FilePath.Replace('/', '\\')] = track.Id;
+                    trackPathLookup[track.FilePath.Replace('\\', '/')] = track.Id;
+
+                    var fullPath = Path.GetFullPath(Path.Combine(folderPath, track.FilePath));
+                    trackPathLookup[fullPath] = track.Id;
+
+                    var relPath = Path.GetRelativePath(folderPath, fullPath);
+                    trackPathLookup[relPath] = track.Id;
+                    trackPathLookup[relPath.Replace('/', '\\')] = track.Id;
+                    trackPathLookup[relPath.Replace('\\', '/')] = track.Id;
+                }
+
+                var playlistsToSave = new List<Playlist>();
+                foreach (var playlistFile in playlistFiles)
+                {
+                    try
                     {
-                        if (trackPathLookup.TryGetValue(rawPath, out var trackId))
+                        var playlistRelPath = Path.GetRelativePath(folderPath, playlistFile.FullName);
+                        var title = Path.GetFileNameWithoutExtension(playlistFile.Name);
+                        var playlistId = IdGenerator.GetPlaylistId(title, playlistRelPath);
+                        var trackIds = new List<string>();
+                        foreach (var rawPath in ExtractPaths(playlistFile.FullName))
                         {
-                            trackIds.Add(trackId);
-                        }
-                        else
-                        {
-                            var rel = Path.GetRelativePath(folderPath, rawPath);
-                            if (trackPathLookup.TryGetValue(rel, out trackId))
+                            if (trackPathLookup.TryGetValue(rawPath, out var trackId))
                             {
                                 trackIds.Add(trackId);
                             }
+                            else
+                            {
+                                var rel = Path.GetRelativePath(folderPath, rawPath);
+                                if (trackPathLookup.TryGetValue(rel, out trackId))
+                                {
+                                    trackIds.Add(trackId);
+                                }
+                            }
                         }
+                        playlistsToSave.Add(new Playlist
+                        {
+                            Id = playlistId,
+                            Title = title,
+                            TrackIds = trackIds.ToArray()
+                        });
                     }
-                    playlistsToSave.Add(new Playlist
+                    catch (Exception ex)
                     {
-                        Id = playlistId,
-                        Title = title,
-                        TrackIds = trackIds.ToArray()
-                    });
+                        Debug.WriteLine(ex.Message);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.Message);
-                }
-            }
 
-            if (playlistsToSave.Count > 0)
-            {
-                dbService.UpsertPlaylistsBatch(playlistsToSave);
+                if (playlistsToSave.Count > 0)
+                {
+                    dbService.UpsertPlaylistsBatch(playlistsToSave);
+                }
             }
 
             toastHandle.Complete($"Finished scanning {scannedCount} songs.");

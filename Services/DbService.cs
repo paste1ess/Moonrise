@@ -113,6 +113,14 @@ namespace Moonrise.Services
                     track_ids TEXT NOT NULL
                 );", _connection);
                 playlistTableCommand.ExecuteNonQuery();
+
+                using var indexCommand = new SqliteCommand(@"
+                    CREATE INDEX IF NOT EXISTS idx_tracks_file_path ON tracks(file_path);
+                    CREATE INDEX IF NOT EXISTS idx_tracks_album_id ON tracks(album_id);
+                    CREATE INDEX IF NOT EXISTS idx_tracks_artist_id ON tracks(artist_id);
+                    CREATE INDEX IF NOT EXISTS idx_tracks_is_favorite ON tracks(is_favorite);
+                ", _connection);
+                indexCommand.ExecuteNonQuery();
             }
         }
 
