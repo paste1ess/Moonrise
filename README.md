@@ -1,6 +1,10 @@
-# Moonrise 🌙
+# Moonrise 🌙 
 
 A native, lightweight, *fast* local music player designed entirely for modern Windows.
+
+<a href="https://apps.microsoft.com/detail/9n53pcdpl7wx?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
+	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+</a>
 
 > [!WARNING]
 > Moonrise is currently unfinished, standing in a beta-like state even while it's released. There's still so many features to be added and refined! Bug reports are always welcome!
