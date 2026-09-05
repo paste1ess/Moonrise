@@ -18,12 +18,13 @@ Moonrise is the spiritual successor to our previous project, Musium, built from 
 ### Synced Lyrics
 Synchronized line-by-line lyrics sourced locally or via LRCLIB, with support for the `.lrc` format.
 
-<img alt="synchronized lyrics" src="https://github.com/user-attachments/assets/9a1482cd-c8f8-4cdc-9873-df3a8a246b92" />
+<img alt="synced lyrics" src="https://github.com/user-attachments/assets/f667cdd7-db9a-4c67-b2c7-6e8bb1f34249" />
+
 
 ### Mica+
 A custom dynamic background that subtly reacts to your music, *without* tanking performance or battery life.
 
-<img alt="mica-plus" src="https://github.com/user-attachments/assets/aee965a5-35db-4cd0-89b8-c27bf63aeb3f" />
+<img alt="mica plus" src="https://github.com/user-attachments/assets/c9e854d7-54b7-4fcc-8b78-2ea17a9bcbef" />
 
 ### Playlists
 Support for importing and playing existing `.m3u` and `.m3u8` playlists. Playlist creation and in-app editing are planned for later versions.
