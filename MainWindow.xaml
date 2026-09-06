@@ -44,15 +44,25 @@
                 Title="Moonrise (beta)"
                 IsBackButtonVisible="False"
                 IsPaneToggleButtonVisible="True"
+                HorizontalContentAlignment="Stretch"
                 PaneToggleRequested="TitleBar_PaneToggleRequested">
                 <TitleBar.IconSource>
                     <FontIconSource Glyph="&#xEC4F;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
                 </TitleBar.IconSource>
+                <TitleBar.Content>
+                    <AutoSuggestBox x:Name="TitleBarSearchBox" 
+                        QueryIcon="Find"
+                        PlaceholderText="Search"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Width="300"
+                        Margin="8,0,8,0"/>
+                </TitleBar.Content>
                 <TitleBar.RightHeader>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <StackPanel x:Name="NowPlayingPanel" VerticalAlignment="Center" Margin="0,0,16,0" IsHitTestVisible="False">
-                            <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Title, Mode=OneWay}" TextAlignment="Right"/>
-                            <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Artist, Mode=OneWay}" TextAlignment="Right" FontSize="11"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <StackPanel x:Name="NowPlayingPanel" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" MaxWidth="180" IsHitTestVisible="False">
+                            <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Title, Mode=OneWay}" TextAlignment="Right" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{x:Bind PlaybackService.CurrentTrack.Artist, Mode=OneWay}" TextAlignment="Right" FontSize="11" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                         <AppBarSeparator x:Name="NowPlayingSeparator" IsHitTestVisible="False"/>
                         <StackPanel x:Name="PlaybackButtonsPanel" Orientation="Horizontal" Spacing="8">
@@ -106,7 +116,6 @@
                         </Grid>
                     </StackPanel>
                 </TitleBar.RightHeader>
-
             </TitleBar>
 
             <NavigationView

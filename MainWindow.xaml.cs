@@ -564,6 +564,13 @@ namespace Moonrise
             NowPlayingPanel.Visibility = nowPlayingVisible;
             NowPlayingSeparator.Visibility = nowPlayingVisible;
             PlaybackButtonsPanel.Visibility = width >= 600 ? Visibility.Visible : Visibility.Collapsed;
+
+            double reservedRight = 190;
+            if (width >= 600) reservedRight += 160;
+            if (width >= 800) reservedRight += Math.Max(120, NowPlayingPanel.ActualWidth > 0 ? NowPlayingPanel.ActualWidth + 24 : 160);
+            double reservedLeft = 200;
+            double availableForSearch = width - reservedLeft - reservedRight - 16;
+            TitleBarSearchBox.Width = Math.Clamp(availableForSearch, 48, 320);
         }
 
         private void ToggleFullScreen()
