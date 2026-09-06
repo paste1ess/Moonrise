@@ -288,11 +288,12 @@ namespace Moonrise.Services
             return command.ExecuteScalar() as string;
         }
 
-        public Track? GetTrack(string id)
+        public Track? GetTrack(string id, bool includeUnavailable = false)
         {
             using var connection = new SqliteConnection("Data Source=" + DbPath);
             connection.Open();
-            using var command = new SqliteCommand("SELECT * FROM tracks WHERE id = @id", connection);
+            var sql = includeUnavailable ? "SELECT * FROM tracks WHERE id = @id" : "SELECT * FROM tracks WHERE id = @id AND is_present = 1";
+            using var command = new SqliteCommand(sql, connection);
             command.Parameters.AddWithValue("@id", id);
             using var reader = command.ExecuteReader();
             var idOrd = reader.GetOrdinal("id");
@@ -342,13 +343,15 @@ namespace Moonrise.Services
             return null;
         }
 
-        public IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids)
+        public IEnumerable<Track> GetTracksByIds(IEnumerable<string> ids, bool includeUnavailable = false)
         {
             var idList = ids.ToList();
             if (idList.Count == 0) yield break;
 
             var paramNames = idList.Select((_, i) => $"@id{i}");
-            var sql = $"SELECT * FROM tracks WHERE id IN ({string.Join(", ", paramNames)})";
+            var sql = includeUnavailable
+                ? $"SELECT * FROM tracks WHERE id IN ({string.Join(", ", paramNames)})"
+                : $"SELECT * FROM tracks WHERE is_present = 1 AND id IN ({string.Join(", ", paramNames)})";
 
             using var connection = new SqliteConnection("Data Source=" + DbPath);
             connection.Open();
@@ -409,11 +412,12 @@ namespace Moonrise.Services
                 if (fetched.TryGetValue(id, out var t)) yield return t;
         }
 
-        public Track? GetTrackByPath(string filePath)
+        public Track? GetTrackByPath(string filePath, bool includeUnavailable = false)
         {
             using var connection = new SqliteConnection("Data Source=" + DbPath);
             connection.Open();
-            using var command = new SqliteCommand("SELECT * FROM tracks WHERE file_path = @file_path", connection);
+            var sql = includeUnavailable ? "SELECT * FROM tracks WHERE file_path = @file_path" : "SELECT * FROM tracks WHERE file_path = @file_path AND is_present = 1";
+            using var command = new SqliteCommand(sql, connection);
             command.Parameters.AddWithValue("@file_path", filePath);
             using var reader = command.ExecuteReader();
             var idOrd = reader.GetOrdinal("id");
@@ -463,11 +467,12 @@ namespace Moonrise.Services
             return null;
         }
 
-        public IEnumerable<Track> GetAllTracks()
+        public IEnumerable<Track> GetAllTracks(bool includeUnavailable = false)
         {
             using var connection = new SqliteConnection("Data Source=" + DbPath);
             connection.Open();
-            using var command = new SqliteCommand("SELECT * FROM tracks", connection);
+            var sql = includeUnavailable ? "SELECT * FROM tracks" : "SELECT * FROM tracks WHERE is_present = 1";
+            using var command = new SqliteCommand(sql, connection);
             using var reader = command.ExecuteReader();
             var idOrd = reader.GetOrdinal("id");
             var albumIdOrd = reader.GetOrdinal("album_id");
@@ -515,11 +520,12 @@ namespace Moonrise.Services
             }
         }
 
-        public IEnumerable<Track> GetAllFavoriteTracks()
+        public IEnumerable<Track> GetAllFavoriteTracks(bool includeUnavailable = false)
         {
             using var connection = new SqliteConnection("Data Source=" + DbPath);
             connection.Open();
-            using var command = new SqliteCommand("SELECT * FROM tracks WHERE is_favorite", connection);
+            var sql = includeUnavailable ? "SELECT * FROM tracks WHERE is_favorite" : "SELECT * FROM tracks WHERE is_favorite AND is_present = 1";
+            using var command = new SqliteCommand(sql, connection);
             using var reader = command.ExecuteReader();
             var idOrd = reader.GetOrdinal("id");
             var albumIdOrd = reader.GetOrdinal("album_id");

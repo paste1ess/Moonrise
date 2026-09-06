@@ -160,13 +160,19 @@ namespace Moonrise.Services
             using var toastHandle = toast.ShowProgress(string.Empty, "Scanning 0 songs", isIndeterminate: true, isClosable: true);
             art.ClearCache();
 
-            var dbTracks = dbService.GetAllTracks().ToDictionary(t => t.FilePath, StringComparer.OrdinalIgnoreCase);
+            var allDbTracks = dbService.GetAllTracks(includeUnavailable: true).ToList();
+            var dbTracks = new Dictionary<string, Track>(StringComparer.OrdinalIgnoreCase);
+            foreach (var t in allDbTracks)
+            {
+                dbTracks[t.FilePath] = t;
+            }
+
             var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 ".mp3", ".flac", ".m4a", ".wav", ".wma", ".ogg"
             };
 
-            var filesToParse = new ConcurrentBag<(string AbsolutePath, string RelativePath, string LastModified, long FileSize, string TrackId, bool IsFavorite, DateTime DateAdded, int PlayCount)>();
+            var filesToParse = new ConcurrentBag<(string AbsolutePath, string RelativePath, string LastModified, long FileSize, Track? ExistingTrack)>();
             var unchangedTracks = new List<Track>();
             var seenRelativePaths = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
 
@@ -202,18 +208,14 @@ namespace Moonrise.Services
                     }
                 }
 
-                string trackId = cachedTrack?.Id ?? IdGenerator.NewTrackId();
-                bool isFavorite = cachedTrack?.IsFavorite ?? false;
-                DateTime dateAdded = cachedTrack?.DateAdded ?? DateTime.UtcNow;
-                int playCount = cachedTrack?.PlayCount ?? 0;
-
-                filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, trackId, isFavorite, dateAdded, playCount));
+                filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, cachedTrack));
             }
 
             toastHandle.Update(message: $"Scanning {scannedCount} songs");
 
             var tracksToSave = new ConcurrentBag<Track>();
             var lyricsToSave = new ConcurrentBag<(string TrackId, string Lyrics)>();
+            var newParsedTracks = new ConcurrentBag<(Track Track, string? Lyrics)>();
             var parallelOptions = new ParallelOptions
             {
                 MaxDegreeOfParallelism = Math.Min(Environment.ProcessorCount, 8)
@@ -225,13 +227,24 @@ namespace Moonrise.Services
             {
                 try
                 {
-                    var result = ParseTrackMetadata(file.AbsolutePath, file.RelativePath, file.LastModified, file.FileSize, file.TrackId, file.IsFavorite, file.DateAdded, file.PlayCount);
-                    if (result.Item1 != null)
+                    if (file.ExistingTrack != null)
                     {
-                        tracksToSave.Add(result.Item1);
-                        if (result.Item2 != null)
+                        var result = ParseTrackMetadata(file.AbsolutePath, file.RelativePath, file.LastModified, file.FileSize, file.ExistingTrack.Id, file.ExistingTrack.IsFavorite, file.ExistingTrack.DateAdded, file.ExistingTrack.PlayCount);
+                        if (result.Item1 != null)
                         {
-                            lyricsToSave.Add((result.Item1.Id, result.Item2));
+                            tracksToSave.Add(result.Item1);
+                            if (result.Item2 != null)
+                            {
+                                lyricsToSave.Add((result.Item1.Id, result.Item2));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var result = ParseTrackMetadata(file.AbsolutePath, file.RelativePath, file.LastModified, file.FileSize, string.Empty, false, DateTime.UtcNow, 0);
+                        if (result.Item1 != null)
+                        {
+                            newParsedTracks.Add((result.Item1, result.Item2));
                         }
                     }
                 }
@@ -250,19 +263,122 @@ namespace Moonrise.Services
                 return ValueTask.CompletedTask;
             });
 
-            var allTracksToSave = tracksToSave.Concat(unchangedTracks).ToList();
+            var missingCandidates = allDbTracks.Where(t => !seenRelativePaths.ContainsKey(t.FilePath)).ToList();
+            var missingByKey = new Dictionary<string, List<Track>>(StringComparer.OrdinalIgnoreCase);
+            var missingBySize = new Dictionary<long, List<Track>>();
+
+            foreach (var candidate in missingCandidates)
+            {
+                var key = GetTrackMatchKey(candidate.Title, candidate.Artist);
+                if (!missingByKey.TryGetValue(key, out var list))
+                {
+                    list = new List<Track>();
+                    missingByKey[key] = list;
+                }
+                list.Add(candidate);
+
+                if (candidate.FileSize > 0)
+                {
+                    if (!missingBySize.TryGetValue(candidate.FileSize, out var sizeList))
+                    {
+                        sizeList = new List<Track>();
+                        missingBySize[candidate.FileSize] = sizeList;
+                    }
+                    sizeList.Add(candidate);
+                }
+            }
+
+            var relocatedTrackIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var newParsed in newParsedTracks)
+            {
+                Track? matchedCandidate = null;
+
+                var key = GetTrackMatchKey(newParsed.Track.Title, newParsed.Track.Artist);
+                if (missingByKey.TryGetValue(key, out var list) && list.Count > 0)
+                {
+                    matchedCandidate = list.FirstOrDefault(c =>
+                        (c.FileSize > 0 && c.FileSize == newParsed.Track.FileSize) ||
+                        string.Equals(c.Album?.Trim(), newParsed.Track.Album?.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                        Math.Abs((c.Duration - newParsed.Track.Duration).TotalSeconds) <= 2
+                    );
+
+                    if (matchedCandidate == null && list.Count == 1 &&
+                        !string.IsNullOrEmpty(newParsed.Track.Title) &&
+                        !string.Equals(newParsed.Track.Title, "Unknown Title", StringComparison.OrdinalIgnoreCase))
+                    {
+                        matchedCandidate = list[0];
+                    }
+                }
+
+                if (matchedCandidate == null && newParsed.Track.FileSize > 0 && missingBySize.TryGetValue(newParsed.Track.FileSize, out var sizeList) && sizeList.Count > 0)
+                {
+                    matchedCandidate = sizeList.FirstOrDefault(c =>
+                        Math.Abs((c.Duration - newParsed.Track.Duration).TotalSeconds) <= 2 &&
+                        (string.Equals(c.Title?.Trim(), newParsed.Track.Title?.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                         (c.TrackNumber.HasValue && c.TrackNumber == newParsed.Track.TrackNumber))
+                    );
+                }
+
+                if (matchedCandidate != null)
+                {
+                    var matchKey = GetTrackMatchKey(matchedCandidate.Title, matchedCandidate.Artist);
+                    if (missingByKey.TryGetValue(matchKey, out var keyList))
+                    {
+                        keyList.Remove(matchedCandidate);
+                    }
+                    if (matchedCandidate.FileSize > 0 && missingBySize.TryGetValue(matchedCandidate.FileSize, out var sList))
+                    {
+                        sList.Remove(matchedCandidate);
+                    }
+                    relocatedTrackIds.Add(matchedCandidate.Id);
+
+                    var finalTrack = newParsed.Track with
+                    {
+                        Id = matchedCandidate.Id,
+                        PlayCount = matchedCandidate.PlayCount,
+                        IsFavorite = matchedCandidate.IsFavorite,
+                        DateAdded = matchedCandidate.DateAdded,
+                        IsPresent = true
+                    };
+                    tracksToSave.Add(finalTrack);
+                    if (newParsed.Lyrics != null)
+                    {
+                        lyricsToSave.Add((finalTrack.Id, newParsed.Lyrics));
+                    }
+                }
+                else
+                {
+                    var finalTrack = newParsed.Track with
+                    {
+                        Id = IdGenerator.NewTrackId(),
+                        PlayCount = 0,
+                        IsFavorite = false,
+                        DateAdded = DateTime.UtcNow,
+                        IsPresent = true
+                    };
+                    tracksToSave.Add(finalTrack);
+                    if (newParsed.Lyrics != null)
+                    {
+                        lyricsToSave.Add((finalTrack.Id, newParsed.Lyrics));
+                    }
+                }
+            }
+
+            var allTracksToSave = tracksToSave.Concat(unchangedTracks).DistinctBy(t => t.Id).ToList();
             if (allTracksToSave.Count > 0)
             {
                 dbService.UpsertTracksBatch(allTracksToSave);
             }
 
-            if (lyricsToSave.Count > 0)
+            var allLyricsToSave = lyricsToSave.DistinctBy(l => l.TrackId).ToList();
+            if (allLyricsToSave.Count > 0)
             {
-                dbService.UpsertLyricsBatch(lyricsToSave);
+                dbService.UpsertLyricsBatch(allLyricsToSave);
             }
 
-            var missingTracks = dbTracks.Values
-                .Where(t => t.IsPresent && !seenRelativePaths.ContainsKey(t.FilePath))
+            var missingTracks = allDbTracks
+                .Where(t => t.IsPresent && !seenRelativePaths.ContainsKey(t.FilePath) && !relocatedTrackIds.Contains(t.Id))
                 .Select(t => t with { IsPresent = false })
                 .ToList();
 
@@ -737,6 +853,11 @@ namespace Moonrise.Services
 
                 yield return normalized;
             }
+        }
+
+        private static string GetTrackMatchKey(string? title, string? artist)
+        {
+            return (title?.Trim() ?? string.Empty) + "|" + (artist?.Trim() ?? string.Empty);
         }
     }
 
