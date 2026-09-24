@@ -127,7 +127,7 @@ namespace Moonrise
 
             _shaderTimer.Interval = _settings.BackgroundShadersBoostFps
                     ? TimeSpan.FromSeconds(1.0 / 60.0)
-                    : TimeSpan.FromSeconds(1.0 / 12.0);
+                    : TimeSpan.FromSeconds(1.0 / 24.0);
             _shaderTimer.Tick += (_, _) =>
             {
                 var now = DateTime.UtcNow;
