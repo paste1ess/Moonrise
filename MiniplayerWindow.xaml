@@ -6,6 +6,7 @@
     xmlns:local="using:Moonrise"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Moonrise.Controls"
     mc:Ignorable="d"
     Title="Miniplayer">
 
@@ -30,5 +31,15 @@
             </Button>
             <Grid Grid.Column="1" x:Name="DragArea"/>
         </Grid>
+        <StackPanel x:Name="InfoPanel" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Spacing="8"  Margin="16" Padding="16" CornerRadius="8" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+            <StackPanel.OpacityTransition>
+                <ScalarTransition/>
+            </StackPanel.OpacityTransition>
+            <StackPanel>
+                <TextBlock Text="{x:Bind playback.CurrentTrack.Title, Mode=OneWay, TargetNullValue=''}" Style="{StaticResource BodyLargeStrongTextBlockStyle}"/>
+                <TextBlock Text="{x:Bind playback.CurrentTrack.Artist, Mode=OneWay, TargetNullValue=''}" Style="{StaticResource CaptionTextBlockStyle}"/>
+            </StackPanel>
+            <controls:ProgressSlider Small="True"/>
+        </StackPanel>
     </Grid>
 </Window>

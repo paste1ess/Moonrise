@@ -56,20 +56,20 @@ namespace Moonrise
             SetTitleBar(DragArea);
 
             RootGrid.Loaded += RootGrid_Loaded;
-            Activated += MiniplayerWindow_Activated;
+            RootGrid.PointerEntered += RootGrid_PointerEntered;
+            RootGrid.PointerExited += RootGrid_PointerExited;
         }
 
-
-        private void MiniplayerWindow_Activated(object sender, WindowActivatedEventArgs args)
+        private void RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
         {
-            if (args.WindowActivationState == WindowActivationState.Deactivated)
-            {
-                Titlebar.Opacity = 0;
-            }
-            else
-            {
-                Titlebar.Opacity = 1;
-            }
+            Titlebar.Opacity = 0;
+            InfoPanel.Opacity = 0;
+        }
+
+        private void RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            Titlebar.Opacity = 1;
+            InfoPanel.Opacity = 1;
         }
 
         private void RootGrid_Loaded(object sender, RoutedEventArgs e)
@@ -87,7 +87,7 @@ namespace Moonrise
         private void TogglePinned()
         {
             presenter?.IsAlwaysOnTop = !presenter.IsAlwaysOnTop;
-            PinnedIcon.Glyph = presenter.IsAlwaysOnTop ? "\uE77A" : "\uE718";
+            if (presenter is not null) PinnedIcon.Glyph = presenter.IsAlwaysOnTop ? "\uE77A" : "\uE718";
         }
 
         private void PinButton_Click(object sender, RoutedEventArgs e)

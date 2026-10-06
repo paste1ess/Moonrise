@@ -89,27 +89,7 @@
                     Click="FavoriteButton_Click"
                 />
             </Grid>
-            <Grid Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{x:Bind FormatDuration(playbackService.CurrentTrackTime), Mode=OneWay, FallbackValue='0:00'}" VerticalAlignment="Center" TextAlignment="Right" HorizontalAlignment="Right"/>
-                <Slider x:Name="ProgressSlider" Grid.Column="1" 
-                    Minimum="0" 
-                    Maximum="{x:Bind playbackService.CurrentTrack.Duration.TotalSeconds, Mode=OneWay}" 
-                    Value="{x:Bind playbackService.CurrentTrackTime.TotalSeconds, Mode=OneWay}" 
-                    VerticalAlignment="Center" 
-                    Margin="16,0"
-                    TickFrequency="1"
-                    TickPlacement="None"
-                    IsThumbToolTipEnabled="False"
-                    Loaded="ProgressSlider_Loaded"
-                    ValueChanged="ProgressSlider_ValueChanged"
-                />
-                <TextBlock Grid.Column="2" Text="{x:Bind FormatDuration(playbackService.CurrentTrack.Duration), Mode=OneWay, FallbackValue='0:00'}" VerticalAlignment="Center" TextAlignment="Left" HorizontalAlignment="Left"/>
-            </Grid>
+            <controls:ProgressSlider Grid.Row="2" />
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                 <controls:CircleIconButton Glyph="&#xE8B1;" Size="46" FontSize="16" Filled="False" Active="{x:Bind playbackService.ShuffleState, Mode=OneWay}" Click="Shuffle_Click"/>
                 <controls:CircleIconButton Glyph="&#xE892;" Size="46" FontSize="16" Filled="True" Click="Previous_Click"/>
