@@ -23,9 +23,6 @@
 	<GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Controls\ProgressSlider.xaml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
@@ -101,6 +98,11 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(WindowsPackageType)' != 'None'">
     <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\PlayerControls.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\ProgressSlider.xaml">

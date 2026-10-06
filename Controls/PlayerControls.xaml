@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="Moonrise.Controls.PlayerControls"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Moonrise.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+        <controls:CircleIconButton Glyph="&#xE8B1;" Size="{x:Bind BoolToButtonSize(Small), Mode=OneWay}" IconSize="{x:Bind BoolToFontSize(Small), Mode=OneWay}" Filled="False" Active="{x:Bind playbackService.ShuffleState, Mode=OneWay}" Click="Shuffle_Click"/>
+        <controls:CircleIconButton Glyph="&#xE892;" Size="{x:Bind BoolToButtonSize(Small), Mode=OneWay}" IconSize="{x:Bind BoolToFontSize(Small), Mode=OneWay}" Filled="True" Click="Previous_Click"/>
+        <controls:CircleIconButton Glyph="{x:Bind PlaybackStateToGlyph(playbackService.CurrentPlaybackState), Mode=OneWay}" Size="{x:Bind BoolToLargeButtonSize(Small), Mode=OneWay}" IconSize="{x:Bind BoolToFontSize(Small), Mode=OneWay}" Filled="True" Click="PlayPause_Click"/>
+        <controls:CircleIconButton Glyph="&#xE893;" Size="{x:Bind BoolToButtonSize(Small), Mode=OneWay}" IconSize="{x:Bind BoolToFontSize(Small), Mode=OneWay}" Filled="True" Click="Skip_Click"/>
+        <controls:CircleIconButton Glyph="{x:Bind RepeatStateToGlyph(playbackService.RepeatState), Mode=OneWay}" Active="{x:Bind RepeatStateToActive(playbackService.RepeatState), Mode=OneWay}" Size="{x:Bind BoolToButtonSize(Small), Mode=OneWay}" IconSize="{x:Bind BoolToFontSize(Small), Mode=OneWay}" Filled="False" Click="Repeat_Click"/>
+    </StackPanel>
+</UserControl>

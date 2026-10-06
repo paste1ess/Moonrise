@@ -40,6 +40,7 @@
                 <TextBlock Text="{x:Bind playback.CurrentTrack.Artist, Mode=OneWay, TargetNullValue=''}" Style="{StaticResource CaptionTextBlockStyle}"/>
             </StackPanel>
             <controls:ProgressSlider Small="True"/>
+            <controls:PlayerControls Small="True"/>
         </StackPanel>
     </Grid>
 </Window>
