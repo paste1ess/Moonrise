@@ -65,32 +65,45 @@
                 <Image Source="{x:Bind playbackService.CurrentTrackArtwork, Mode=OneWay}" Stretch="Uniform" MaxWidth="320" MaxHeight="320"/>
             </Frame>
             <Grid Grid.Row="1" HorizontalAlignment="Stretch">
+                <controls:CircleIconButton HorizontalAlignment="Left"
+                    x:Name="MiniplayerButton"
+                    VerticalAlignment="Center" 
+                    Margin="-48,0,0,0"
+                    Size="40"
+                    IconSize="16"
+                    Glyph="&#xE8A7;"
+                    Filled="False"
+                    Click="MiniplayerButton_Click"
+                />
+                
                 <StackPanel HorizontalAlignment="Center" 
-                VerticalAlignment="Center" 
-                Spacing="4">
+                    VerticalAlignment="Center" 
+                    Spacing="4">
                     <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" 
-                   Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" 
-                   HorizontalAlignment="Center" 
-                   TextAlignment="Center" />
+                       Text="{x:Bind playbackService.CurrentTrack.Title, Mode=OneWay}" 
+                       HorizontalAlignment="Center" 
+                       TextAlignment="Center" />
                     <TextBlock Style="{StaticResource BodyTextBlockStyle}" 
-                   Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" 
-                   HorizontalAlignment="Center" 
-                   TextAlignment="Center" />
+                       Text="{x:Bind playbackService.CurrentTrack.Artist, Mode=OneWay}" 
+                       HorizontalAlignment="Center" 
+                       TextAlignment="Center" />
                 </StackPanel>
 
                 <controls:CircleIconButton HorizontalAlignment="Right"
                     x:Name="FavoriteButton"
                     VerticalAlignment="Center" 
-                    Margin="0,0,-40,0"
+                    Margin="0,0,-48,0"
                     Size="40"
                     IconSize="16"
                     Glyph=""
                     Filled="False"
                     Click="FavoriteButton_Click"
                 />
+
+                
             </Grid>
-            <controls:ProgressSlider Grid.Row="2" />
-            <controls:PlayerControls Grid.Row="3" />
+            <controls:ProgressSlider Grid.Row="2" Small="False" />
+            <controls:PlayerControls Grid.Row="3" Small="False" />
         </Grid>
         <Grid x:Name="QueueContainer" Grid.Column="1" Grid.Row="0">
             <Grid.RowDefinitions>

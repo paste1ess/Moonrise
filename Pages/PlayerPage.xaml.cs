@@ -85,5 +85,10 @@ namespace Moonrise.Pages
 
             await libraryService.SetTrackFavorite(track.Id, track.IsFavorite);
         }
+
+        private void MiniplayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            App.OpenMiniplayer();
+        }
     }
 }
