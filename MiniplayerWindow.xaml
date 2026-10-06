@@ -7,15 +7,28 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="MiniplayerWindow">
+    Title="Miniplayer">
 
     <Window.SystemBackdrop>
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <Grid x:Name="RootGrid">
         <Grid x:Name="CoverArtContainer" CornerRadius="4">
-            <Image x:Name="CoverArtImage" Source="{x:Bind playback.CurrentTrackArtwork, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
+            <Image x:Name="CoverArtImage" Stretch="UniformToFill" Source="{x:Bind playback.CurrentTrackArtwork, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
+        </Grid>
+        <Grid x:Name="Titlebar" VerticalAlignment="Top" HorizontalAlignment="Stretch" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.OpacityTransition>
+                <ScalarTransition/>
+            </Grid.OpacityTransition>
+            <Button Grid.Column="0" Click="PinButton_Click"  BorderThickness="0" Background="Transparent" Width="31" Height="31" Padding="0" Margin="0" CornerRadius="0" VerticalAlignment="Top" HorizontalAlignment="Left">
+                <FontIcon x:Name="PinnedIcon" Glyph="&#xE718;" FontSize="12"/>
+            </Button>
+            <Grid Grid.Column="1" x:Name="DragArea"/>
         </Grid>
     </Grid>
 </Window>

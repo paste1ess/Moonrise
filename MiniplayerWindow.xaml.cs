@@ -1,16 +1,19 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Moonrise.Models;
 using Moonrise.Services;
 using NAudio.CoreAudioApi;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +22,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Graphics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -30,18 +34,65 @@ namespace Moonrise
     /// </summary>
     public sealed partial class MiniplayerWindow : Window
     {
+        [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern int GetDpiForWindow(IntPtr hwnd);
+
         private readonly IPlaybackService playback = App.Services.GetRequiredService<IPlaybackService>();
+        public OverlappedPresenter? presenter;
+
+        private double lastKnownScale;
+
 
         public MiniplayerWindow()
         {
             InitializeComponent();
-            var presenter = AppWindow.Presenter as OverlappedPresenter;
+            presenter = AppWindow.Presenter as OverlappedPresenter;
             presenter?.IsMaximizable = false;
             presenter?.IsMinimizable = false;
             presenter?.IsResizable = false;
 
             ExtendsContentIntoTitleBar = true;
-            AppWindow.Resize(new Windows.Graphics.SizeInt32(320, 320 - 7)); // genuinely no idea why but it happens to be like exactly 7 pixels too tall
+
+            SetTitleBar(DragArea);
+
+            RootGrid.Loaded += RootGrid_Loaded;
+            Activated += MiniplayerWindow_Activated;
+        }
+
+
+        private void MiniplayerWindow_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            if (args.WindowActivationState == WindowActivationState.Deactivated)
+            {
+                Titlebar.Opacity = 0;
+            }
+            else
+            {
+                Titlebar.Opacity = 1;
+            }
+        }
+
+        private void RootGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            lastKnownScale = Content.XamlRoot?.RasterizationScale ?? 1;
+            AdjustWindowSize(lastKnownScale);
+            //Content.XamlRoot?.Changed += XamlRoot_Changed;
+        }
+
+        private void AdjustWindowSize(double scale)
+        {
+            AppWindow.ResizeClient(new SizeInt32((int)Math.Round(320 * scale), (int)Math.Round((320 - 30) * scale)));
+        }
+
+        private void TogglePinned()
+        {
+            presenter?.IsAlwaysOnTop = !presenter.IsAlwaysOnTop;
+            PinnedIcon.Glyph = presenter.IsAlwaysOnTop ? "\uE77A" : "\uE718";
+        }
+
+        private void PinButton_Click(object sender, RoutedEventArgs e)
+        {
+            TogglePinned();
         }
     }
 }
