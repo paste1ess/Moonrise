@@ -55,6 +55,8 @@ namespace Moonrise
 
             SetTitleBar(DragArea);
 
+            AppWindow.ResizeClient(new SizeInt32(320, 320 - 30));
+
             RootGrid.Loaded += RootGrid_Loaded;
             RootGrid.PointerEntered += RootGrid_PointerEntered;
             RootGrid.PointerExited += RootGrid_PointerExited;
