@@ -20,6 +20,7 @@ namespace Moonrise
     public partial class App : Application
     {
         private Window? _window;
+        private Window? _miniplayerWindow;
         public static IServiceProvider Services { get; private set; }
 
         /// <summary>
@@ -63,6 +64,9 @@ namespace Moonrise
             library.Initialize();
 
             _window.Activate();
+
+            _miniplayerWindow = new MiniplayerWindow();
+            _miniplayerWindow.Activate();
         }
     }
 }

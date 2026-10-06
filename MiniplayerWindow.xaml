@@ -13,7 +13,9 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid>
-
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid x:Name="CoverArtContainer" CornerRadius="4">
+            <Image x:Name="CoverArtImage" Source="{x:Bind playback.CurrentTrackArtwork, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"/>
+        </Grid>
     </Grid>
 </Window>
