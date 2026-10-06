@@ -19,7 +19,8 @@ namespace Moonrise
     /// </summary>
     public partial class App : Application
     {
-        private Window? _window;
+        private static Window? _window;
+        private static Window? _miniplayerWindow;
         public static IServiceProvider Services { get; private set; }
 
         /// <summary>
@@ -57,12 +58,19 @@ namespace Moonrise
             _ = Services.GetRequiredService<IDiscordRpcService>();
             _ = Services.GetRequiredService<IPlaybackService>();
 
-            _window = new MainWindow();
+            App._window = new MainWindow();
 
             var library = Services.GetRequiredService<ILibraryService>();
             library.Initialize();
 
-            _window.Activate();
+            App._window.Activate();
+        }
+
+        public static void OpenMiniplayer()
+        {
+            if (App._miniplayerWindow is null) App._miniplayerWindow = new MiniplayerWindow();
+            App._miniplayerWindow.Activate();
+            App._miniplayerWindow.Closed += (s, e) => _miniplayerWindow = null;
         }
     }
 }
