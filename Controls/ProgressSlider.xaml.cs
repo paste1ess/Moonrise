@@ -43,7 +43,7 @@ public sealed partial class ProgressSlider : UserControl
 
     public Style BoolToTextStyle(bool value)
     {
-        return value ? (Style)Application.Current.Resources["BodyTextBlockStyle"] : (Style)Application.Current.Resources["CaptionTextBlockStyle"];
+        return value ? (Style)Application.Current.Resources["CaptionTextBlockStyle"] : (Style)Application.Current.Resources["BodyTextBlockStyle"];
     }
 
     private bool _isUserDragging = false;

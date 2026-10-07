@@ -31,7 +31,7 @@
             </Button>
             <Grid Grid.Column="1" x:Name="DragArea"/>
         </Grid>
-        <StackPanel x:Name="InfoPanel" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Spacing="8" Margin="16" Padding="16" CornerRadius="8" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+        <StackPanel x:Name="InfoPanel" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Spacing="4" Margin="16" Padding="16" CornerRadius="8" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
             <StackPanel.OpacityTransition>
                 <ScalarTransition/>
             </StackPanel.OpacityTransition>
