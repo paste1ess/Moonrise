@@ -31,11 +31,11 @@
             </Button>
             <Grid Grid.Column="1" x:Name="DragArea"/>
         </Grid>
-        <StackPanel x:Name="InfoPanel" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Spacing="8"  Margin="16" Padding="16" CornerRadius="8" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+        <StackPanel x:Name="InfoPanel" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Spacing="8" Margin="16" Padding="16" CornerRadius="8" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
             <StackPanel.OpacityTransition>
                 <ScalarTransition/>
             </StackPanel.OpacityTransition>
-            <StackPanel>
+            <StackPanel Spacing="4">
                 <TextBlock Text="{x:Bind playback.CurrentTrack.Title, Mode=OneWay, TargetNullValue=''}" Style="{StaticResource BodyLargeStrongTextBlockStyle}"/>
                 <TextBlock Text="{x:Bind playback.CurrentTrack.Artist, Mode=OneWay, TargetNullValue=''}" Style="{StaticResource CaptionTextBlockStyle}"/>
             </StackPanel>
