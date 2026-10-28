@@ -15,15 +15,16 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Width="40" Height="40" CornerRadius="4" VerticalAlignment="Center">
+        <Grid Grid.Column="0" Width="40" Height="40" CornerRadius="{x:Bind GetRadius(Item.ResultType), Mode=OneWay}" VerticalAlignment="Center">
             <Image Source="{x:Bind DisplayedCoverArt, Mode=OneWay, TargetNullValue='ms-appx:///Assets/Placeholder.png'}"
                    Stretch="UniformToFill"/>
         </Grid>
 
-        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+        <StackPanel Grid.Column="1" VerticalAlignment="Stretch">
             <TextBlock Text="{x:Bind Item.Title, Mode=OneWay}"
                        Style="{StaticResource BodyStrongTextBlockStyle}"
                        TextTrimming="CharacterEllipsis"
+                       VerticalAlignment="Center"
                        MaxLines="1"/>
             <TextBlock Text="{x:Bind Item.Caption, Mode=OneWay}"
                        Visibility="{x:Bind GetCaptionVisibility(Item.Caption), Mode=OneWay}"

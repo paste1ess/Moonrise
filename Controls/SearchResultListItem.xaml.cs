@@ -153,5 +153,7 @@ namespace Moonrise.Controls
 
         public Visibility GetCaptionVisibility(string? caption) =>
             string.IsNullOrWhiteSpace(caption) ? Visibility.Collapsed : Visibility.Visible;
+
+        public CornerRadius GetRadius(ResultType res) => res == ResultType.Artist ? new(40) : new(4);
     }
 }
