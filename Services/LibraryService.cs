@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 namespace Moonrise.Services
 {
     public record LyricsChangedEventArgs(string TrackId, string? Lyrics, bool IsSynced = false, bool SaveToDisk = false);
+    public enum ResultType { Track, Album, Artist, Playlist }
+    public record SearchResult(ResultType ResultType, string Id, string Title, string? Caption);
 
     public interface ILibraryService
     {
@@ -47,6 +49,7 @@ namespace Moonrise.Services
         Task<Playlist?> GetPlaylist(string id);
         //Task UpsertPlaylist(Playlist playlist);
 
+        IEnumerable<SearchResult> Search(string query, int limit = 20);
     }
 
     public class LibraryService : ILibraryService
@@ -804,6 +807,11 @@ namespace Moonrise.Services
         public async Task<Playlist?> GetPlaylist(string id)
         {
             return dbService.GetPlaylistFromId(id);
+        }
+
+        public IEnumerable<SearchResult> Search(string query, int limit = 20)
+        {
+            return dbService.Search(query, limit);
         }
 
         static IEnumerable<string> ExtractPaths(string m3u8Path)

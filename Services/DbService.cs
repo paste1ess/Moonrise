@@ -972,6 +972,91 @@ namespace Moonrise.Services
             }
         }
 
+        public IEnumerable<SearchResult> Search(string query, int limit = 20)
+        {
+            if (string.IsNullOrWhiteSpace(query) || limit <= 0)
+                yield break;
+
+            var trimmed = query.Trim();
+            var escaped = trimmed
+                .Replace(@"\", @"\\")
+                .Replace("%", @"\%")
+                .Replace("_", @"\_");
+
+            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            connection.Open();
+
+            const string sql = @"
+                SELECT result_type, id, title, caption,
+                    (CASE
+                        WHEN title = @exact COLLATE NOCASE THEN 400
+                        WHEN title LIKE @prefix ESCAPE '\' COLLATE NOCASE THEN 300
+                        WHEN title LIKE @wordPrefix ESCAPE '\' COLLATE NOCASE THEN 200
+                        WHEN title LIKE @contains ESCAPE '\' COLLATE NOCASE THEN 100
+                        ELSE 50
+                    END)
+                    + (CASE result_type
+                        WHEN 2 THEN 30
+                        WHEN 1 THEN 20
+                        WHEN 3 THEN 10
+                        ELSE 0
+                    END)
+                    + (is_favorite * 5)
+                    + MIN(play_count, 5) AS score
+                FROM (
+                    SELECT 2 AS result_type, id, name AS title, NULL AS caption, is_favorite, 0 AS play_count
+                    FROM artists
+                    WHERE name LIKE @contains ESCAPE '\' COLLATE NOCASE
+
+                    UNION ALL
+
+                    SELECT 1 AS result_type, id, title, artist AS caption, is_favorite, 0 AS play_count
+                    FROM albums
+                    WHERE title LIKE @contains ESCAPE '\' COLLATE NOCASE
+                       OR artist LIKE @contains ESCAPE '\' COLLATE NOCASE
+
+                    UNION ALL
+
+                    SELECT 0 AS result_type, id, title, artist AS caption, is_favorite, play_count
+                    FROM tracks
+                    WHERE is_present = 1
+                      AND (title LIKE @contains ESCAPE '\' COLLATE NOCASE
+                        OR artist LIKE @contains ESCAPE '\' COLLATE NOCASE
+                        OR album LIKE @contains ESCAPE '\' COLLATE NOCASE)
+
+                    UNION ALL
+
+                    SELECT 3 AS result_type, id, title, NULL AS caption, 0 AS is_favorite, 0 AS play_count
+                    FROM playlists
+                    WHERE title LIKE @contains ESCAPE '\' COLLATE NOCASE
+                )
+                ORDER BY score DESC, LENGTH(title) ASC, title COLLATE NOCASE ASC
+                LIMIT @limit;";
+
+            using var command = new SqliteCommand(sql, connection);
+            command.Parameters.AddWithValue("@exact", trimmed);
+            command.Parameters.AddWithValue("@prefix", escaped + "%");
+            command.Parameters.AddWithValue("@wordPrefix", "% " + escaped + "%");
+            command.Parameters.AddWithValue("@contains", "%" + escaped + "%");
+            command.Parameters.AddWithValue("@limit", limit);
+
+            using var reader = command.ExecuteReader();
+            var typeOrd = reader.GetOrdinal("result_type");
+            var idOrd = reader.GetOrdinal("id");
+            var titleOrd = reader.GetOrdinal("title");
+            var captionOrd = reader.GetOrdinal("caption");
+
+            while (reader.Read())
+            {
+                yield return new SearchResult(
+                    (ResultType)reader.GetInt32(typeOrd),
+                    reader.GetString(idOrd),
+                    reader.GetString(titleOrd),
+                    reader.IsDBNull(captionOrd) ? null : reader.GetString(captionOrd)
+                );
+            }
+        }
+
         public void Dispose()
         {
             lock (_dbLock)
