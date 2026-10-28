@@ -34,6 +34,8 @@ namespace Moonrise
     {
         public static MainWindow? Instance { get; private set; }
         private readonly ISettingsService _settings = App.Services.GetRequiredService<ISettingsService>();
+        private readonly ILibraryService _library = App.Services.GetRequiredService<ILibraryService>();
+        private int _searchVersion = 0;
         private PixelShaderEffect<BackgroundShader>? _shaderEffect;
         private CancellationTokenSource? _shaderFadeCts;
         private bool _isLightTheme;
@@ -571,6 +573,103 @@ namespace Moonrise
             double reservedLeft = 200;
             double availableForSearch = width - reservedLeft - reservedRight - 16;
             TitleBarSearchBox.Width = Math.Clamp(availableForSearch, 48, 320);
+            UpdateSearchResultsPanelPosition();
+        }
+
+        private void TitleBarSearchBox_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateSearchResultsPanelPosition();
+        }
+
+        private void UpdateSearchResultsPanelPosition()
+        {
+            if (Content is not FrameworkElement root || TitleBarSearchBox.ActualWidth <= 0)
+                return;
+
+            var searchCenter = TitleBarSearchBox
+                .TransformToVisual(root)
+                .TransformPoint(new Point(TitleBarSearchBox.ActualWidth / 2.0, 0));
+
+            double panelWidth = SearchResultsPanel.Width;
+            double left = searchCenter.X - (panelWidth / 2.0);
+            if (root.ActualWidth > panelWidth + 16)
+            {
+                left = Math.Clamp(left, 8, root.ActualWidth - panelWidth - 8);
+            }
+
+            SearchResultsPanel.Margin = new Thickness(left, 52, 0, 0);
+        }
+
+        private void TitleBarSearchBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(TitleBarSearchBox.Text) && SearchResultsList.Results?.Count > 0)
+            {
+                UpdateSearchResultsPanelPosition();
+                SearchResultsPanel.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void TitleBarSearchBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            SearchResultsPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void TitleBarSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            var query = sender.Text;
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                SearchResultsPanel.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var results = _library.Search(query, 5).ToList();
+            SearchResultsList.Results = results;
+            UpdateSearchResultsPanelPosition();
+            SearchResultsPanel.Visibility = results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private async void SearchResultsList_ResultClicked(object sender, SearchResult result)
+        {
+            SearchResultsPanel.Visibility = Visibility.Collapsed;
+            NavFrame.Focus(FocusState.Programmatic);
+
+            switch (result.ResultType)
+            {
+                case ResultType.Track:
+                    var track = await Task.Run(() => _library.GetTrack(result.Id));
+                    if (track != null)
+                    {
+                        PlaybackService.Queue.ClearAll();
+                        PlaybackService.PlayTrack(track);
+                    }
+                    break;
+
+                case ResultType.Album:
+                    var album = await Task.Run(() => _library.GetAlbum(result.Id));
+                    if (album != null)
+                    {
+                        NavFrame.Navigate(typeof(AlbumItemPage), album);
+                    }
+                    break;
+
+                case ResultType.Artist:
+                    var artist = await Task.Run(() => _library.GetArtist(result.Id));
+                    if (artist != null)
+                    {
+                        NavFrame.Navigate(typeof(ArtistItemPage), artist);
+                    }
+                    break;
+
+                case ResultType.Playlist:
+                    var playlist = await Task.Run(() => _library.GetPlaylist(result.Id));
+                    if (playlist != null)
+                    {
+                        NavFrame.Navigate(typeof(PlaylistItemPage), playlist);
+                    }
+                    break;
+            }
         }
 
         private void ToggleFullScreen()

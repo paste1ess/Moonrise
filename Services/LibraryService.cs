@@ -13,7 +13,23 @@ namespace Moonrise.Services
 {
     public record LyricsChangedEventArgs(string TrackId, string? Lyrics, bool IsSynced = false, bool SaveToDisk = false);
     public enum ResultType { Track, Album, Artist, Playlist }
-    public record SearchResult(ResultType ResultType, string Id, string Title, string? Caption);
+    public record SearchResult
+    {
+        public ResultType ResultType { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string? Caption { get; set; }
+
+        public SearchResult() { }
+
+        public SearchResult(ResultType resultType, string id, string title, string? caption)
+        {
+            ResultType = resultType;
+            Id = id;
+            Title = title;
+            Caption = caption;
+        }
+    }
 
     public interface ILibraryService
     {

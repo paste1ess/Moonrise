@@ -23,6 +23,10 @@
 	<GarbageCollectionAdaptationMode>1</GarbageCollectionAdaptationMode>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Controls\SearchResultList.xaml" />
+    <None Remove="Controls\SearchResultListItem.xaml" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
@@ -98,6 +102,14 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(WindowsPackageType)' != 'None'">
     <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Controls\SearchResultList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Controls\SearchResultListItem.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\PlayerControls.xaml">

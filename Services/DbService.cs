@@ -12,13 +12,16 @@ namespace Moonrise.Services
     public class DbService : IDisposable
     {
         private readonly SqliteConnection _connection;
+        private readonly string _connectionString;
         private readonly object _dbLock = new();
         public readonly string DbPath;
 
         public DbService(string path)
         {
-            var connectionString = "Data Source=" + path;
-            _connection = new SqliteConnection(connectionString);
+            _connectionString = path == ":memory:"
+                ? "Data Source=MoonriseInMemory;Mode=Memory;Cache=Shared"
+                : "Data Source=" + path;
+            _connection = new SqliteConnection(_connectionString);
             _connection.Open();
 
             using var walCommand = new SqliteCommand("PRAGMA journal_mode=WAL;", _connection);
@@ -281,7 +284,7 @@ namespace Moonrise.Services
 
         public string? GetLyrics(string trackId)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand("SELECT lyrics FROM lyrics WHERE track_id = @track_id", connection);
             command.Parameters.AddWithValue("@track_id", trackId);
@@ -290,7 +293,7 @@ namespace Moonrise.Services
 
         public Track? GetTrack(string id, bool includeUnavailable = false)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             var sql = includeUnavailable ? "SELECT * FROM tracks WHERE id = @id" : "SELECT * FROM tracks WHERE id = @id AND is_present = 1";
             using var command = new SqliteCommand(sql, connection);
@@ -353,7 +356,7 @@ namespace Moonrise.Services
                 ? $"SELECT * FROM tracks WHERE id IN ({string.Join(", ", paramNames)})"
                 : $"SELECT * FROM tracks WHERE is_present = 1 AND id IN ({string.Join(", ", paramNames)})";
 
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand(sql, connection);
             for (int i = 0; i < idList.Count; i++)
@@ -414,7 +417,7 @@ namespace Moonrise.Services
 
         public Track? GetTrackByPath(string filePath, bool includeUnavailable = false)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             var sql = includeUnavailable ? "SELECT * FROM tracks WHERE file_path = @file_path" : "SELECT * FROM tracks WHERE file_path = @file_path AND is_present = 1";
             using var command = new SqliteCommand(sql, connection);
@@ -469,7 +472,7 @@ namespace Moonrise.Services
 
         public IEnumerable<Track> GetAllTracks(bool includeUnavailable = false)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             var sql = includeUnavailable ? "SELECT * FROM tracks" : "SELECT * FROM tracks WHERE is_present = 1";
             using var command = new SqliteCommand(sql, connection);
@@ -522,7 +525,7 @@ namespace Moonrise.Services
 
         public IEnumerable<Track> GetAllFavoriteTracks(bool includeUnavailable = false)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             var sql = includeUnavailable ? "SELECT * FROM tracks WHERE is_favorite" : "SELECT * FROM tracks WHERE is_favorite AND is_present = 1";
             using var command = new SqliteCommand(sql, connection);
@@ -703,7 +706,7 @@ namespace Moonrise.Services
 
         public Album? GetAlbum(string id)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand("SELECT * FROM albums WHERE id = @id", connection);
             command.Parameters.AddWithValue("@id", id);
@@ -745,7 +748,7 @@ namespace Moonrise.Services
             var paramNames = idList.Select((_, i) => $"@id{i}");
             var sql = $"SELECT * FROM albums WHERE id IN ({string.Join(", ", paramNames)})";
 
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand(sql, connection);
             for (int i = 0; i < idList.Count; i++)
@@ -788,7 +791,7 @@ namespace Moonrise.Services
 
         public IEnumerable<Album> GetAllAlbums()
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand("SELECT * FROM albums", connection);
             using var reader = command.ExecuteReader();
@@ -822,7 +825,7 @@ namespace Moonrise.Services
 
         public Artist? GetArtist(string id)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand("SELECT * FROM artists WHERE id = @id", connection);
             command.Parameters.AddWithValue("@id", id);
@@ -850,7 +853,7 @@ namespace Moonrise.Services
 
         public IEnumerable<Artist> GetAllArtists()
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand("SELECT * FROM artists", connection);
             using var reader = command.ExecuteReader();
@@ -928,7 +931,7 @@ namespace Moonrise.Services
 
         public Playlist? GetPlaylistFromId(string id)
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand("SELECT * FROM playlists WHERE id = @id", connection);
             command.Parameters.AddWithValue("@id", id);
@@ -952,7 +955,7 @@ namespace Moonrise.Services
 
         public IEnumerable<Playlist> GetAllPlaylists()
         {
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
             using var command = new SqliteCommand("SELECT * FROM playlists", connection);
             using var reader = command.ExecuteReader();
@@ -975,16 +978,13 @@ namespace Moonrise.Services
         public IEnumerable<SearchResult> Search(string query, int limit = 20)
         {
             if (string.IsNullOrWhiteSpace(query) || limit <= 0)
-                yield break;
+                return [];
 
             var trimmed = query.Trim();
             var escaped = trimmed
                 .Replace(@"\", @"\\")
                 .Replace("%", @"\%")
                 .Replace("_", @"\_");
-
-            using var connection = new SqliteConnection("Data Source=" + DbPath);
-            connection.Open();
 
             const string sql = @"
                 SELECT result_type, id, title, caption,
@@ -1033,28 +1033,33 @@ namespace Moonrise.Services
                 ORDER BY score DESC, LENGTH(title) ASC, title COLLATE NOCASE ASC
                 LIMIT @limit;";
 
-            using var command = new SqliteCommand(sql, connection);
-            command.Parameters.AddWithValue("@exact", trimmed);
-            command.Parameters.AddWithValue("@prefix", escaped + "%");
-            command.Parameters.AddWithValue("@wordPrefix", "% " + escaped + "%");
-            command.Parameters.AddWithValue("@contains", "%" + escaped + "%");
-            command.Parameters.AddWithValue("@limit", limit);
-
-            using var reader = command.ExecuteReader();
-            var typeOrd = reader.GetOrdinal("result_type");
-            var idOrd = reader.GetOrdinal("id");
-            var titleOrd = reader.GetOrdinal("title");
-            var captionOrd = reader.GetOrdinal("caption");
-
-            while (reader.Read())
+            var results = new List<SearchResult>(limit);
+            lock (_dbLock)
             {
-                yield return new SearchResult(
-                    (ResultType)reader.GetInt32(typeOrd),
-                    reader.GetString(idOrd),
-                    reader.GetString(titleOrd),
-                    reader.IsDBNull(captionOrd) ? null : reader.GetString(captionOrd)
-                );
+                using var command = new SqliteCommand(sql, _connection);
+                command.Parameters.AddWithValue("@exact", trimmed);
+                command.Parameters.AddWithValue("@prefix", escaped + "%");
+                command.Parameters.AddWithValue("@wordPrefix", "% " + escaped + "%");
+                command.Parameters.AddWithValue("@contains", "%" + escaped + "%");
+                command.Parameters.AddWithValue("@limit", limit);
+
+                using var reader = command.ExecuteReader();
+                var typeOrd = reader.GetOrdinal("result_type");
+                var idOrd = reader.GetOrdinal("id");
+                var titleOrd = reader.GetOrdinal("title");
+                var captionOrd = reader.GetOrdinal("caption");
+
+                while (reader.Read())
+                {
+                    results.Add(new SearchResult(
+                        (ResultType)reader.GetInt32(typeOrd),
+                        reader.GetString(idOrd),
+                        reader.GetString(titleOrd),
+                        reader.IsDBNull(captionOrd) ? null : reader.GetString(captionOrd)
+                    ));
+                }
             }
+            return results;
         }
 
         public void Dispose()

@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     xmlns:local="using:Moonrise"
+    xmlns:controls="using:Moonrise.Controls"
     xmlns:models="using:Moonrise.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Moonrise"
@@ -56,7 +57,11 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Width="300"
-                        Margin="8,0,8,0"/>
+                        Margin="8,0,8,0"
+                        TextChanged="TitleBarSearchBox_TextChanged"
+                        GotFocus="TitleBarSearchBox_GotFocus"
+                        LostFocus="TitleBarSearchBox_LostFocus"
+                        SizeChanged="TitleBarSearchBox_SizeChanged"/>
                 </TitleBar.Content>
                 <TitleBar.RightHeader>
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
@@ -167,6 +172,25 @@
                 <Frame x:Name="NavFrame" CacheSize="0" />
             </NavigationView>
         </Grid>
+        <Border
+            x:Name="SearchResultsPanel"
+            Width="450"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Margin="0,52,0,0"
+            Padding="4"
+            CornerRadius="8"
+            Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource SurfaceStrokeColorFlyoutBrush}"
+            BorderThickness="1"
+            Translation="0,0,32"
+            Canvas.ZIndex="900"
+            Visibility="Collapsed">
+            <Border.Shadow>
+                <ThemeShadow />
+            </Border.Shadow>
+            <controls:SearchResultList x:Name="SearchResultsList" ResultClicked="SearchResultsList_ResultClicked" />
+        </Border>
         <ItemsControl
             x:Name="ToastItemsControl"
             ItemsSource="{x:Bind ToastService.ActiveToasts, Mode=OneTime}"
