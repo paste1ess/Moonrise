@@ -208,7 +208,9 @@
                         CloseButtonClick="Toast_CloseButtonClick"
                         Tag="{x:Bind}"
                         Margin="0,0,0,8"
-                        HorizontalAlignment="Center">
+                        HorizontalAlignment="Center"
+                        Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource SurfaceStrokeColorFlyoutBrush}">
                         <InfoBar.Content>
                             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                                 <TextBlock
