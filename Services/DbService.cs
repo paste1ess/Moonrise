@@ -1034,30 +1034,29 @@ namespace Moonrise.Services
                 LIMIT @limit;";
 
             var results = new List<SearchResult>(limit);
-            lock (_dbLock)
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+            using var command = new SqliteCommand(sql, connection);
+            command.Parameters.AddWithValue("@exact", trimmed);
+            command.Parameters.AddWithValue("@prefix", escaped + "%");
+            command.Parameters.AddWithValue("@wordPrefix", "% " + escaped + "%");
+            command.Parameters.AddWithValue("@contains", "%" + escaped + "%");
+            command.Parameters.AddWithValue("@limit", limit);
+
+            using var reader = command.ExecuteReader();
+            var typeOrd = reader.GetOrdinal("result_type");
+            var idOrd = reader.GetOrdinal("id");
+            var titleOrd = reader.GetOrdinal("title");
+            var captionOrd = reader.GetOrdinal("caption");
+
+            while (reader.Read())
             {
-                using var command = new SqliteCommand(sql, _connection);
-                command.Parameters.AddWithValue("@exact", trimmed);
-                command.Parameters.AddWithValue("@prefix", escaped + "%");
-                command.Parameters.AddWithValue("@wordPrefix", "% " + escaped + "%");
-                command.Parameters.AddWithValue("@contains", "%" + escaped + "%");
-                command.Parameters.AddWithValue("@limit", limit);
-
-                using var reader = command.ExecuteReader();
-                var typeOrd = reader.GetOrdinal("result_type");
-                var idOrd = reader.GetOrdinal("id");
-                var titleOrd = reader.GetOrdinal("title");
-                var captionOrd = reader.GetOrdinal("caption");
-
-                while (reader.Read())
-                {
-                    results.Add(new SearchResult(
-                        (ResultType)reader.GetInt32(typeOrd),
-                        reader.GetString(idOrd),
-                        reader.GetString(titleOrd),
-                        reader.IsDBNull(captionOrd) ? null : reader.GetString(captionOrd)
-                    ));
-                }
+                results.Add(new SearchResult(
+                    (ResultType)reader.GetInt32(typeOrd),
+                    reader.GetString(idOrd),
+                    reader.GetString(titleOrd),
+                    reader.IsDBNull(captionOrd) ? null : reader.GetString(captionOrd)
+                ));
             }
             return results;
         }

@@ -611,20 +611,26 @@ namespace Moonrise
 
         private void TitleBarSearchBox_LostFocus(object sender, RoutedEventArgs e)
         {
+            _searchVersion++;
             SearchResultsPanel.Visibility = Visibility.Collapsed;
         }
 
-        private void TitleBarSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        private async void TitleBarSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
+            int version = ++_searchVersion;
             var query = sender.Text;
 
             if (string.IsNullOrWhiteSpace(query))
             {
+                SearchResultsList.Results = [];
                 SearchResultsPanel.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            var results = _library.Search(query, 5).ToList();
+            var results = await Task.Run(() => _library.Search(query, 5).ToList());
+            if (version != _searchVersion)
+                return;
+
             SearchResultsList.Results = results;
             UpdateSearchResultsPanelPosition();
             SearchResultsPanel.Visibility = results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
