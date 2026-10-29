@@ -20,14 +20,13 @@
                    Stretch="UniformToFill"/>
         </Grid>
 
-        <StackPanel Grid.Column="1" VerticalAlignment="Stretch">
+        <StackPanel Grid.Column="1" VerticalAlignment="Center">
             <TextBlock Text="{x:Bind Item.Title, Mode=OneWay}"
                        Style="{StaticResource BodyStrongTextBlockStyle}"
                        TextTrimming="CharacterEllipsis"
-                       VerticalAlignment="Center"
                        MaxLines="1"/>
             <TextBlock Text="{x:Bind Item.Caption, Mode=OneWay}"
-                       Visibility="{x:Bind GetCaptionVisibility(Item.Caption), Mode=OneWay}"
+                       Visibility="{x:Bind GetCaptionVisibility(Item), Mode=OneWay}"
                        Style="{StaticResource CaptionTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        TextTrimming="CharacterEllipsis"
