@@ -34,6 +34,8 @@ namespace Moonrise
     {
         public static MainWindow? Instance { get; private set; }
         private readonly ISettingsService _settings = App.Services.GetRequiredService<ISettingsService>();
+        private readonly ILibraryService _library = App.Services.GetRequiredService<ILibraryService>();
+        private int _searchVersion = 0;
         private PixelShaderEffect<BackgroundShader>? _shaderEffect;
         private CancellationTokenSource? _shaderFadeCts;
         private bool _isLightTheme;
@@ -106,6 +108,8 @@ namespace Moonrise
                 _offscreen?.Dispose();
                 _offscreen = null;
                 _shaderEffect = null;
+
+                _library.LibraryChanging -= OnLibraryChanging;
             };
 
             if (Content is FrameworkElement rootElement)
@@ -225,7 +229,20 @@ namespace Moonrise
                 }
             };
 
+            _library.LibraryChanging += OnLibraryChanging;
+
             NavView.SelectedItem = NavView.MenuItems[0];
+        }
+
+        private void OnLibraryChanging()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                _searchVersion++;
+                TitleBarSearchBox.Text = string.Empty;
+                SearchResultsList.Results = [];
+                SearchResultsPanel.Visibility = Visibility.Collapsed;
+            });
         }
 
         private void UpdateTitleBarTheme(ElementTheme theme)
@@ -508,7 +525,7 @@ namespace Moonrise
 
         public void NavigateToPlayer()
         {
-            if (NavView.SelectedItem != null)
+            if (NavFrame.CurrentSourcePageType != typeof(PlayerPage))
             {
                 NavView.SelectedItem = null;
                 PlayerNavIndicator.Visibility = Visibility.Visible;
@@ -571,6 +588,126 @@ namespace Moonrise
             double reservedLeft = 200;
             double availableForSearch = width - reservedLeft - reservedRight - 16;
             TitleBarSearchBox.Width = Math.Clamp(availableForSearch, 48, 320);
+            UpdateSearchResultsPanelPosition();
+        }
+
+        private void TitleBarSearchBox_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateSearchResultsPanelPosition();
+        }
+
+        private void UpdateSearchResultsPanelPosition()
+        {
+            if (Content is not FrameworkElement root || TitleBarSearchBox.ActualWidth <= 0)
+                return;
+
+            var searchCenter = TitleBarSearchBox
+                .TransformToVisual(root)
+                .TransformPoint(new Point(TitleBarSearchBox.ActualWidth / 2.0, 0));
+
+            double panelWidth = SearchResultsPanel.Width;
+            double left = searchCenter.X - (panelWidth / 2.0);
+            if (root.ActualWidth > panelWidth + 16)
+            {
+                left = Math.Clamp(left, 8, root.ActualWidth - panelWidth - 8);
+            }
+
+            SearchResultsPanel.Margin = new Thickness(left, 52, 0, 0);
+        }
+
+        private void TitleBarSearchBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(TitleBarSearchBox.Text) && SearchResultsList.Results?.Count > 0)
+            {
+                UpdateSearchResultsPanelPosition();
+                SearchResultsPanel.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void TitleBarSearchBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            _searchVersion++;
+            SearchResultsPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private async void TitleBarSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            int version = ++_searchVersion;
+            var query = sender.Text;
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                SearchResultsList.Results = [];
+                SearchResultsPanel.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var results = await Task.Run(() => _library.Search(query, 5).ToList());
+            if (version != _searchVersion)
+                return;
+
+            SearchResultsList.Results = results;
+            UpdateSearchResultsPanelPosition();
+            SearchResultsPanel.Visibility = results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private async void SearchResultsList_ResultClicked(object sender, SearchResult result)
+        {
+            SearchResultsPanel.Visibility = Visibility.Collapsed;
+            NavFrame.Focus(FocusState.Programmatic);
+
+            switch (result.ResultType)
+            {
+                case ResultType.Track:
+                    var track = await Task.Run(() => _library.GetTrack(result.Id));
+                    if (track != null)
+                    {
+                        PlaybackService.Queue.ClearAll();
+                        PlaybackService.PlayTrack(track);
+                    }
+                    break;
+
+                case ResultType.Album:
+                    var album = await Task.Run(() => _library.GetAlbum(result.Id));
+                    if (album != null)
+                    {
+                        NavFrame.Navigate(typeof(AlbumItemPage), album);
+                    }
+                    break;
+
+                case ResultType.Artist:
+                    var artist = await Task.Run(() => _library.GetArtist(result.Id));
+                    if (artist != null)
+                    {
+                        NavFrame.Navigate(typeof(ArtistItemPage), artist);
+                    }
+                    break;
+
+                case ResultType.Playlist:
+                    var playlist = await Task.Run(() => _library.GetPlaylist(result.Id));
+                    if (playlist != null)
+                    {
+                        NavFrame.Navigate(typeof(PlaylistItemPage), playlist);
+                    }
+                    break;
+            }
+        }
+
+        private void NavFrame_Navigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            if (e.SourcePageType == typeof(AlbumItemPage) ||
+                e.SourcePageType == typeof(ArtistItemPage) ||
+                e.SourcePageType == typeof(PlaylistItemPage))
+            {
+                ClearNavSelection();
+            }
+        }
+
+        public void ClearNavSelection()
+        {
+            NavView.SelectedItem = null;
+            PlayerNavIndicator.Visibility = Visibility.Collapsed;
+            PlayerNavButton.ClearValue(Button.BackgroundProperty);
         }
 
         private void ToggleFullScreen()
