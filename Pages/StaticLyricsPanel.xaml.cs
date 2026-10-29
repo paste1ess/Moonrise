@@ -38,8 +38,8 @@ namespace Moonrise.Pages
             }
         }
 
-        public Visibility NoLyricsVisibility => Lyrics == "No lyrics found" ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility LyricsVisibility => Lyrics != "No lyrics found" ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility NoLyricsVisibility => Lyrics == Loc.Get("StaticLyricsPanel_NoLyrics.Text") ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility LyricsVisibility => Lyrics != Loc.Get("StaticLyricsPanel_NoLyrics.Text") ? Visibility.Visible : Visibility.Collapsed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -89,8 +89,8 @@ namespace Moonrise.Pages
 
         private string ParseLyrics(string? lyrics)
         {
-            if (string.IsNullOrEmpty(lyrics)) return "No lyrics found";
-            if (lyrics == "[INSTRUMENTAL]") return "This is an instrumental track, no lyrics here";
+            if (string.IsNullOrEmpty(lyrics)) return Loc.Get("StaticLyricsPanel_NoLyrics.Text");
+            if (lyrics == "[INSTRUMENTAL]") return Loc.Get("StaticLyricsPanel_InstrumentalMessage");
             return lyrics;
         }
 

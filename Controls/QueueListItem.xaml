@@ -15,12 +15,12 @@
         </Grid.ColumnDefinitions>
         <Grid.ContextFlyout>
             <MenuFlyout>
-                <MenuFlyoutItem Text="Remove from Queue" Click="RemoveFromQueue_Click">
+                <MenuFlyoutItem x:Uid="QueueListItem_RemoveFromQueue" Click="RemoveFromQueue_Click">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xECC9;"/>
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
-                <MenuFlyoutItem Text="Favorite">
+                <MenuFlyoutItem x:Uid="QueueListItem_Favorite">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xEB51;"/>
                     </MenuFlyoutItem.Icon>

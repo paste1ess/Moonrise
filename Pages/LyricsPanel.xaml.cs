@@ -58,7 +58,7 @@ namespace Moonrise.Pages
                 _ => typeof(SyncedLyricsPanel)
             };
 
-            DropDown.Content = type ?? "Static";
+            DropDown.Content = type == "Synced" ? Loc.Get("LyricsPanel_SyncedLabel") : Loc.Get("LyricsPanel_StaticLabel");
 
             if (ContentFrame.CurrentSourcePageType != pageType)
             {
@@ -88,14 +88,14 @@ namespace Moonrise.Pages
             var currentTrack = playback.CurrentTrack;
             if (currentTrack == null)
             {
-                toast.Show(string.Empty, "No track currently playing", InfoBarSeverity.Warning);
+                toast.Show(string.Empty, Loc.Get("LyricsPanel_NoTrackPlaying"), InfoBarSeverity.Warning);
                 return;
             }
 
             var root = this.XamlRoot ?? ContentFrame.XamlRoot ?? this.Content?.XamlRoot ?? MainWindow.Instance?.Content?.XamlRoot;
             if (root == null) return;
 
-            bool isInitiallySynced = (DropDown.Content as string) == "Synced" || ContentFrame.CurrentSourcePageType == typeof(SyncedLyricsPanel);
+            bool isInitiallySynced = ContentFrame.CurrentSourcePageType == typeof(SyncedLyricsPanel);
             await LyricsDialogHelper.ShowEditLyricsDialogAsync(currentTrack, isInitiallySynced, root, library, webLyrics, toast, type => SelectLyricsType(type, true));
         }
 
@@ -104,7 +104,7 @@ namespace Moonrise.Pages
             var currentTrack = playback.CurrentTrack;
             if (currentTrack == null)
             {
-                toast.Show(string.Empty, "No track currently playing", InfoBarSeverity.Warning);
+                toast.Show(string.Empty, Loc.Get("LyricsPanel_NoTrackPlaying"), InfoBarSeverity.Warning);
                 return;
             }
 
@@ -119,14 +119,14 @@ namespace Moonrise.Pages
             var currentTrack = playback.CurrentTrack;
             if (currentTrack == null)
             {
-                toast.Show(string.Empty, "No track currently playing", InfoBarSeverity.Warning);
+                toast.Show(string.Empty, Loc.Get("LyricsPanel_NoTrackPlaying"), InfoBarSeverity.Warning);
                 return;
             }
 
             var root = this.XamlRoot ?? ContentFrame.XamlRoot ?? this.Content?.XamlRoot ?? MainWindow.Instance?.Content?.XamlRoot;
             if (root == null) return;
 
-            bool isSynced = (DropDown.Content as string) == "Synced" || ContentFrame.CurrentSourcePageType == typeof(SyncedLyricsPanel);
+            bool isSynced = ContentFrame.CurrentSourcePageType == typeof(SyncedLyricsPanel);
             await LyricsDialogHelper.ShowClearLyricsDialogAsync(currentTrack, isSynced, root, library, toast);
         }
     }

@@ -113,17 +113,17 @@
             <SelectorBar x:Name="SecondPanelSelectorBar"
                 SelectionChanged="SecondPanelSelectorBar_SelectionChanged"
                 Grid.Row="0">
-                <SelectorBarItem x:Name="SelectorBarItemQueue" Text="Queue" IsSelected="True">
+                <SelectorBarItem x:Name="SelectorBarItemQueue" x:Uid="PlayerPage_QueueTab" IsSelected="True">
                     <SelectorBarItem.Icon>
                         <FontIcon Glyph="&#xEA42;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
-                <SelectorBarItem x:Name="SelectorBarItemHistory" Text="History">
+                <SelectorBarItem x:Name="SelectorBarItemHistory" x:Uid="PlayerPage_HistoryTab">
                     <SelectorBarItem.Icon>
                         <FontIcon Glyph="&#xE81C;" />
                     </SelectorBarItem.Icon>
                 </SelectorBarItem>
-                <SelectorBarItem x:Name="SelectorBarItemLyrics" Text="Lyrics">
+                <SelectorBarItem x:Name="SelectorBarItemLyrics" x:Uid="PlayerPage_LyricsTab">
                     <SelectorBarItem.Icon>
                         <FontIcon Glyph="&#xED1E;" />
                     </SelectorBarItem.Icon>

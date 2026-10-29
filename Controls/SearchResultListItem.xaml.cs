@@ -155,5 +155,14 @@ namespace Moonrise.Controls
             string.IsNullOrWhiteSpace(item?.Caption) ? Visibility.Collapsed : Visibility.Visible;
 
         public CornerRadius GetRadius(ResultType res) => res == ResultType.Artist ? new(40) : new(4);
+
+        public string FormatResultType(ResultType res) => res switch
+        {
+            ResultType.Track => Loc.Get("SearchResultListItem_TypeTrack"),
+            ResultType.Album => Loc.Get("SearchResultListItem_TypeAlbum"),
+            ResultType.Artist => Loc.Get("SearchResultListItem_TypeArtist"),
+            ResultType.Playlist => Loc.Get("SearchResultListItem_TypePlaylist"),
+            _ => res.ToString()
+        };
     }
 }

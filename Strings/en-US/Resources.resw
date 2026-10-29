@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>  
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" />
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="MainWindow_SearchBox.PlaceholderText" xml:space="preserve">
+        <value>Search</value>
+    </data>
+    <data name="MainWindow_NavHome.Content" xml:space="preserve">
+        <value>Home</value>
+    </data>
+    <data name="MainWindow_NavTracks.Content" xml:space="preserve">
+        <value>Tracks</value>
+    </data>
+    <data name="MainWindow_NavAlbums.Content" xml:space="preserve">
+        <value>Albums</value>
+    </data>
+    <data name="MainWindow_NavArtists.Content" xml:space="preserve">
+        <value>Artists</value>
+    </data>
+    <data name="MainWindow_NavFavorites.Content" xml:space="preserve">
+        <value>Favorites</value>
+    </data>
+    <data name="MainWindow_NavPlaylists.Content" xml:space="preserve">
+        <value>Playlists</value>
+    </data>
+    <data name="QueueListItem_RemoveFromQueue.Text" xml:space="preserve">
+        <value>Remove from Queue</value>
+    </data>
+    <data name="QueueListItem_Favorite.Text" xml:space="preserve">
+        <value>Favorite</value>
+    </data>
+    <data name="SearchResultListItem_TypeTrack" xml:space="preserve">
+        <value>Track</value>
+    </data>
+    <data name="SearchResultListItem_TypeAlbum" xml:space="preserve">
+        <value>Album</value>
+    </data>
+    <data name="SearchResultListItem_TypeArtist" xml:space="preserve">
+        <value>Artist</value>
+    </data>
+    <data name="SearchResultListItem_TypePlaylist" xml:space="preserve">
+        <value>Playlist</value>
+    </data>
+    <data name="TrackListItem_PlayNext.Text" xml:space="preserve">
+        <value>Play next</value>
+    </data>
+    <data name="TrackListItem_PlayLast.Text" xml:space="preserve">
+        <value>Play last</value>
+    </data>
+    <data name="TrackListItem_Favorite.Text" xml:space="preserve">
+        <value>Favorite</value>
+    </data>
+    <data name="TrackListItem_RemoveFromFavorites" xml:space="preserve">
+        <value>Remove from favorites</value>
+    </data>
+    <data name="TrackListItem_OnePlay" xml:space="preserve">
+        <value>1 play</value>
+    </data>
+    <data name="TrackListItem_MultiplePlays" xml:space="preserve">
+        <value>{0} plays</value>
+    </data>
+    <data name="TrackListLabels_TrackInfo.Text" xml:space="preserve">
+        <value>Track info</value>
+    </data>
+    <data name="TrackListLabels_Album.Text" xml:space="preserve">
+        <value>Album</value>
+    </data>
+    <data name="TrackListLabels_Favorite.Text" xml:space="preserve">
+        <value>Favorite</value>
+    </data>
+    <data name="TrackListLabels_Duration.Text" xml:space="preserve">
+        <value>Duration</value>
+    </data>
+    <data name="HomePage_Title.Text" xml:space="preserve">
+        <value>Home</value>
+    </data>
+    <data name="HomePage_Discover.Text" xml:space="preserve">
+        <value>Discover</value>
+    </data>
+    <data name="HomePage_TopArtists.Text" xml:space="preserve">
+        <value>Top Artists</value>
+    </data>
+    <data name="HomePage_TopTracks.Text" xml:space="preserve">
+        <value>Top Tracks</value>
+    </data>
+    <data name="TracksPage_Title.Text" xml:space="preserve">
+        <value>Tracks</value>
+    </data>
+    <data name="TracksPage_Play.Text" xml:space="preserve">
+        <value>Play</value>
+    </data>
+    <data name="TracksPage_Shuffle.Text" xml:space="preserve">
+        <value>Shuffle</value>
+    </data>
+    <data name="AlbumsPage_Title.Text" xml:space="preserve">
+        <value>Albums</value>
+    </data>
+    <data name="AlbumItemPage_Play.Text" xml:space="preserve">
+        <value>Play</value>
+    </data>
+    <data name="AlbumItemPage_Shuffle.Text" xml:space="preserve">
+        <value>Shuffle</value>
+    </data>
+    <data name="ArtistsPage_Title.Text" xml:space="preserve">
+        <value>Artists</value>
+    </data>
+    <data name="ArtistItemPage_Play.Text" xml:space="preserve">
+        <value>Play</value>
+    </data>
+    <data name="ArtistItemPage_Shuffle.Text" xml:space="preserve">
+        <value>Shuffle</value>
+    </data>
+    <data name="FavoritesPage_Title.Text" xml:space="preserve">
+        <value>Favorites</value>
+    </data>
+    <data name="FavoritesPage_Play.Text" xml:space="preserve">
+        <value>Play</value>
+    </data>
+    <data name="FavoritesPage_Shuffle.Text" xml:space="preserve">
+        <value>Shuffle</value>
+    </data>
+    <data name="PlaylistsPage_Title.Text" xml:space="preserve">
+        <value>Playlists</value>
+    </data>
+    <data name="PlaylistItemPage_Play.Text" xml:space="preserve">
+        <value>Play</value>
+    </data>
+    <data name="PlaylistItemPage_Shuffle.Text" xml:space="preserve">
+        <value>Shuffle</value>
+    </data>
+    <data name="PlayerPage_QueueTab.Text" xml:space="preserve">
+        <value>Queue</value>
+    </data>
+    <data name="PlayerPage_HistoryTab.Text" xml:space="preserve">
+        <value>History</value>
+    </data>
+    <data name="PlayerPage_LyricsTab.Text" xml:space="preserve">
+        <value>Lyrics</value>
+    </data>
+    <data name="LyricsPanel_StaticOption.Text" xml:space="preserve">
+        <value>Static</value>
+    </data>
+    <data name="LyricsPanel_SyncedOption.Text" xml:space="preserve">
+        <value>Synced (line by line)</value>
+    </data>
+    <data name="LyricsPanel_EditLyrics.Text" xml:space="preserve">
+        <value>Edit Lyrics</value>
+    </data>
+    <data name="LyricsPanel_MarkInstrumental.Text" xml:space="preserve">
+        <value>Mark as Instrumental</value>
+    </data>
+    <data name="LyricsPanel_ClearLyrics.Text" xml:space="preserve">
+        <value>Clear Lyrics</value>
+    </data>
+    <data name="LyricsPanel_StaticLabel" xml:space="preserve">
+        <value>Static</value>
+    </data>
+    <data name="LyricsPanel_SyncedLabel" xml:space="preserve">
+        <value>Synced</value>
+    </data>
+    <data name="LyricsPanel_NoTrackPlaying" xml:space="preserve">
+        <value>No track currently playing</value>
+    </data>
+    <data name="StaticLyricsPanel_NoLyrics.Text" xml:space="preserve">
+        <value>No lyrics found</value>
+    </data>
+    <data name="StaticLyricsPanel_AddLyrics.Text" xml:space="preserve">
+        <value>Add Lyrics</value>
+    </data>
+    <data name="StaticLyricsPanel_MarkInstrumental.Text" xml:space="preserve">
+        <value>Mark as Instrumental</value>
+    </data>
+    <data name="StaticLyricsPanel_InstrumentalMessage" xml:space="preserve">
+        <value>This is an instrumental track, no lyrics here</value>
+    </data>
+    <data name="SyncedLyricsPanel_NoLyrics.Text" xml:space="preserve">
+        <value>No synced lyrics found</value>
+    </data>
+    <data name="SyncedLyricsPanel_AddLyrics.Text" xml:space="preserve">
+        <value>Add Lyrics</value>
+    </data>
+    <data name="SyncedLyricsPanel_MarkInstrumental.Text" xml:space="preserve">
+        <value>Mark as Instrumental</value>
+    </data>
+    <data name="LyricsDialog_SaveToDisk" xml:space="preserve">
+        <value>Save to disk</value>
+    </data>
+    <data name="LyricsDialog_SyncedLyrics" xml:space="preserve">
+        <value>Synced lyrics</value>
+    </data>
+    <data name="LyricsDialog_EditSyncedSaveDescription" xml:space="preserve">
+        <value>How would you like to edit these synced lyrics?
+This will modify the .lrc file on your system.</value>
+    </data>
+    <data name="LyricsDialog_EditSyncedSessionDescription" xml:space="preserve">
+        <value>How would you like to edit these synced lyrics?
+Changes will only apply temporarily for this session.</value>
+    </data>
+    <data name="LyricsDialog_EditStaticSaveDescription" xml:space="preserve">
+        <value>How would you like to edit these static lyrics?
+This will modify embedded tags in the audio file.</value>
+    </data>
+    <data name="LyricsDialog_EditStaticSessionDescription" xml:space="preserve">
+        <value>How would you like to edit these static lyrics?
+Changes will only apply temporarily for this session.</value>
+    </data>
+    <data name="LyricsDialog_EditTitle" xml:space="preserve">
+        <value>Edit</value>
+    </data>
+    <data name="LyricsDialog_OnlineButton" xml:space="preserve">
+        <value>Online</value>
+    </data>
+    <data name="LyricsDialog_ClipboardButton" xml:space="preserve">
+        <value>Clipboard</value>
+    </data>
+    <data name="LyricsDialog_CancelButton" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="LyricsDialog_SearchingLyrics" xml:space="preserve">
+        <value>Searching lyrics for {0}...</value>
+    </data>
+    <data name="LyricsDialog_NetworkErrorTitle" xml:space="preserve">
+        <value>Network Error</value>
+    </data>
+    <data name="LyricsDialog_NetworkErrorMessage" xml:space="preserve">
+        <value>Failed to connect to the online lyrics service:
+{0}</value>
+    </data>
+    <data name="LyricsDialog_OkButton" xml:space="preserve">
+        <value>OK</value>
+    </data>
+    <data name="LyricsDialog_NotFoundTitle" xml:space="preserve">
+        <value>Not Found</value>
+    </data>
+    <data name="LyricsDialog_NotFoundMessage" xml:space="preserve">
+        <value>No lyrics could be found online for "{0}" by {1}.</value>
+    </data>
+    <data name="LyricsDialog_InstrumentalPromptSave" xml:space="preserve">
+        <value>"{0}" was identified as an instrumental track.
+Would you like to mark it as instrumental and save to file?</value>
+    </data>
+    <data name="LyricsDialog_InstrumentalPromptSession" xml:space="preserve">
+        <value>"{0}" was identified as an instrumental track.
+Would you like to mark it as instrumental for this session?</value>
+    </data>
+    <data name="LyricsDialog_InstrumentalTitle" xml:space="preserve">
+        <value>Instrumental Track</value>
+    </data>
+    <data name="LyricsDialog_InstrumentalConfirmButton" xml:space="preserve">
+        <value>Yes, mark as instrumental</value>
+    </data>
+    <data name="LyricsDialog_MarkedInstrumentalSaveToast" xml:space="preserve">
+        <value>{0} marked as instrumental</value>
+    </data>
+    <data name="LyricsDialog_MarkedInstrumentalSessionToast" xml:space="preserve">
+        <value>Marked as instrumental for this session</value>
+    </data>
+    <data name="LyricsDialog_ErrorTitle" xml:space="preserve">
+        <value>Error</value>
+    </data>
+    <data name="LyricsDialog_SavedLyricsToast" xml:space="preserve">
+        <value>Saved lyrics for {0}</value>
+    </data>
+    <data name="LyricsDialog_UsingLyricsSessionToast" xml:space="preserve">
+        <value>Using lyrics for this session</value>
+    </data>
+    <data name="LyricsDialog_ClipboardEmptyToast" xml:space="preserve">
+        <value>Clipboard contains no text</value>
+    </data>
+    <data name="LyricsDialog_ClipboardErrorTitle" xml:space="preserve">
+        <value>Clipboard error</value>
+    </data>
+    <data name="LyricsDialog_ConfirmTitle" xml:space="preserve">
+        <value>Are these right?</value>
+    </data>
+    <data name="LyricsDialog_ConfirmPrimaryButton" xml:space="preserve">
+        <value>Yes, use these</value>
+    </data>
+    <data name="LyricsDialog_ConfirmCloseButton" xml:space="preserve">
+        <value>No, these are wrong</value>
+    </data>
+    <data name="LyricsDialog_MarkInstrumentalMessage" xml:space="preserve">
+        <value>Are you sure you want to mark "{0}" as instrumental?</value>
+    </data>
+    <data name="LyricsDialog_MarkInstrumentalTitle" xml:space="preserve">
+        <value>Mark as Instrumental</value>
+    </data>
+    <data name="LyricsDialog_YesButton" xml:space="preserve">
+        <value>Yes</value>
+    </data>
+    <data name="LyricsDialog_ClearSyncedMessage" xml:space="preserve">
+        <value>These lyrics will be permanently deleted.
+This will delete the associated .lrc file from your system.</value>
+    </data>
+    <data name="LyricsDialog_ClearStaticMessage" xml:space="preserve">
+        <value>These lyrics will be permanently deleted.
+This will remove the embedded lyrics from the file.</value>
+    </data>
+    <data name="LyricsDialog_ClearTitle" xml:space="preserve">
+        <value>Are you sure?</value>
+    </data>
+    <data name="LyricsDialog_ClearConfirmButton" xml:space="preserve">
+        <value>Yes, delete</value>
+    </data>
+    <data name="LyricsDialog_DeletedLyricsToast" xml:space="preserve">
+        <value>Deleted lyrics for {0}</value>
+    </data>
+    <data name="SettingsPage_Title.Text" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="SettingsPage_LibrarySection.Text" xml:space="preserve">
+        <value>Library</value>
+    </data>
+    <data name="SettingsPage_LibraryFolderCard.Header" xml:space="preserve">
+        <value>Library Folder</value>
+    </data>
+    <data name="SettingsPage_LibraryFolderCard.Description" xml:space="preserve">
+        <value>Sets the library folder to a specific path</value>
+    </data>
+    <data name="SettingsPage_ChooseFolderButton.Content" xml:space="preserve">
+        <value>Choose Folder</value>
+    </data>
+    <data name="SettingsPage_RescanLibraryExpander.Header" xml:space="preserve">
+        <value>Rescan Library</value>
+    </data>
+    <data name="SettingsPage_RescanLibraryExpander.Description" xml:space="preserve">
+        <value>Updates your library by scanning for changes in your files</value>
+    </data>
+    <data name="SettingsPage_RescanButton.Content" xml:space="preserve">
+        <value>Rescan</value>
+    </data>
+    <data name="SettingsPage_HardResetCard.Header" xml:space="preserve">
+        <value>Hard Reset Library</value>
+    </data>
+    <data name="SettingsPage_HardResetCard.Description" xml:space="preserve">
+        <value>Resets the database and re-scans the entire library folder. WILL cause loss of favorites and play counts!</value>
+    </data>
+    <data name="SettingsPage_HardResetButton.Content" xml:space="preserve">
+        <value>Hard Reset</value>
+    </data>
+    <data name="SettingsPage_VisualSection.Text" xml:space="preserve">
+        <value>Visual</value>
+    </data>
+    <data name="SettingsPage_ThemeCard.Header" xml:space="preserve">
+        <value>Theme</value>
+    </data>
+    <data name="SettingsPage_ThemeCard.Description" xml:space="preserve">
+        <value>Select which app theme to display</value>
+    </data>
+    <data name="SettingsPage_ThemeAuto.Content" xml:space="preserve">
+        <value>Auto</value>
+    </data>
+    <data name="SettingsPage_ThemeLight.Content" xml:space="preserve">
+        <value>Light</value>
+    </data>
+    <data name="SettingsPage_ThemeDark.Content" xml:space="preserve">
+        <value>Dark</value>
+    </data>
+    <data name="SettingsPage_MicaPlusExpander.Description" xml:space="preserve">
+        <value>Enables a custom background effect that efficiently takes advantage of your system to create more dynamic visuals</value>
+    </data>
+    <data name="SettingsPage_BatteryKillerCard.Header" xml:space="preserve">
+        <value>Battery Killer Mode</value>
+    </data>
+    <data name="SettingsPage_BatteryKillerCard.Description" xml:space="preserve">
+        <value>Increases animation smoothness to 60 FPS. Not recommended on battery.</value>
+    </data>
+    <data name="SettingsPage_ConnectivitySection.Text" xml:space="preserve">
+        <value>Connectivity</value>
+    </data>
+    <data name="SettingsPage_DiscordCard.Header" xml:space="preserve">
+        <value>Discord Status Integration</value>
+    </data>
+    <data name="SettingsPage_DiscordCard.Description" xml:space="preserve">
+        <value>Allows Discord to display your currently playing song on your profile</value>
+    </data>
+    <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
+        <value>About</value>
+    </data>
+    <data name="SettingsPage_MadeWithLove.Text" xml:space="preserve">
+        <value>Made with ❤️</value>
+    </data>
+    <data name="SettingsPage_CreditsCard.Header" xml:space="preserve">
+        <value>Credits</value>
+    </data>
+    <data name="SettingsPage_CreditsDescription.Text" xml:space="preserve">
+        <value>jamied - most of the dev work</value>
+    </data>
+    <data name="SettingsPage_SourceCard.Header" xml:space="preserve">
+        <value>Source</value>
+    </data>
+    <data name="SettingsPage_GitHubLink.Content" xml:space="preserve">
+        <value>GitHub Repository</value>
+    </data>
+    <data name="LibraryService_DatabaseResetToast" xml:space="preserve">
+        <value>The database has been reset for {0}</value>
+    </data>
+    <data name="LibraryService_ScanningSongsToast" xml:space="preserve">
+        <value>Scanning {0} songs</value>
+    </data>
+    <data name="LibraryService_FinishedScanningToast" xml:space="preserve">
+        <value>Finished scanning {0} songs.</value>
+    </data>
+    <data name="LibraryService_SaveErrorTitle" xml:space="preserve">
+        <value>Save error</value>
+    </data>
+    <data name="LibraryService_FailedUpdateTagsToast" xml:space="preserve">
+        <value>Failed to update file tags: {0}</value>
+    </data>
+    <data name="LibraryService_FailedSaveLrcToast" xml:space="preserve">
+        <value>Failed to save .lrc file: {0}</value>
+    </data>
+    <data name="LibraryService_DeleteErrorTitle" xml:space="preserve">
+        <value>Delete error</value>
+    </data>
+    <data name="LibraryService_FailedClearTagsToast" xml:space="preserve">
+        <value>Failed to clear file tags: {0}</value>
+    </data>
+    <data name="LibraryService_FailedDeleteLrcToast" xml:space="preserve">
+        <value>Failed to delete .lrc file: {0}</value>
+    </data>
+    <data name="PlaybackService_NoTrackPlaying" xml:space="preserve">
+        <value>No track currently playing.</value>
+    </data>
+    <data name="SettingsService_ErrorTitle" xml:space="preserve">
+        <value>Error</value>
+    </data>
+</root>

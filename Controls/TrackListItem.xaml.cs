@@ -210,7 +210,7 @@ namespace Moonrise.Controls
             return $"{(int)duration.TotalMinutes}:{duration.Seconds:D2}";
         }
 
-        public string FormatPlayCount(int playCount) => playCount == 1 ? "1 play" : $"{playCount} plays";
+        public string FormatPlayCount(int playCount) => playCount == 1 ? Loc.Get("TrackListItem_OnePlay") : Loc.Format("TrackListItem_MultiplePlays", playCount);
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -235,7 +235,7 @@ namespace Moonrise.Controls
         private void UpdateFavoriteMenuItemVisuals()
         {
             bool isFav = Song?.IsFavorite ?? false;
-            FavoriteMenuItem.Text = isFav ? "Remove from favorites" : "Favorite";
+            FavoriteMenuItem.Text = isFav ? Loc.Get("TrackListItem_RemoveFromFavorites") : Loc.Get("TrackListItem_Favorite.Text");
             FavoriteIcon.Glyph = isFav ? "\uEB52" : "\uEB51";
             FavoriteIconDisplay.Glyph = isFav ? "\uEB52" : "\uEB51";
 

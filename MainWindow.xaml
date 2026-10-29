@@ -52,8 +52,8 @@
                 </TitleBar.IconSource>
                 <TitleBar.Content>
                     <AutoSuggestBox x:Name="TitleBarSearchBox" 
+                        x:Uid="MainWindow_SearchBox"
                         QueryIcon="Find"
-                        PlaceholderText="Search"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Width="300"
@@ -131,7 +131,7 @@
                 SelectionChanged="NavView_SelectionChanged">
                 <NavigationView.MenuItems>
                     <NavigationViewItem
-                        Content="Home"
+                        x:Uid="MainWindow_NavHome"
                         Tag="home">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE80F;" />
@@ -140,17 +140,17 @@
 
                     <NavigationViewItemSeparator/>
                     
-                    <NavigationViewItem Content="Tracks" Tag="tracks">
+                    <NavigationViewItem x:Uid="MainWindow_NavTracks" Tag="tracks">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE90B;" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="Albums" Tag="albums">
+                    <NavigationViewItem x:Uid="MainWindow_NavAlbums" Tag="albums">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE93C;" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="Artists" Tag="artists">
+                    <NavigationViewItem x:Uid="MainWindow_NavArtists" Tag="artists">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE716;" />
                         </NavigationViewItem.Icon>
@@ -158,12 +158,12 @@
 
                     <NavigationViewItemSeparator/>
 
-                    <NavigationViewItem Content="Favorites" Tag="favorites">
+                    <NavigationViewItem x:Uid="MainWindow_NavFavorites" Tag="favorites">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xE728;" />
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
-                    <NavigationViewItem Content="Playlists" Tag="playlists">
+                    <NavigationViewItem x:Uid="MainWindow_NavPlaylists" Tag="playlists">
                         <NavigationViewItem.Icon>
                             <FontIcon Glyph="&#xF168;" />
                         </NavigationViewItem.Icon>

@@ -115,7 +115,7 @@ namespace Moonrise.Services
                 CurrentTrackArtwork = new BitmapImage(new Uri("ms-appx:///Assets/Placeholder.png"));
                 CurrentTrackBackgroundBitmap = null;
 
-                mediaPlayer.SystemMediaTransportControls.DisplayUpdater.MusicProperties.Title = "No track currently playing.";
+                mediaPlayer.SystemMediaTransportControls.DisplayUpdater.MusicProperties.Title = Loc.Get("PlaybackService_NoTrackPlaying");
                 mediaPlayer.SystemMediaTransportControls.DisplayUpdater.MusicProperties.Artist = "";
                 mediaPlayer.SystemMediaTransportControls.DisplayUpdater.Thumbnail = null;
                 mediaPlayer.SystemMediaTransportControls.DisplayUpdater.Update();

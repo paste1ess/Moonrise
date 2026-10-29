@@ -29,6 +29,7 @@ namespace Moonrise
         /// </summary>
         public App()
         {
+            Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = "nl-NL";
             InitializeComponent();
         }
 

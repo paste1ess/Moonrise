@@ -145,7 +145,7 @@ namespace Moonrise.Services
                 dbService = new DbService(Path.Combine(path, "moonrise.db"));
                 dbService.ResetDb();
                 art.ClearCache();
-                toast.Show(string.Empty, "The database has been reset for " + path, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
+                toast.Show(string.Empty, Loc.Format("LibraryService_DatabaseResetToast", path), Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
                 await ScanFolder(libraryPath);
                 LibraryChanged?.Invoke();
             }));
@@ -176,7 +176,7 @@ namespace Moonrise.Services
 
         public async Task ScanFolder(string folderPath)
         {
-            using var toastHandle = toast.ShowProgress(string.Empty, "Scanning 0 songs", isIndeterminate: true, isClosable: true);
+            using var toastHandle = toast.ShowProgress(string.Empty, Loc.Format("LibraryService_ScanningSongsToast", 0), isIndeterminate: true, isClosable: true);
             art.ClearCache();
 
             var allDbTracks = dbService.GetAllTracks(includeUnavailable: true).ToList();
@@ -221,7 +221,7 @@ namespace Moonrise.Services
                         scannedCount++;
                         if (scannedCount % 50 == 0)
                         {
-                            toastHandle.Update(message: $"Scanning {scannedCount} songs");
+                            toastHandle.Update(message: Loc.Format("LibraryService_ScanningSongsToast", scannedCount));
                         }
                         continue;
                     }
@@ -230,7 +230,7 @@ namespace Moonrise.Services
                 filesToParse.Add((absolutePath, relativePath, lastModifiedStr, fileSize, cachedTrack));
             }
 
-            toastHandle.Update(message: $"Scanning {scannedCount} songs");
+            toastHandle.Update(message: Loc.Format("LibraryService_ScanningSongsToast", scannedCount));
 
             var tracksToSave = new ConcurrentBag<Track>();
             var lyricsToSave = new ConcurrentBag<(string TrackId, string Lyrics)>();
@@ -276,7 +276,7 @@ namespace Moonrise.Services
                     int current = Interlocked.Increment(ref scannedCount);
                     if (current % 10 == 0 || current == totalFiles)
                     {
-                        toastHandle.Update(message: $"Scanning {current} songs");
+                        toastHandle.Update(message: Loc.Format("LibraryService_ScanningSongsToast", current));
                     }
                 }
                 return ValueTask.CompletedTask;
@@ -533,7 +533,7 @@ namespace Moonrise.Services
                 }
             }
 
-            toastHandle.Complete($"Finished scanning {scannedCount} songs.");
+            toastHandle.Complete(Loc.Format("LibraryService_FinishedScanningToast", scannedCount));
         }
 
         private (Track?, string?) ParseTrackMetadata(string absolutePath, string relativePath, string lastModified, long fileSize, string trackId, bool isFavorite, DateTime dateAdded, int playCount)
@@ -663,7 +663,7 @@ namespace Moonrise.Services
                                 {
                                     Debug.WriteLine(ex.Message);
                                     task.Dispatcher.TryEnqueue(() =>
-                                        toast.Show("Save error", $"Failed to update file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                        toast.Show(Loc.Get("LibraryService_SaveErrorTitle"), Loc.Format("LibraryService_FailedUpdateTagsToast", ex.Message), Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
                                 }
 
                                 dbService.UpsertLyricsBatch([(trackId, lyrics ?? string.Empty)]);
@@ -686,7 +686,7 @@ namespace Moonrise.Services
                                 {
                                     Debug.WriteLine(ex.Message);
                                     task.Dispatcher.TryEnqueue(() =>
-                                        toast.Show("Save error", $"Failed to save .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                        toast.Show(Loc.Get("LibraryService_SaveErrorTitle"), Loc.Format("LibraryService_FailedSaveLrcToast", ex.Message), Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
                                 }
                             }
                         }
@@ -739,7 +739,7 @@ namespace Moonrise.Services
                                 {
                                     Debug.WriteLine(ex.Message);
                                     task.Dispatcher.TryEnqueue(() =>
-                                        toast.Show("Delete error", $"Failed to clear file tags: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                        toast.Show(Loc.Get("LibraryService_DeleteErrorTitle"), Loc.Format("LibraryService_FailedClearTagsToast", ex.Message), Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
                                 }
 
                                 dbService.UpsertLyricsBatch([(trackId, string.Empty)]);
@@ -758,7 +758,7 @@ namespace Moonrise.Services
                                 {
                                     Debug.WriteLine(ex.Message);
                                     task.Dispatcher.TryEnqueue(() =>
-                                        toast.Show("Delete error", $"Failed to delete .lrc file: {ex.Message}", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
+                                        toast.Show(Loc.Get("LibraryService_DeleteErrorTitle"), Loc.Format("LibraryService_FailedDeleteLrcToast", ex.Message), Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error));
                                 }
                             }
                         }

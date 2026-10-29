@@ -19,7 +19,7 @@
             Spacing="16" 
             Visibility="{x:Bind NoLyricsVisibility, Mode=OneWay}">
             <TextBlock 
-                Text="No lyrics found" 
+                x:Uid="StaticLyricsPanel_NoLyrics"
                 Style="{StaticResource BodyLargeTextBlockStyle}" 
                 HorizontalTextAlignment="Center"/>
 
@@ -27,13 +27,13 @@
                 <Button Click="AddLyrics_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE70F;" FontSize="14"/>
-                        <TextBlock Text="Add Lyrics"/>
+                        <TextBlock x:Uid="StaticLyricsPanel_AddLyrics"/>
                     </StackPanel>
                 </Button>
                 <Button Click="MarkInstrumental_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xEC54;" FontSize="14"/>
-                        <TextBlock Text="Mark as Instrumental"/>
+                        <TextBlock x:Uid="StaticLyricsPanel_MarkInstrumental"/>
                     </StackPanel>
                 </Button>
             </StackPanel>

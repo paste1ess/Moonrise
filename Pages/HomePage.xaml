@@ -12,10 +12,10 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,16,24,32">
         <StackPanel Spacing="28">
-            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Home" />
+            <TextBlock x:Uid="HomePage_Title" Style="{StaticResource TitleTextBlockStyle}" />
 
             <StackPanel Spacing="12" Visibility="{x:Bind DiscoverSectionVisibility, Mode=OneWay}">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Discover" />
+                <TextBlock x:Uid="HomePage_Discover" Style="{StaticResource SubtitleTextBlockStyle}" />
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
                     <ItemsControl ItemsSource="{x:Bind DiscoverAlbums, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
@@ -33,7 +33,7 @@
             </StackPanel>
 
             <StackPanel Spacing="12" Visibility="{x:Bind TopArtistsSectionVisibility, Mode=OneWay}">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Top Artists" />
+                <TextBlock x:Uid="HomePage_TopArtists" Style="{StaticResource SubtitleTextBlockStyle}" />
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
                     <ItemsControl ItemsSource="{x:Bind TopArtists, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>
@@ -51,7 +51,7 @@
             </StackPanel>
 
             <StackPanel Spacing="12" Visibility="{x:Bind TopTracksSectionVisibility, Mode=OneWay}">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Top Tracks" />
+                <TextBlock x:Uid="HomePage_TopTracks" Style="{StaticResource SubtitleTextBlockStyle}" />
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
                     <ItemsControl ItemsSource="{x:Bind TopTrackColumns, Mode=OneWay}">
                         <ItemsControl.ItemsPanel>

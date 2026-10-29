@@ -34,7 +34,7 @@
         </StackPanel>
 
         <TextBlock Grid.Column="2"
-                   Text="{x:Bind Item.ResultType, Mode=OneWay}"
+                   Text="{x:Bind FormatResultType(Item.ResultType), Mode=OneWay}"
                    Style="{StaticResource CaptionTextBlockStyle}"
                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                    VerticalAlignment="Center"/>

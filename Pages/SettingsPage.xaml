@@ -16,38 +16,35 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Settings" />
+        <TextBlock x:Uid="SettingsPage_Title" Style="{StaticResource TitleTextBlockStyle}" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Spacing="16" Padding="0,0,0,16">
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Library"/>
+                <TextBlock x:Uid="SettingsPage_LibrarySection" Style="{StaticResource SubtitleTextBlockStyle}"/>
                 <StackPanel Spacing="4">
                     <controls:SettingsCard
-                        Header="Library Folder"
-                        Description="Sets the library folder to a specific path">
+                        x:Uid="SettingsPage_LibraryFolderCard">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE8B7;" />
                         </controls:SettingsCard.HeaderIcon>
                         <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                             <TextBlock Text="{x:Bind _settings.MusicLibraryPath, Mode=OneWay}" VerticalAlignment="Center"/>
-                            <Button Content="Choose Folder" Click="ChooseFolder_Click" VerticalAlignment="Center"/>
+                            <Button x:Uid="SettingsPage_ChooseFolderButton" Click="ChooseFolder_Click" VerticalAlignment="Center"/>
                         </StackPanel>
                     </controls:SettingsCard>
 
                     <controls:SettingsExpander
-                        Header="Rescan Library"
-                        Description="Updates your library by scanning for changes in your files">
+                        x:Uid="SettingsPage_RescanLibraryExpander">
                         <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE8F7;" />
                         </controls:SettingsExpander.HeaderIcon>
-                        <Button x:Name="RescanButton" Content="Rescan" Click="RescanButton_Click"/>
+                        <Button x:Name="RescanButton" x:Uid="SettingsPage_RescanButton" Click="RescanButton_Click"/>
                         <controls:SettingsExpander.Items>
                             <controls:SettingsCard
-                                Header="Hard Reset Library"
-                                Description="Resets the database and re-scans the entire library folder. WILL cause loss of favorites and play counts!">
+                                x:Uid="SettingsPage_HardResetCard">
                                 <controls:SettingsCard.HeaderIcon>
                                     <FontIcon Glyph="&#xE7BA;" />
                                 </controls:SettingsCard.HeaderIcon>
-                                <Button x:Name="ScanButton" Content="Hard Reset" Click="ScanNow_Click"/>
+                                <Button x:Name="ScanButton" x:Uid="SettingsPage_HardResetButton" Click="ScanNow_Click"/>
                             </controls:SettingsCard>
                         </controls:SettingsExpander.Items>
                     </controls:SettingsExpander>
@@ -55,24 +52,23 @@
                     
                 </StackPanel>
 
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Visual"/>
+                <TextBlock x:Uid="SettingsPage_VisualSection" Style="{StaticResource SubtitleTextBlockStyle}"/>
                 <StackPanel Spacing="4">
                     <controls:SettingsCard
-                        Header="Theme"
-                        Description="Select which app theme to display">
+                        x:Uid="SettingsPage_ThemeCard">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE790;" />
                         </controls:SettingsCard.HeaderIcon>
                         <ComboBox x:Name="ThemeComboBox" SelectionChanged="ThemeComboBox_SelectionChanged" MinWidth="150">
-                            <ComboBoxItem Content="Auto" Tag="Default" />
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
+                            <ComboBoxItem x:Uid="SettingsPage_ThemeAuto" Tag="Default" />
+                            <ComboBoxItem x:Uid="SettingsPage_ThemeLight" Tag="Light" />
+                            <ComboBoxItem x:Uid="SettingsPage_ThemeDark" Tag="Dark" />
                         </ComboBox>
                     </controls:SettingsCard>
 
                     <controls:SettingsExpander
+                        x:Uid="SettingsPage_MicaPlusExpander"
                         Header="Mica+"
-                        Description="Enables a custom background effect that efficiently takes advantage of your system to create more dynamic visuals"
                         IsExpanded="{x:Bind _settings.BackgroundShadersEnabled, Mode=OneWay}">
 
                         <controls:SettingsExpander.HeaderIcon>
@@ -84,8 +80,7 @@
                         </controls:SettingsExpander.Content>
 
                         <controls:SettingsExpander.Items>
-                            <controls:SettingsCard Header="Battery Killer Mode"
-                   Description="Increases animation smoothness to 60 FPS. Not recommended on battery.">
+                            <controls:SettingsCard x:Uid="SettingsPage_BatteryKillerCard">
                                 <ToggleSwitch IsOn="{x:Bind _settings.BackgroundShadersBoostFps, Mode=TwoWay}"/>
                             </controls:SettingsCard>
                         </controls:SettingsExpander.Items>
@@ -93,11 +88,10 @@
                     </controls:SettingsExpander>
                 </StackPanel>
 
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Connectivity"/>
+                <TextBlock x:Uid="SettingsPage_ConnectivitySection" Style="{StaticResource SubtitleTextBlockStyle}"/>
                 <StackPanel Spacing="4">
                     <controls:SettingsCard
-                        Header="Discord Status Integration"
-                        Description="Allows Discord to display your currently playing song on your profile">
+                        x:Uid="SettingsPage_DiscordCard">
 
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE704;" />
@@ -109,7 +103,7 @@
                     </controls:SettingsCard>
                 </StackPanel>
 
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="About"/>
+                <TextBlock x:Uid="SettingsPage_AboutSection" Style="{StaticResource SubtitleTextBlockStyle}"/>
                 <controls:SettingsExpander Header="Moonrise (beta) 🌙" Description="v0.2.0">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xEC4F;" />
@@ -117,18 +111,18 @@
 
                     <controls:SettingsExpander.Content>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Center">
-                            <TextBlock Text="Made with ❤️" VerticalAlignment="Center"/>
+                            <TextBlock x:Uid="SettingsPage_MadeWithLove" VerticalAlignment="Center"/>
                         </StackPanel>
                     </controls:SettingsExpander.Content>
 
                     <controls:SettingsExpander.Items>
-                        <controls:SettingsCard Header="Credits">
+                        <controls:SettingsCard x:Uid="SettingsPage_CreditsCard">
                             <controls:SettingsCard.Description>
-                                <TextBlock Text="jamied - most of the dev work" />
+                                <TextBlock x:Uid="SettingsPage_CreditsDescription" />
                             </controls:SettingsCard.Description>
                         </controls:SettingsCard>
-                        <controls:SettingsCard Header="Source">
-                            <HyperlinkButton Content="GitHub Repository" NavigateUri="https://github.com/paste1ess/Moonrise"/>
+                        <controls:SettingsCard x:Uid="SettingsPage_SourceCard">
+                            <HyperlinkButton x:Uid="SettingsPage_GitHubLink" NavigateUri="https://github.com/paste1ess/Moonrise"/>
                         </controls:SettingsCard>
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>

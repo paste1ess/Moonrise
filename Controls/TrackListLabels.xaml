@@ -18,9 +18,9 @@
             <ColumnDefinition Width="60"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="1" Width="40"/>
-        <TextBlock Grid.Column="2" Text="Track info" Style="{StaticResource CaptionTextBlockStyle}"/>
-        <TextBlock Grid.Column="3" Text="Album" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Column="4" Text="Favorite" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
-        <TextBlock Grid.Column="5" Text="Duration" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right"/>
+        <TextBlock Grid.Column="2" x:Uid="TrackListLabels_TrackInfo" Style="{StaticResource CaptionTextBlockStyle}"/>
+        <TextBlock Grid.Column="3" x:Uid="TrackListLabels_Album" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="4" x:Uid="TrackListLabels_Favorite" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="5" x:Uid="TrackListLabels_Duration" Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right"/>
     </Grid>
 </UserControl>

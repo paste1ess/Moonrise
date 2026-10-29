@@ -16,7 +16,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Playlists" />
+        <TextBlock x:Uid="PlaylistsPage_Title" Style="{StaticResource TitleTextBlockStyle}" />
 
         <GridView x:Name="PlaylistGridView"
                   Grid.Row="1"

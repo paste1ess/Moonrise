@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Artists" />
+        <TextBlock x:Uid="ArtistsPage_Title" Style="{StaticResource TitleTextBlockStyle}" />
 
         <GridView x:Name="ArtistGridView"
           Grid.Row="1"

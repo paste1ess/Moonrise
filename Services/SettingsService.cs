@@ -69,7 +69,7 @@ namespace Moonrise.Services
                 File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, AppSettingsContext.Default.AppSettings));
             } catch(Exception ex)
             {
-                _toast.Show("Error", ex.Message, InfoBarSeverity.Error);
+                _toast.Show(Loc.Get("SettingsService_ErrorTitle"), ex.Message, InfoBarSeverity.Error);
             }
             
         }

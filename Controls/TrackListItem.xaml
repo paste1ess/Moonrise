@@ -32,13 +32,13 @@
                 Click="Button_Click">
             <Button.ContextFlyout>
                 <MenuFlyout Opening="MenuFlyout_Opening">
-                    <MenuFlyoutItem Text="Play next" Icon="Import" Click="PlayNext_Click"/>
-                    <MenuFlyoutItem Text="Play last" Click="PlayLast_Click">
+                    <MenuFlyoutItem x:Uid="TrackListItem_PlayNext" Icon="Import" Click="PlayNext_Click"/>
+                    <MenuFlyoutItem x:Uid="TrackListItem_PlayLast" Click="PlayLast_Click">
                         <MenuFlyoutItem.Icon>
                             <FontIcon Glyph="&#xEA52;"/>
                         </MenuFlyoutItem.Icon>
                     </MenuFlyoutItem>
-                    <MenuFlyoutItem x:Name="FavoriteMenuItem" Text="Favorite" Click="Favorite_Click">
+                    <MenuFlyoutItem x:Name="FavoriteMenuItem" x:Uid="TrackListItem_Favorite" Click="Favorite_Click">
                         <MenuFlyoutItem.Icon>
                             <FontIcon x:Name="FavoriteIcon" Glyph="&#xEB51;"/>
                         </MenuFlyoutItem.Icon>

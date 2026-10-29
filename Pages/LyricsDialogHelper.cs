@@ -15,13 +15,13 @@ namespace Moonrise.Pages
 
             var saveToDiskCheckBox = new CheckBox
             {
-                Content = "Save to disk",
+                Content = Loc.Get("LyricsDialog_SaveToDisk"),
                 IsChecked = false
             };
 
             var syncedLyricsCheckBox = new CheckBox
             {
-                Content = "Synced lyrics",
+                Content = Loc.Get("LyricsDialog_SyncedLyrics"),
                 IsChecked = isInitiallySynced
             };
 
@@ -39,14 +39,14 @@ namespace Moonrise.Pages
                 if (isSynced)
                 {
                     descriptionText.Text = isSave
-                        ? "How would you like to edit these synced lyrics?\nThis will modify the .lrc file on your system."
-                        : "How would you like to edit these synced lyrics?\nChanges will only apply temporarily for this session.";
+                        ? Loc.Get("LyricsDialog_EditSyncedSaveDescription")
+                        : Loc.Get("LyricsDialog_EditSyncedSessionDescription");
                 }
                 else
                 {
                     descriptionText.Text = isSave
-                        ? "How would you like to edit these static lyrics?\nThis will modify embedded tags in the audio file."
-                        : "How would you like to edit these static lyrics?\nChanges will only apply temporarily for this session.";
+                        ? Loc.Get("LyricsDialog_EditStaticSaveDescription")
+                        : Loc.Get("LyricsDialog_EditStaticSessionDescription");
                 }
             }
 
@@ -80,11 +80,11 @@ namespace Moonrise.Pages
 
             var dialog = new ContentDialog
             {
-                Title = "Edit",
+                Title = Loc.Get("LyricsDialog_EditTitle"),
                 Content = contentPanel,
-                PrimaryButtonText = "Online",
-                SecondaryButtonText = "Clipboard",
-                CloseButtonText = "Cancel",
+                PrimaryButtonText = Loc.Get("LyricsDialog_OnlineButton"),
+                SecondaryButtonText = Loc.Get("LyricsDialog_ClipboardButton"),
+                CloseButtonText = Loc.Get("LyricsDialog_CancelButton"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot
             };
@@ -95,7 +95,7 @@ namespace Moonrise.Pages
 
             if (result == ContentDialogResult.Primary)
             {
-                using var toastHandle = toast.ShowProgress(string.Empty, $"Searching lyrics for {track.Title}...", isIndeterminate: true, isClosable: true);
+                using var toastHandle = toast.ShowProgress(string.Empty, Loc.Format("LyricsDialog_SearchingLyrics", track.Title), isIndeterminate: true, isClosable: true);
 
                 WebLyricResult? webResult = null;
                 Exception? networkError = null;
@@ -114,9 +114,9 @@ namespace Moonrise.Pages
                 {
                     var errorDialog = new ContentDialog
                     {
-                        Title = "Network Error",
-                        Content = $"Failed to connect to the online lyrics service:\n{networkError.Message}",
-                        CloseButtonText = "OK",
+                        Title = Loc.Get("LyricsDialog_NetworkErrorTitle"),
+                        Content = Loc.Format("LyricsDialog_NetworkErrorMessage", networkError.Message),
+                        CloseButtonText = Loc.Get("LyricsDialog_OkButton"),
                         DefaultButton = ContentDialogButton.Close,
                         XamlRoot = xamlRoot
                     };
@@ -128,9 +128,9 @@ namespace Moonrise.Pages
                 {
                     var notFoundDialog = new ContentDialog
                     {
-                        Title = "Not Found",
-                        Content = $"No lyrics could be found online for \"{track.Title}\" by {track.Artist}.",
-                        CloseButtonText = "OK",
+                        Title = Loc.Get("LyricsDialog_NotFoundTitle"),
+                        Content = Loc.Format("LyricsDialog_NotFoundMessage", track.Title, track.Artist),
+                        CloseButtonText = Loc.Get("LyricsDialog_OkButton"),
                         DefaultButton = ContentDialogButton.Close,
                         XamlRoot = xamlRoot
                     };
@@ -141,15 +141,15 @@ namespace Moonrise.Pages
                 if (webResult.IsInstrumental)
                 {
                     var promptText = saveToDisk
-                        ? $"\"{track.Title}\" was identified as an instrumental track.\nWould you like to mark it as instrumental and save to file?"
-                        : $"\"{track.Title}\" was identified as an instrumental track.\nWould you like to mark it as instrumental for this session?";
+                        ? Loc.Format("LyricsDialog_InstrumentalPromptSave", track.Title)
+                        : Loc.Format("LyricsDialog_InstrumentalPromptSession", track.Title);
 
                     var instrumentalDialog = new ContentDialog
                     {
-                        Title = "Instrumental Track",
+                        Title = Loc.Get("LyricsDialog_InstrumentalTitle"),
                         Content = promptText,
-                        PrimaryButtonText = "Yes, mark as instrumental",
-                        CloseButtonText = "Cancel",
+                        PrimaryButtonText = Loc.Get("LyricsDialog_InstrumentalConfirmButton"),
+                        CloseButtonText = Loc.Get("LyricsDialog_CancelButton"),
                         DefaultButton = ContentDialogButton.Primary,
                         XamlRoot = xamlRoot
                     };
@@ -161,12 +161,14 @@ namespace Moonrise.Pages
                         {
                             await library.SetLyrics(track.Id, "[INSTRUMENTAL]", isSynced: false, saveToDisk: saveToDisk);
                             onSelectType?.Invoke("Static");
-                            var message = saveToDisk ? $"{track.Title} marked as instrumental" : "Marked as instrumental for this session";
+                            var message = saveToDisk
+                                ? Loc.Format("LyricsDialog_MarkedInstrumentalSaveToast", track.Title)
+                                : Loc.Get("LyricsDialog_MarkedInstrumentalSessionToast");
                             toast.Show(string.Empty, message, InfoBarSeverity.Informational);
                         }
                         catch (Exception ex)
                         {
-                            toast.Show("Error", ex.Message, InfoBarSeverity.Error);
+                            toast.Show(Loc.Get("LyricsDialog_ErrorTitle"), ex.Message, InfoBarSeverity.Error);
                         }
                     }
                     return;
@@ -190,22 +192,24 @@ namespace Moonrise.Pages
                         {
                             await library.SetLyrics(track.Id, text.Trim(), isSynced: targetSynced, saveToDisk: saveToDisk);
                             onSelectType?.Invoke(targetSynced ? "Synced" : "Static");
-                            var message = saveToDisk ? $"Saved lyrics for {track.Title}" : "Using lyrics for this session";
+                            var message = saveToDisk
+                                ? Loc.Format("LyricsDialog_SavedLyricsToast", track.Title)
+                                : Loc.Get("LyricsDialog_UsingLyricsSessionToast");
                             toast.Show(string.Empty, message, InfoBarSeverity.Success);
                         }
                         else
                         {
-                            toast.Show(string.Empty, "Clipboard contains no text", InfoBarSeverity.Warning);
+                            toast.Show(string.Empty, Loc.Get("LyricsDialog_ClipboardEmptyToast"), InfoBarSeverity.Warning);
                         }
                     }
                     else
                     {
-                        toast.Show(string.Empty, "Clipboard contains no text", InfoBarSeverity.Warning);
+                        toast.Show(string.Empty, Loc.Get("LyricsDialog_ClipboardEmptyToast"), InfoBarSeverity.Warning);
                     }
                 }
                 catch (Exception ex)
                 {
-                    toast.Show("Clipboard error", ex.Message, InfoBarSeverity.Error);
+                    toast.Show(Loc.Get("LyricsDialog_ClipboardErrorTitle"), ex.Message, InfoBarSeverity.Error);
                 }
             }
         }
@@ -229,10 +233,10 @@ namespace Moonrise.Pages
 
             var confirmDialog = new ContentDialog
             {
-                Title = "Are these right?",
+                Title = Loc.Get("LyricsDialog_ConfirmTitle"),
                 Content = scroller,
-                PrimaryButtonText = "Yes, use these",
-                CloseButtonText = "No, these are wrong",
+                PrimaryButtonText = Loc.Get("LyricsDialog_ConfirmPrimaryButton"),
+                CloseButtonText = Loc.Get("LyricsDialog_ConfirmCloseButton"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot
             };
@@ -244,12 +248,14 @@ namespace Moonrise.Pages
                 {
                     await library.SetLyrics(track.Id, lyrics, isSynced: isSynced, saveToDisk: saveToDisk);
                     onSelectType?.Invoke(isSynced ? "Synced" : "Static");
-                    var message = saveToDisk ? $"Saved lyrics for {track.Title}" : "Using lyrics for this session";
+                    var message = saveToDisk
+                        ? Loc.Format("LyricsDialog_SavedLyricsToast", track.Title)
+                        : Loc.Get("LyricsDialog_UsingLyricsSessionToast");
                     toast.Show(string.Empty, message, InfoBarSeverity.Success);
                 }
                 catch (Exception ex)
                 {
-                    toast.Show("Error", ex.Message, InfoBarSeverity.Error);
+                    toast.Show(Loc.Get("LyricsDialog_ErrorTitle"), ex.Message, InfoBarSeverity.Error);
                 }
             }
         }
@@ -260,13 +266,13 @@ namespace Moonrise.Pages
 
             var saveToDiskCheckBox = new CheckBox
             {
-                Content = "Save to disk",
+                Content = Loc.Get("LyricsDialog_SaveToDisk"),
                 IsChecked = false
             };
 
             var messageText = new TextBlock
             {
-                Text = $"Are you sure you want to mark \"{track.Title}\" as instrumental?",
+                Text = Loc.Format("LyricsDialog_MarkInstrumentalMessage", track.Title),
                 TextWrapping = TextWrapping.Wrap,
                 Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
             };
@@ -283,10 +289,10 @@ namespace Moonrise.Pages
 
             var dialog = new ContentDialog
             {
-                Title = "Mark as Instrumental",
+                Title = Loc.Get("LyricsDialog_MarkInstrumentalTitle"),
                 Content = contentPanel,
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "Cancel",
+                PrimaryButtonText = Loc.Get("LyricsDialog_YesButton"),
+                CloseButtonText = Loc.Get("LyricsDialog_CancelButton"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = xamlRoot
             };
@@ -299,12 +305,14 @@ namespace Moonrise.Pages
                 {
                     await library.SetLyrics(track.Id, "[INSTRUMENTAL]", isSynced: false, saveToDisk: saveToDisk);
                     onSelectType?.Invoke("Static");
-                    var message = saveToDisk ? $"{track.Title} marked as instrumental" : "Marked as instrumental for this session";
+                    var message = saveToDisk
+                        ? Loc.Format("LyricsDialog_MarkedInstrumentalSaveToast", track.Title)
+                        : Loc.Get("LyricsDialog_MarkedInstrumentalSessionToast");
                     toast.Show(string.Empty, message, InfoBarSeverity.Informational);
                 }
                 catch (Exception ex)
                 {
-                    toast.Show("Error", ex.Message, InfoBarSeverity.Error);
+                    toast.Show(Loc.Get("LyricsDialog_ErrorTitle"), ex.Message, InfoBarSeverity.Error);
                 }
             }
         }
@@ -316,18 +324,18 @@ namespace Moonrise.Pages
             var messageText = new TextBlock
             {
                 Text = isSynced
-                    ? "These lyrics will be permanently deleted.\nThis will delete the associated .lrc file from your system."
-                    : "These lyrics will be permanently deleted.\nThis will remove the embedded lyrics from the file.",
+                    ? Loc.Get("LyricsDialog_ClearSyncedMessage")
+                    : Loc.Get("LyricsDialog_ClearStaticMessage"),
                 TextWrapping = TextWrapping.Wrap,
                 Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
             };
 
             var dialog = new ContentDialog
             {
-                Title = "Are you sure?",
+                Title = Loc.Get("LyricsDialog_ClearTitle"),
                 Content = messageText,
-                PrimaryButtonText = "Yes, delete",
-                CloseButtonText = "Cancel",
+                PrimaryButtonText = Loc.Get("LyricsDialog_ClearConfirmButton"),
+                CloseButtonText = Loc.Get("LyricsDialog_CancelButton"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = xamlRoot
             };
@@ -338,11 +346,11 @@ namespace Moonrise.Pages
                 try
                 {
                     await library.ClearLyrics(track.Id, isSynced: isSynced, saveToDisk: true);
-                    toast.Show(string.Empty, $"Deleted lyrics for {track.Title}", InfoBarSeverity.Informational);
+                    toast.Show(string.Empty, Loc.Format("LyricsDialog_DeletedLyricsToast", track.Title), InfoBarSeverity.Informational);
                 }
                 catch (Exception ex)
                 {
-                    toast.Show("Error", ex.Message, InfoBarSeverity.Error);
+                    toast.Show(Loc.Get("LyricsDialog_ErrorTitle"), ex.Message, InfoBarSeverity.Error);
                 }
             }
         }
