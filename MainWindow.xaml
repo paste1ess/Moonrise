@@ -169,7 +169,7 @@
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
                 </NavigationView.MenuItems>
-                <Frame x:Name="NavFrame" CacheSize="0" />
+                <Frame x:Name="NavFrame" CacheSize="0" Navigated="NavFrame_Navigated" />
             </NavigationView>
         </Grid>
         <Border

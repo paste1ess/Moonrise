@@ -510,7 +510,7 @@ namespace Moonrise
 
         public void NavigateToPlayer()
         {
-            if (NavView.SelectedItem != null)
+            if (NavFrame.CurrentSourcePageType != typeof(PlayerPage))
             {
                 NavView.SelectedItem = null;
                 PlayerNavIndicator.Visibility = Visibility.Visible;
@@ -670,6 +670,23 @@ namespace Moonrise
                     }
                     break;
             }
+        }
+
+        private void NavFrame_Navigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            if (e.SourcePageType == typeof(AlbumItemPage) ||
+                e.SourcePageType == typeof(ArtistItemPage) ||
+                e.SourcePageType == typeof(PlaylistItemPage))
+            {
+                ClearNavSelection();
+            }
+        }
+
+        public void ClearNavSelection()
+        {
+            NavView.SelectedItem = null;
+            PlayerNavIndicator.Visibility = Visibility.Collapsed;
+            PlayerNavButton.ClearValue(Button.BackgroundProperty);
         }
 
         private void ToggleFullScreen()
