@@ -108,6 +108,8 @@ namespace Moonrise
                 _offscreen?.Dispose();
                 _offscreen = null;
                 _shaderEffect = null;
+
+                _library.LibraryChanging -= OnLibraryChanging;
             };
 
             if (Content is FrameworkElement rootElement)
@@ -227,7 +229,20 @@ namespace Moonrise
                 }
             };
 
+            _library.LibraryChanging += OnLibraryChanging;
+
             NavView.SelectedItem = NavView.MenuItems[0];
+        }
+
+        private void OnLibraryChanging()
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                _searchVersion++;
+                TitleBarSearchBox.Text = string.Empty;
+                SearchResultsList.Results = [];
+                SearchResultsPanel.Visibility = Visibility.Collapsed;
+            });
         }
 
         private void UpdateTitleBarTheme(ElementTheme theme)
