@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using Moonrise.Models;
@@ -12,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -27,11 +29,15 @@ namespace Moonrise.Pages
         [ObservableProperty]
         public partial bool Active { get; set; }
 
-        public EvaluatedLyric(string text, TimeSpan timestamp, bool active = false)
+        [ObservableProperty]
+        public partial bool Passed { get; set; }
+
+        public EvaluatedLyric(string text, TimeSpan timestamp, bool active = false, bool passed = false)
         {
             Text = text;
             Timestamp = timestamp;
             Active = active;
+            Passed = passed;
         }
     }
 
@@ -109,12 +115,15 @@ namespace Moonrise.Pages
             return false;
         }
 
+        private int _scrollVersion = 0;
+
         private void LyricScroller_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (_isUpdatingMargin) return;
             _isUpdatingMargin = true;
-            var halfHeight = e.NewSize.Height / 2;
+            var halfHeight = Math.Floor(e.NewSize.Height / 2);
             LyricRepeater.Margin = new Thickness(32, halfHeight, 32, halfHeight);
+            LyricRepeater.Width = Math.Max(0, e.NewSize.Width - 64);
             _isUpdatingMargin = false;
         }
 
@@ -173,54 +182,7 @@ namespace Moonrise.Pages
         {
             if (e.PropertyName == nameof(IPlaybackService.CurrentTrackTime))
             {
-                var currentTime = Playback.CurrentTrackTime + TimeSpan.FromSeconds(0.35);
-                var activeChanged = false;
-                int activeIndex = -1;
-
-                for (int i = 0; i < DisplayLyrics.Count; i++)
-                {
-                    var lyric = DisplayLyrics[i];
-                    var nextLyric = i + 1 < DisplayLyrics.Count ? DisplayLyrics[i + 1] : null;
-
-                    bool isActive = false;
-                    if (lyric.Timestamp <= currentTime)
-                    {
-                        if (nextLyric == null) isActive = true;
-                        else if (nextLyric.Timestamp > currentTime) isActive = true;
-                    }
-
-                    if (lyric.Active != isActive)
-                    {
-                        lyric.Active = isActive;
-                        activeChanged = true;
-                    }
-
-                    if (isActive)
-                    {
-                        activeIndex = i;
-                    }
-                }
-
-                if (activeChanged && activeIndex != -1)
-                {
-                    var capturedIndex = activeIndex;
-                    _ = Task.Delay(50).ContinueWith(_ => DispatcherQueue.TryEnqueue(() =>
-                    {
-                        var element = LyricRepeater.TryGetElement(capturedIndex);
-                        if (element != null)
-                        {
-                            element.StartBringIntoView(new BringIntoViewOptions
-                            {
-                                VerticalAlignmentRatio = 0.5,
-                                AnimationDesired = true
-                            });
-                        }
-                        else
-                        {
-                            LyricScroller.ChangeView(null, capturedIndex * 96, null);
-                        }
-                    }));
-                }
+                UpdateLyricsState();
             }
             else if (e.PropertyName == nameof(IPlaybackService.CurrentTrack))
             {
@@ -230,6 +192,75 @@ namespace Moonrise.Pages
                     HasSyncedLyrics = CheckHasSyncedLyrics(Playback.CurrentTrack, library);
                     _ = GetSyncedLyrics(library.PathToAbsolute(Playback.CurrentTrack?.FilePath ?? ""));
                 });
+            }
+        }
+
+        private void UpdateLyricsState()
+        {
+            var currentTime = Playback.CurrentTrackTime + TimeSpan.FromSeconds(0.35);
+            var activeChanged = false;
+            int activeIndex = -1;
+
+            for (int i = 0; i < DisplayLyrics.Count; i++)
+            {
+                var lyric = DisplayLyrics[i];
+                var nextLyric = i + 1 < DisplayLyrics.Count ? DisplayLyrics[i + 1] : null;
+
+                bool isActive = false;
+                bool isPassed = false;
+                if (lyric.Timestamp <= currentTime)
+                {
+                    if (nextLyric == null || nextLyric.Timestamp > currentTime)
+                        isActive = true;
+                    else
+                        isPassed = true;
+                }
+
+                if (lyric.Passed != isPassed)
+                {
+                    lyric.Passed = isPassed;
+                }
+
+                if (lyric.Active != isActive)
+                {
+                    lyric.Active = isActive;
+                    activeChanged = true;
+                }
+
+                if (isActive)
+                {
+                    activeIndex = i;
+                }
+            }
+
+            if (activeChanged && activeIndex != -1)
+            {
+                var capturedIndex = activeIndex;
+                var version = ++_scrollVersion;
+                _ = Task.Delay(50).ContinueWith(_ => DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (version != _scrollVersion || capturedIndex >= DisplayLyrics.Count)
+                        return;
+
+                    if (LyricRepeater.TryGetElement(capturedIndex) is FrameworkElement element && element.ActualHeight > 0)
+                    {
+                        var point = element.TransformToVisual(LyricRepeater).TransformPoint(new Windows.Foundation.Point(0, 0));
+                        double targetY = Math.Max(0, point.Y + (element.ActualHeight / 2.0));
+                        LyricScroller.ScrollTo(0, targetY);
+                    }
+                    else
+                    {
+                        LyricScroller.ScrollTo(0, capturedIndex * 96);
+                    }
+                }));
+            }
+        }
+
+        private void LyricScroller_ScrollAnimationStarting(ScrollView sender, ScrollingScrollAnimationStartingEventArgs e)
+        {
+            if (e.Animation is Microsoft.UI.Composition.Vector3KeyFrameAnimation stockAnimation)
+            {
+                stockAnimation.Duration = TimeSpan.FromMilliseconds(500);
             }
         }
 
@@ -299,10 +330,7 @@ namespace Moonrise.Pages
 
             DispatcherQueue.TryEnqueue(() =>
             {
-                DisplayLyrics.Clear();
-                foreach (var l in lyrics)
-                    DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp));
-                HasSyncedLyrics = lyrics.Count > 0;
+                SetDisplayLyrics(lyrics);
             });
         }
 
@@ -324,9 +352,28 @@ namespace Moonrise.Pages
                 }
             }
 
+            SetDisplayLyrics(lyrics);
+        }
+
+        private void SetDisplayLyrics(List<Lyric> lyrics)
+        {
             DisplayLyrics.Clear();
-            foreach (var l in lyrics)
-                DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp));
+            var currentTime = Playback.CurrentTrackTime + TimeSpan.FromSeconds(0.35);
+            for (int i = 0; i < lyrics.Count; i++)
+            {
+                var l = lyrics[i];
+                var next = i + 1 < lyrics.Count ? lyrics[i + 1] : null;
+                bool isActive = false;
+                bool isPassed = false;
+                if (l.Timestamp <= currentTime)
+                {
+                    if (next == null || next.Timestamp > currentTime)
+                        isActive = true;
+                    else
+                        isPassed = true;
+                }
+                DisplayLyrics.Add(new EvaluatedLyric(l.Text, l.Timestamp, isActive, isPassed));
+            }
             HasSyncedLyrics = lyrics.Count > 0;
         }
 
@@ -350,6 +397,11 @@ namespace Moonrise.Pages
             if (root == null) return;
 
             await LyricsDialogHelper.ShowMarkInstrumentalDialogAsync(currentTrack, root, library, toast);
+        }
+
+        private void LyricScroller_Loaded(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

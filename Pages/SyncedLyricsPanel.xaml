@@ -37,8 +37,17 @@
             </StackPanel>
         </StackPanel>
 
-        <ScrollViewer x:Name="LyricScroller" VerticalScrollBarVisibility="Hidden" SizeChanged="LyricScroller_SizeChanged" Visibility="{x:Bind LyricsVisibility, Mode=OneWay}">
-            <ItemsRepeater x:Name="LyricRepeater" ItemsSource="{x:Bind DisplayLyrics, Mode=OneWay}" HorizontalAlignment="Left">
+        <ScrollView x:Name="LyricScroller"
+                    ContentOrientation="Vertical"
+                    HorizontalScrollMode="Disabled"
+                    VerticalScrollBarVisibility="Hidden"
+                    SizeChanged="LyricScroller_SizeChanged"
+                    ScrollAnimationStarting="LyricScroller_ScrollAnimationStarting"
+                    Visibility="{x:Bind LyricsVisibility, Mode=OneWay}">
+            <ItemsRepeater x:Name="LyricRepeater"
+                           ItemsSource="{x:Bind DisplayLyrics, Mode=OneWay}"
+                           HorizontalAlignment="Stretch"
+                           VerticalCacheLength="100">
                 <ItemsRepeater.Layout>
                     <StackLayout Spacing="48" />
                 </ItemsRepeater.Layout>
@@ -46,10 +55,11 @@
                     <DataTemplate x:DataType="local:EvaluatedLyric">
                         <controls:LyricItem 
                             Text="{x:Bind Text}" 
-                            Active="{x:Bind Active, Mode=OneWay}" />
+                            Active="{x:Bind Active, Mode=OneWay}"
+                            Passed="{x:Bind Passed, Mode=OneWay}" />
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
-        </ScrollViewer>
+        </ScrollView>
     </Grid>
 </Page>

@@ -7,6 +7,7 @@
     xmlns:local="using:Moonrise.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Loaded="UserControl_Loaded"
     SizeChanged="UserControl_SizeChanged"
     mc:Ignorable="d">
     <UserControl.Resources>
@@ -22,14 +23,6 @@
             <DoubleAnimation Storyboard.TargetName="LyricScale"
                              Storyboard.TargetProperty="ScaleY"
                              To="1.25"
-                             Duration="0:0:0.35">
-                <DoubleAnimation.EasingFunction>
-                    <ExponentialEase EasingMode="EaseOut" Exponent="5" />
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="TextObject"
-                             Storyboard.TargetProperty="Opacity"
-                             To="1.0"
                              Duration="0:0:0.35">
                 <DoubleAnimation.EasingFunction>
                     <ExponentialEase EasingMode="EaseOut" Exponent="5" />
@@ -53,30 +46,31 @@
                     <ExponentialEase EasingMode="EaseOut" Exponent="5" />
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <DoubleAnimation Storyboard.TargetName="TextObject"
-                             Storyboard.TargetProperty="Opacity"
-                             To="0.4"
-                             Duration="0:0:0.35">
-                <DoubleAnimation.EasingFunction>
-                    <ExponentialEase EasingMode="EaseOut" Exponent="5" />
-                </DoubleAnimation.EasingFunction>
-            </DoubleAnimation>
         </Storyboard>
     </UserControl.Resources>
 
-    <Grid>
-        <TextBlock x:Name="TextObject"
-                   Text="{x:Bind Text, Mode=OneWay}"
-                   Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                   FontSize="40"
-                   Opacity="0.4"
-                   FontWeight="SemiBold"
-                   HorizontalAlignment="Left"
-                   RenderTransformOrigin="0,0.5"
-                   TextWrapping="Wrap">
-            <TextBlock.RenderTransform>
-                <ScaleTransform x:Name="LyricScale" />
-            </TextBlock.RenderTransform>
-        </TextBlock>
+    <Grid x:Name="RootGrid" RenderTransformOrigin="0,0.5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RenderTransform>
+            <ScaleTransform x:Name="LyricScale" />
+        </Grid.RenderTransform>
+        <Border x:Name="SourceWrapper" Grid.Column="0">
+            <Border x:Name="TextSourceHost"
+                    Padding="24"
+                    Margin="-24"
+                    SizeChanged="TextSourceHost_SizeChanged">
+                <TextBlock x:Name="TextObject"
+                           Text="{x:Bind Text, Mode=OneWay}"
+                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                           FontSize="40"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Left"
+                           TextWrapping="Wrap" />
+            </Border>
+        </Border>
+        <Canvas x:Name="BlurHost" Grid.Column="0" Margin="-24" IsHitTestVisible="False" />
     </Grid>
 </UserControl>

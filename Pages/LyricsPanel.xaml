@@ -9,8 +9,22 @@
     mc:Ignorable="d">
 
     <Grid>
-        <StackPanel Margin="0, 16, 16, 0" Spacing="8" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Canvas.ZIndex="2">
-            <DropDownButton x:Name="DropDown">
+        <StackPanel 
+            Margin="0, 16, 16, 0" 
+            Spacing="0" 
+            Background="{ThemeResource ControlFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+            Translation="0, 0, 0"
+            BorderThickness="1"
+            Orientation="Horizontal" 
+            HorizontalAlignment="Right" 
+            VerticalAlignment="Top"
+            CornerRadius="8"
+            Canvas.ZIndex="2">
+            <StackPanel.Shadow>
+                <ThemeShadow />
+            </StackPanel.Shadow>
+            <DropDownButton x:Name="DropDown" Background="Transparent" BorderBrush="Transparent" CornerRadius="8,4,4,8">
                 <DropDownButton.Flyout>
                     <MenuFlyout Placement="Bottom">
                         <MenuFlyoutItem x:Uid="LyricsPanel_StaticOption" Click="Static_Click"/>
@@ -18,7 +32,8 @@
                     </MenuFlyout>
                 </DropDownButton.Flyout>
             </DropDownButton>
-            <Button Width="32" Height="32" Padding="0">
+            <AppBarSeparator />
+            <Button Width="32" Height="32" Padding="0" CornerRadius="4,8,8,4" Style="{StaticResource SubtleButtonStyle}">
                 <Button.Flyout>
                     <MenuFlyout Placement="BottomEdgeAlignedRight">
                         <MenuFlyoutItem x:Uid="LyricsPanel_EditLyrics" Click="EditLyrics_Click">

@@ -193,10 +193,10 @@
     <value>Ontdekken</value>
   </data>
   <data name="HomePage_TopArtists.Text" xml:space="preserve">
-    <value>Populaire Artiesten</value>
+    <value>Populaire artiesten</value>
   </data>
   <data name="HomePage_TopTracks.Text" xml:space="preserve">
-    <value>Populaire Nummers</value>
+    <value>Populaire nummers</value>
   </data>
   <data name="TracksPage_Title.Text" xml:space="preserve">
     <value>Tracks</value>
@@ -493,7 +493,7 @@ Hiermee wordt de ingesloten songtekst uit het bestand verwijderd.</value>
     <value>About</value>
   </data>
   <data name="SettingsPage_MadeWithLove.Text" xml:space="preserve">
-    <value>Made with ❤️</value>
+    <value>Gemaakte met ❤️</value>
   </data>
   <data name="SettingsPage_CreditsCard.Header" xml:space="preserve">
     <value>Credits</value>
